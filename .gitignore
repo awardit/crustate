@@ -1,0 +1,8 @@
+.DS_Store
+.vscode
+*.code-workspace
+/.nyc_output
+/coverage
+dist
+node_modules
+package-lock.json
