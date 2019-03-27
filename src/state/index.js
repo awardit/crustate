@@ -209,6 +209,7 @@ export function newStateInstance<T, I>(supervisor: Supervisor, state: State<T, I
 
   nested[stateName] = instance;
 
+  // TODO: Should the root really be dirty for this? Technically yes? But with React?
   stateRoot.setDirty(path);
 
   if(messages.length > 0) {

@@ -33,11 +33,14 @@ const babelPlugin = babel({
   ]
 });
 
-export default {
-  input:  "src/index.js",
+export default [
+  { input: "src/index.js", output: "dist/index.js" },
+  { input: "react/src/index.js", output: "react/dist/index.js" },
+].map(({ input, output }) => ({
+  input,
   output: [
     {
-      file:      "dist/index.js",
+      file:      output,
       sourcemap: true,
       format:    "es",
     },
@@ -53,4 +56,4 @@ export default {
     isProduction ? gzip({ level: 9 }) : null,
   ],
   external: ["react", "react-dom"],
-};
+}));
