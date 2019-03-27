@@ -7,11 +7,17 @@ with controlled side-effects through messaging.
 
 ## State
 
+Sates use messages to communicate with other state-instances and the runtime.
+
 ### Message
 
+```javascript
+type Message = { tag: string };
+```
+
 A message is just plain data, a JavaScript object, with two mandatory properties
-named `kind`. The `kind` is supposed to work as a discriminator, informing the
-receivers of what kind of message it is, what possible data it contains, and
+named `tag`. The `tag` is supposed to work as a discriminator, informing the
+receivers of what type of message it is, what possible data it contains, and
 what it means.
 
 Note that these messages are to be completely serializable by `JSON.stringify`
@@ -22,14 +28,19 @@ and other features.
 const ADD = "add";
 
 let msg = {
-  tag: ADD,
+  tag:   ADD,
+  value: 2,
 };
 ```
 
 ### Receive
 
+```javascript
+type Receive = <T>(state: T, msg: Message) => Update<T>;
+```
+
 Conceptually `receive` is responsible for receiving messages, interpreting
-them, updating the state and send new messages in case other components need
+them, updating the state, and send new messages in case other components need
 to be informed or additional data requested.
 
 This is very similar to Redux's Reducer concept with the main difference
@@ -38,12 +49,10 @@ being that the Receive-function can send new messages.
 ```javascript
 import { NONE, update } from "gurka";
 
-type Receive = <S>(s: S, m: Msg) => Update<S>;
-
 function receive(state, message, send) {
   switch(message.tag) {
   case ADD:
-    return update(state + 1);
+    return update(state + message.value);
   }
 
   return NONE;
@@ -54,6 +63,11 @@ Messages sent from the receive function are propagated upwards in the
 state-hierarchy and can be subscribed to in supervising states.
 
 ### Subscriber
+
+For a state to actually receive messages it first needs to subscribe to
+messages; which tags it is interested in, if they have any specific
+requirements, and if it is supposed to be the primary handler for messages
+of that type.
 
 #### TODO
 

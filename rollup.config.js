@@ -1,6 +1,5 @@
 import babel    from "rollup-plugin-babel";
 import gzip     from "rollup-plugin-gzip";
-import replace  from "rollup-plugin-replace";
 import resolve  from "rollup-plugin-node-resolve";
 import compiler from '@ampproject/rollup-plugin-closure-compiler';
 
@@ -25,7 +24,7 @@ const babelPlugin = babel({
       "targets": {
         "node":    8,
         "firefox": 50,
-        "IE":      11,
+        "ie":      11,
       },
       "exclude": [ "transform-typeof-symbol" ]
     }],
