@@ -79,6 +79,9 @@ type InflightMessage = {
   // TODO: Add extra data about source state path and so on so we can respond and track
 };
 
+/**
+ * @export
+ */
 export function createState<T, I>(name: string, definition: StateDefinition<T, I>): State<T, I> {
   return {
     stateName:     name,
