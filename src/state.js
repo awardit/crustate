@@ -3,15 +3,12 @@
 import type { Update
             , DataUpdate
             , MessageUpdate } from "./update";
-import type { Message
+import type { InflightMessage
+            , Message
             , MessageFilter
             , MessageTag } from "./message";
 import { updateStateDataNoNone
        , updateOutgoingMessages } from "./update";
-
-export { NONE
-       , update
-       , updateAndSend } from "./update";
 
 /**
  * A filter identifying messages a State can respond to.
@@ -68,16 +65,6 @@ export opaque type State<T, I> = {
 };
 
 type StateInstanceMap = { [stateName:string]: StateInstance<any, any> };
-
-type InflightMessage = {
-  message:  Message,
-  source:   Array<string>,
-  /**
-   * If an active subscription has received this message.
-   */
-  received: boolean,
-  // TODO: Add extra data about source state path and so on so we can respond and track
-};
 
 /**
  * Creates a new type of State, can then be used with Root to create instances
