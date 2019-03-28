@@ -4,8 +4,10 @@ import type { Message } from "./message";
 
 /**
  * Empty update, indicates that the state has not been modified.
+ *
+ * @const
  */
-export const NONE: Update<any> = 0;
+export const NONE: NoUpdate = 0;
 /**
  * The empty update.
  */

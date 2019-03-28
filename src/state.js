@@ -80,7 +80,11 @@ type InflightMessage = {
 };
 
 /**
- * @export
+ * Creates a new type of State, can then be used with Root to create instances
+ * of the state.
+ *
+ * @param {!string} name
+ * @param {!StateDefinition}
  */
 export function createState<T, I>(name: string, definition: StateDefinition<T, I>): State<T, I> {
   return {

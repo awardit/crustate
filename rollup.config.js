@@ -10,8 +10,10 @@ const compilerPlugin = compiler({
   formatting:              isProduction ? "PRINT_INPUT_DELIMITER" : "PRETTY_PRINT",
   warning_level:           "VERBOSE",
   language_out:            "ECMASCRIPT_2015",
+  // Custom environment since we do not always run in browser
+  env:                     "CUSTOM",
+  // We must have externs to be able to build using CUSTOM
   externs:                 "src/externs.js",
-  debug:                   !isProduction,
 });
 const babelPlugin = babel({
   babelrc:         false,
@@ -34,15 +36,20 @@ const babelPlugin = babel({
 });
 
 export default [
-  { input: "src/index.js", output: "dist/index.js" },
-  { input: "react/src/index.js", output: "react/dist/index.js" },
+  { input: "src/index.js", output: "dist/index" },
+  { input: "react/src/index.js", output: "react/dist/index" },
 ].map(({ input, output }) => ({
   input,
   output: [
     {
-      file:      output,
+      file:      `${output}.mjs`,
       sourcemap: true,
-      format:    "es",
+      format:    "esm",
+    },
+    {
+      file:      `${output}.js`,
+      sourcemap: true,
+      format:    "cjs",
     },
   ],
   plugins: [
