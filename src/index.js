@@ -8,6 +8,7 @@ export type {
   Message,
   MessageTag,
   MessageFilter,
+  Subscription,
 } from "./message";
 export type {
   Update,
@@ -19,7 +20,6 @@ export type {
   Init,
   Receive,
   Subscriptions,
-  Subscription,
   StateDefinition,
   State,
   Supervisor,
@@ -27,14 +27,18 @@ export type {
 } from "./state";
 
 export {
+  subscribe,
+} from "./message";
+export {
   NONE,
   update,
   updateAndSend,
 } from "./update";
 export {
-  createState,
-  Root as StateRoot,
-  sendMessage,
-  newStateInstance,
+  createRoot,
+  defineState,
   getState,
+  newState,
+  registerState,
+  sendMessage,
 } from "./state";

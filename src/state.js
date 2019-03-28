@@ -7,31 +7,12 @@ import type { InflightMessage
             , Message
             , MessageFilter
             , MessageTag } from "./message";
+import type { Subscription } from "./message";
 import { updateStateDataNoNone
        , updateOutgoingMessages } from "./update";
+import { enqueue } from "./message";
 
-/**
- * A filter identifying messages a State can respond to.
- */
-export opaque type Subscription = {
-  /**
-   * The message tag to subscribe to.
-   */
-  // TODO: Can we (or should we) merge this with the `matcher`?
-  tag:     MessageTag,
-  /**
-   * If the Subscription is passive it will not consume the message and it will
-   * also not count towards the message being handled.
-   *
-   * Suitable for things which are to observe the state-changes for of other
-   * states.
-   */
-  passive: boolean,
-  /**
-   * Extra, user-supplied, filtering logic.
-   */
-  matcher: MessageFilter | null,
-};
+export type StatePath = Array<string>;
 
 /**
  * Initialization function, called when the initial data is loaded into the state.
@@ -58,24 +39,24 @@ export type StateDefinition<T, I> = {
  * the initial data `I`.
  */
 export opaque type State<T, I> = {
-  stateName:     string,
+  name:          string,
   init:          Init<T, I>,
   receive:       Receive<T>,
   subscriptions: Subscriptions<T>,
 };
 
-type StateInstanceMap = { [stateName:string]: StateInstance<any, any> };
+type StateInstanceMap = { [name:string]: StateInstance<any, any> };
 
 /**
  * Creates a new type of State, can then be used with Root to create instances
  * of the state.
  *
  * @param {!string} name
- * @param {!StateDefinition}
+ * @param {!StateDefinition} definition
  */
-export function createState<T, I>(name: string, definition: StateDefinition<T, I>): State<T, I> {
+export function defineState<T, I>(name: string, definition: StateDefinition<T, I>): State<T, I> {
   return {
-    stateName:     name,
+    name:          name,
     init:          definition.init,
     receive:       definition.receive,
     subscriptions: definition.subscriptions,
@@ -84,7 +65,7 @@ export function createState<T, I>(name: string, definition: StateDefinition<T, I
 
 // TODO: External message observers, kinda like event listeners in that they
 //       provide a list of subscriptions
-export class Root {
+export type Root = {|
   nested: StateInstanceMap;
   /**
    * State-definitions, used for subscribers and messages.
@@ -94,54 +75,57 @@ export class Root {
    * List of messages to propagate.
    */
   inbox:  Array<InflightMessage>;
-  dirty:  boolean;
+  dirty:  Array<StatePath>;
+|};
 
-  constructor() {
-    this.nested = {};
-    this.defs   = {};
-    this.dirty  = false;
-  }
+export function createRoot(): Root {
+  return {
+    nested: {},
+    defs:   {},
+    inbox:  [],
+    dirty:  [],
+  };
+}
 
-  registerStateType<T, I>(state: State<T, I>) {
-    if( ! this.registerState(state)) {
-      // FIXME: Proper exception type
-      throw new Error(`Duplicate state name ${state.stateName}`);
-    }
-  }
-
-  /**
-   * Loads the given state-definition for use, ensures that it is not a new
-   * state with the same name if it is already loaded. `true` returned if it
-   * was new, `false` otherwise.
-   */
-  registerState<T, I>(state: State<T, I>): boolean {
-    const { stateName } = state;
-
-    if( ! this.defs[stateName]) {
-      this.defs[stateName] = state;
-
-      return true;
-    }
-
-    if(this.defs[stateName] !== state) {
-      // FIXME: Proper exception type
-      throw new Error(`State object mismatch for state ${stateName}`);
-    }
-
-    return false;
-  }
-
-  setDirty(path: Array<string>) {
-    this.dirty = true;
+export function registerState<T, I>(root: Root, state: State<T, I>) {
+  if( ! ensureState(root, state)) {
+    // FIXME: Proper exception type
+    throw new Error(`Duplicate state name ${state.name}`);
   }
 }
 
-export type Supervisor = StateInstance<any, any> | Root;
+/**
+  * Loads the given state-definition for use, ensures that it is not a new
+  * state with the same name if it is already loaded. `true` returned if it
+  * was new, `false` otherwise.
+  */
+export function ensureState<T, I>(root: Root, state: State<T, I>): boolean {
+  const { name } = state;
 
-export opaque type StateInstance<T, I> = {
-  stateRoot:  Root,
-  stateName:  string,
-  stateData:  T,
+  if( ! root.defs[name]) {
+    root.defs[name] = state;
+
+    return true;
+  }
+
+  if(root.defs[name] !== state) {
+    // FIXME: Proper exception type
+    throw new Error(`State object mismatch for state ${name}`);
+  }
+
+  return false;
+}
+
+export function setDirty(root: Root, path: StatePath) {
+  root.dirty.push(path);
+
+  // TODO: Notify observers
+}
+
+export opaque type StateInstance<T, I> = {|
+  root:       Root,
+  name:       string,
+  data:       T,
   supervisor: Supervisor,
   params:     I,
   nested:     StateInstanceMap,
@@ -149,13 +133,15 @@ export opaque type StateInstance<T, I> = {
    * List of messages to match against subscriptions and then propagate.
    */
   inbox:      Array<InflightMessage>,
-};
+|};
 
-function statePath(state: Supervisor): Array<string> {
+export type Supervisor = StateInstance<any, any> | Root;
+
+export function statePath(state: Supervisor): StatePath {
   const path = [];
 
-  while( ! (state instanceof Root)) {
-    path.push(state.stateName);
+  while(state.root) {
+    path.push(state.name);
 
     state = state.supervisor;
   }
@@ -163,37 +149,33 @@ function statePath(state: Supervisor): Array<string> {
   return path;
 }
 
-function queueMessages(supervisor: Supervisor, source: Array<string>, messages: Array<Message>): void {
-  const stateRoot  = supervisor instanceof Root ? supervisor : supervisor.stateRoot;
-
-  stateRoot.setDirty(source);
-
-  supervisor.inbox = supervisor.inbox.concat(messages.map(message => ({
-    message,
-    source,
-    received: false,
-  })));
+export function getRoot(supervisor: Supervisor): Root {
+  return supervisor.root ? supervisor.root : supervisor;
 }
 
 export function sendMessage(supervisor: Supervisor, message: Message): void {
-  queueMessages(supervisor, statePath(supervisor), [message]);
+  const path = statePath(supervisor);
+
+  setDirty(getRoot(supervisor), path);
+
+  enqueue(supervisor, path, [message]);
 }
 
-export function newStateInstance<T, I>(supervisor: Supervisor, state: State<T, I>, initialData: I): StateInstance<T, I> {
+export function newState<T, I>(supervisor: Supervisor, state: State<T, I>, initialData: I): StateInstance<T, I> {
   const { nested } = supervisor;
-  const stateRoot  = supervisor instanceof Root ? supervisor : supervisor.stateRoot;
+  const root       = getRoot(supervisor);
 
-  stateRoot.registerState(state);
+  ensureState(root, state);
 
-  const { stateName, init } = state;
+  const { name, init } = state;
 
-  const update    = init(initialData);
-  const stateData = updateStateDataNoNone(update);
-  const messages  = updateOutgoingMessages(update);
-  const instance  = {
-    stateRoot,
-    stateName,
-    stateData,
+  const update   = init(initialData);
+  const data     = updateStateDataNoNone(update);
+  const messages = updateOutgoingMessages(update);
+  const instance = {
+    root,
+    name,
+    data,
     supervisor,
     params: initialData,
     nested: {},
@@ -201,13 +183,13 @@ export function newStateInstance<T, I>(supervisor: Supervisor, state: State<T, I
   };
   const path = statePath(instance);
 
-  nested[stateName] = instance;
+  nested[name] = instance;
 
   // TODO: Should the root really be dirty for this? Technically yes? But with React?
-  stateRoot.setDirty(path);
+  setDirty(root, path);
 
   if(messages.length > 0) {
-    queueMessages(supervisor, path, messages);
+    enqueue(supervisor, path, messages);
   }
 
   return instance;
@@ -215,9 +197,9 @@ export function newStateInstance<T, I>(supervisor: Supervisor, state: State<T, I
 
 export function getState<T, I>(supervisor: Supervisor, state: State<T, I>): ?StateInstance<T, I> {
   const { nested } = supervisor;
-  const root: Root = supervisor instanceof Root ? supervisor : supervisor.stateRoot;
+  const root       = getRoot(supervisor);
 
-  root.registerState(state);
+  ensureState(root, state);
 
-  return nested[state.stateName];
+  return nested[state.name];
 }

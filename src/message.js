@@ -1,5 +1,7 @@
 /* @flow */
 
+import type { StatePath } from "./state";
+
 /**
  * Tag identifying the message, used to subscribe and match messages.
  */
@@ -16,20 +18,37 @@ export type Message = {
   tag: MessageTag,
 };
 
+/**
+ * A message on its way upwards in the hierarchy.
+ */
 export type InflightMessage = {
   message:  Message,
-  source:   Array<string>,
+  source:   StatePath,
   /**
-   * If an active subscription has received this message.
+   * If an active subscription has received this message this is the state path
+   * which received it.
    */
-  received: boolean,
-  // TODO: Add extra data about source state path and so on so we can respond and track
+  received: ?StatePath,
 };
 
 // TODO: Target needs some way of getting marked as dirty, or the whole tree
 export type Target = {
-  inbox: Array<InflightMessage>.
+  inbox: Array<InflightMessage>,
 };
+
+/**
+ * Queues a list of messages on the supplied target. `source` is the named
+ * path to the orign state.
+ *
+ * NOTE: Needs to mark the root as dirty.
+ */
+export function enqueue(target: Target, source: StatePath, messages: Array<Message>): void {
+  target.inbox = target.inbox.concat(messages.map(message => ({
+    message,
+    source,
+    received: null,
+  })));
+}
 
 /**
  * A function filtering messages.
@@ -38,18 +57,40 @@ export type Target = {
 export type MessageFilter = (msg: Message) => boolean;
 
 /**
- * Queues a list of messages on the supplied target. `source` is the named
- * path to the orign state.
+ * A filter identifying messages a State can respond to.
  */
-export function queueMessages(target: Target, source: Array<string>, messages: Array<Message>): void {
-  // TODO: How to obtain root?
-  const stateRoot  = supervisor instanceof Root ? supervisor : supervisor.stateRoot;
+export opaque type Subscription = {
+  /**
+   * The message tag to subscribe to.
+   */
+  // TODO: Can we (or should we) merge this with the `matcher` in a subscribe constructor?
+  tag:     MessageTag,
+  /**
+   * If the Subscription is passive it will not consume the message and it will
+   * also not count towards the message being handled.
+   *
+   * Suitable for things which are to observe the state-changes for of other
+   * states.
+   */
+  passive: boolean,
+  /**
+   * Extra, user-supplied, filtering logic.
+   */
+  matcher: MessageFilter | null,
+};
 
-  stateRoot.setDirty(source);
+export function subscribe(tag: MessageTag, passive: boolean = false, matcher: MessageFilter | null = null): Subscription {
+  return {
+    tag,
+    passive,
+    matcher,
+  };
+}
 
-  target.inbox = target.inbox.concat(messages.map(message => ({
-    message,
-    source,
-    received: false,
-  })));
+/**
+ * Constructs a filter for `InflightMessage` to only match any of subscription.
+ */
+export function subscriptionFilter(subscriptions: Array<Subscription>): (msg: InflightMessage) => boolean {
+  return ({ message, received }: InflightMessage): boolean =>
+    subscriptions.some(({ tag, passive, matcher }) => (passive || ! received) && tag === message.tag && ( ! matcher || matcher(message)));
 }

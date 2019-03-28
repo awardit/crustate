@@ -15,7 +15,6 @@ var process;
  * @type {!Object}
  */
 process.env;
-
 /**
  * @type {!String}
  */
@@ -24,6 +23,7 @@ process.env.NODE_ENV;
 /**
  * Public interface type
  *
+ * @public
  * @interface
  */
 function StateDefinition() {}
@@ -51,10 +51,12 @@ var exports;
 // NOTE: Keep in sync with index.js export
 
 exports.NONE;
+exports.createRoot;
+exports.defineState
+exports.getState;
+exports.newState;
+exports.registerState;
+exports.sendMessage;
+exports.subscribe;
 exports.update;
 exports.updateAndSend;
-exports.createState
-exports.StateRoot;
-exports.sendMessage;
-exports.newStateInstance;
-exports.getState;
