@@ -12,6 +12,10 @@
    Passive and active subscribers? Where we can say that we are not the primary responder to the message?
    Only let one active subscriber respond to each message?
    Function to subscribe
+ * Possibility to subscribe to messages on the root state
+ * Possibility to observe all state-changes, messages, attached states from the root level
+ * Possibility to subscribe to state-differences on the root-level
+ * Possibility to subscribe to state-differences on the state-level?
 
 
 
