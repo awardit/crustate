@@ -45,13 +45,17 @@ export function updateAndSend<T>(data: T, ...messages: Array<Message>): MessageU
   return { stateData: data, outgoingMessages: messages };
 }
 
+export function updateHasData(update: Update<any>): boolean %checks {
+  return update !== 0;
+}
+
 /**
  * Internal: Retrieves the state data or null from an update.
  *
  * NOTE: Should not be exported so it can be inlined.
  */
 export function updateStateData<T>(update: Update<T>): ?T {
-  return update !== 0 ? update.stateData : null;
+  return updateHasData(update) ? update.stateData : null;
 }
 /**
  * Internal: Retrieves the array of outgoing messages from an update.
@@ -59,7 +63,7 @@ export function updateStateData<T>(update: Update<T>): ?T {
  * NOTE: Should not be exported so it can be inlined.
  */
 export function updateOutgoingMessages(update: Update<any>): Array<Message> {
-  return update !== 0 && update.outgoingMessages ? update.outgoingMessages : [];
+  return updateHasData(update) && update.outgoingMessages ? update.outgoingMessages : [];
 }
 /**
  * Retrieves the data from types which are guaranteed to contain state data.

@@ -22,9 +22,14 @@ export type {
   Subscriptions,
   StateDefinition,
   State,
+} from "./state";
+export type {
   Supervisor,
   StateInstance,
-} from "./state";
+} from "./instance";
+export type {
+  Root,
+} from "./root";
 
 export {
   subscribe,
@@ -35,10 +40,14 @@ export {
   updateAndSend,
 } from "./update";
 export {
-  createRoot,
   defineState,
-  getState,
-  newState,
-  registerState,
-  sendMessage,
 } from "./state";
+export {
+  newState,
+  sendMessage,
+  getNestedInstance,
+} from "./instance";
+export {
+  createRoot,
+  registerState,
+} from "./root";

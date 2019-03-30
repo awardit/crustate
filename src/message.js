@@ -31,24 +31,12 @@ export type InflightMessage = {
   received: ?StatePath,
 };
 
-// TODO: Target needs some way of getting marked as dirty, or the whole tree
-export type Target = {
-  inbox: Array<InflightMessage>,
-};
-
-/**
- * Queues a list of messages on the supplied target. `source` is the named
- * path to the orign state.
- *
- * NOTE: Needs to mark the root as dirty.
- */
-export function enqueue(target: Target, source: StatePath, messages: Array<Message>): void {
-  target.inbox = target.inbox.concat(messages.map(message => ({
-    message,
-    source,
-    received: null,
-  })));
-}
+// TODO: Maybe not eneueue messages in an inbox, but instead run the messages
+// synchronously when calling enqueue message. As in spawn a tree-walker walking
+// towards the root with the messages instead of having a message-inbox on all.
+// Spawn it using the root and the state instance, this enables a wrapper which takes
+// the root and the state path to be used for answering messages.
+// This also means that we do not need to carry the root inside the state instances
 
 /**
  * A function filtering messages.
@@ -79,6 +67,7 @@ export opaque type Subscription = {
   matcher: MessageFilter | null,
 };
 
+// TODO: Avoid the boolean parameter
 export function subscribe(tag: MessageTag, passive: boolean = false, matcher: MessageFilter | null = null): Subscription {
   return {
     tag,
@@ -87,10 +76,15 @@ export function subscribe(tag: MessageTag, passive: boolean = false, matcher: Me
   };
 }
 
+export function subscriptionMatches({ tag, passive, matcher }: Subscription, message: Message, received: bool): boolean {
+  return (passive || ! received)
+      && tag === message.tag
+      && ( ! matcher || matcher(message));
+}
+
 /**
- * Constructs a filter for `InflightMessage` to only match any of subscription.
+ * Internal
  */
-export function subscriptionFilter(subscriptions: Array<Subscription>): (msg: InflightMessage) => boolean {
-  return ({ message, received }: InflightMessage): boolean =>
-    subscriptions.some(({ tag, passive, matcher }) => (passive || ! received) && tag === message.tag && ( ! matcher || matcher(message)));
+export function subscriptionIsPassive({ passive }: Subscription): boolean {
+  return passive;
 }
