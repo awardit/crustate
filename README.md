@@ -7,6 +7,10 @@ with controlled side-effects through messaging.
 
 ## State
 
+```javascript
+createState(name: string, definition: { init, receive, subscriptions }): State<_, _>
+```
+
 Sates use messages to communicate with other state-instances and the runtime.
 
 ### Message

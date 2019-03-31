@@ -113,7 +113,7 @@ export function stateData<T>(state: StateInstance<T, any>): T {
 
 // TODO: Drop state
 
-export function sendMessage(instance: StateInstance<any, any>, message: Message): void {
+export function sendMessage(instance: Supervisor, message: Message): void {
   processMessages(instance, [message]);
 }
 
@@ -130,18 +130,18 @@ export function enqueueMessages(root: Root, instance: StateInstance<any, any>, s
 }
 
 // TODO: Split this
-export function processMessages(instance: StateInstance<any, any>, messages: Array<Message>): void {
+export function processMessages(instance: Supervisor, messages: Array<Message>): void {
   // TODO: Move this to common stuff
   // TODO: Merge thesw two
   // Make sure the current path is newly allocated when dropping the last segment to traverse upwards
-  let currentPath: Array<string>         = instancePath(instance);
-  let parentPath: Array<string>          = currentPath.slice(0, -1);
-  const root: Root                       = getRoot(instance);
-  const inflight = [];
+  let currentPath = instancePath(instance);
+  let parentPath  = currentPath.slice(0, -1);
+  const root      = getRoot(instance);
+  const inflight  = [];
 
   enqueueMessages(root, instance, currentPath, currentPath, inflight, messages);
 
-  while(true) {
+  while(instance.supervisor) {
     const definition = stateDefinition(root, instance.name);
 
     if( ! definition) {
@@ -193,13 +193,7 @@ export function processMessages(instance: StateInstance<any, any>, messages: Arr
       }
     }
     
-    const i: Supervisor = instance.supervisor;
-
-    if( ! i.supervisor) {
-      break;
-    }
-
-    instance    = i;
+    instance    = instance.supervisor;
     currentPath = currentPath.slice(0, -1);
     parentPath  = parentPath.slice(0, -1);
   }

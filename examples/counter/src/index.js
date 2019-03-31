@@ -1,3 +1,4 @@
+/* @flow */
 import {
 createRoot,
 update,
@@ -8,6 +9,7 @@ getNestedInstance,
 createState,
 sendMessage,
 stateData,
+removeListener,
 } from "gurka";
 import React    from "react";
 import ReactDOM from "react-dom";
@@ -44,10 +46,10 @@ const Counter   = defineState("counter", {
       return update(state - 1);
      }
   },
-  subscriptions: (state)  => { console.log(state); return [
+  subscriptions: (state)  => [
     subscribe(INCREMENT),
     subscribe(DECREMENT),
-  ];},
+  ],
 });
 
 const CounterState = createContext();

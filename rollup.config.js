@@ -63,5 +63,5 @@ export default [
     compilerPlugin,
     isProduction ? gzip({ level: 9 }) : null,
   ],
-  external: ["react", "react-dom"],
+  external: ["gurka", "react", "react-dom"],
 }));

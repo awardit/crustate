@@ -9,5 +9,6 @@
 [options]
 suppress_comment=\\(.\\|\n\\)*\\$ExpectError
 include_warnings=true
+module.name_mapper='^gurka$' -> '<PROJECT_ROOT>/src/index.js'
 
 [strict]
