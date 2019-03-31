@@ -34,7 +34,7 @@ export function removeListener(emitter: EventEmitter, eventName: string, listene
   if(existing === listener) {
     delete emitter.listeners[eventName];
   }
-  else if(typeof existing !== "function") {
+  else if(existing && typeof existing !== "function") {
     const i = existing.indexOf(listener);
 
     if(i >= 0) {

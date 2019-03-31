@@ -86,4 +86,76 @@ test("emit() calls all listeners", t => {
   t.deepEqual(stub2.calls, [
     { this: null, arguments: ["arg1"], return: undefined },
   ]);
-})
+});
+
+test("addListener() adds listeners", t => {
+  const stub1   = t.context.stub();
+  const stub2   = t.context.stub();
+  const stub3   = t.context.stub();
+  const emitter = { listeners: {} };
+
+  addListener(emitter, "foo", stub1);
+  t.deepEqual(emitter, { listeners: { "foo": stub1 } });
+
+  addListener(emitter, "foo", stub2);
+  t.deepEqual(emitter, { listeners: { "foo": [stub1, stub2] } });
+
+  addListener(emitter, "foo", stub3);
+  t.deepEqual(emitter, { listeners: { "foo": [stub1, stub2, stub3] } });
+
+  t.deepEqual(stub1.calls, []);
+  t.deepEqual(stub2.calls, []);
+  t.deepEqual(stub3.calls, []);
+});
+
+test("addListener() adds different listeners", t => {
+  const stub1   = t.context.stub();
+  const stub2   = t.context.stub();
+  const emitter = { listeners: {} };
+
+  addListener(emitter, "foo", stub1);
+  t.deepEqual(emitter, { listeners: { "foo": stub1 } });
+
+  addListener(emitter, "bar", stub2);
+  t.deepEqual(emitter, { listeners: { "foo": stub1, "bar": stub2 } });
+
+  t.deepEqual(stub1.calls, []);
+  t.deepEqual(stub2.calls, []);
+});
+
+test("removeListener() removes a listener", t => {
+  const stub1   = t.context.stub();
+  const stub2   = t.context.stub();
+  const emitter = { listeners: { "foo": stub1, "bar": stub2 } };
+
+  removeListener(emitter, "foo", stub1);
+  t.deepEqual(emitter, { listeners: { "bar": stub2 } });
+
+  removeListener(emitter, "foo", stub1);
+  t.deepEqual(emitter, { listeners: { "bar": stub2 } });
+
+  removeListener(emitter, "bar", stub2);
+  t.deepEqual(emitter, { listeners: { } });
+
+  removeListener(emitter, "bar", stub2);
+  t.deepEqual(emitter, { listeners: { } });
+});
+
+test("removeListener() removes a listener when we have multiple", t => {
+  const stub1   = t.context.stub();
+  const stub2   = t.context.stub();
+  const stub3   = t.context.stub();
+  const emitter = { listeners: { "foo": [stub1, stub2, stub3] } };
+
+  removeListener(emitter, "foo", stub2);
+  t.deepEqual(emitter, { listeners: { "foo": [stub1, stub3] } });
+
+  removeListener(emitter, "foo", stub2);
+  t.deepEqual(emitter, { listeners: { "foo": [stub1, stub3] } });
+
+  removeListener(emitter, "foo", stub1);
+  t.deepEqual(emitter, { listeners: { "foo": stub3 } });
+
+  removeListener(emitter, "foo", stub3);
+  t.deepEqual(emitter, { listeners: {} });
+});
