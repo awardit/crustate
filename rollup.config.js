@@ -9,6 +9,7 @@ const compilerPlugin = compiler({
   assume_function_wrapper: true,
   formatting:              isProduction ? "PRINT_INPUT_DELIMITER" : "PRETTY_PRINT",
   warning_level:           "VERBOSE",
+  language_in:             "ECMASCRIPT_2015",
   language_out:            "ECMASCRIPT_2015",
   // Custom environment since we do not always run in browser
   env:                     "CUSTOM",
