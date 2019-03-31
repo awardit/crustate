@@ -4,6 +4,7 @@ import type { State, StatePath } from "./state";
 import type { InflightMessage} from "./message";
 import type { StateInstance
             , StateInstanceMap } from "./instance";
+import type { EventEmitter } from "./events";
 
 import { stateName } from "./state";
 import { instanceName } from "./instance";
@@ -11,6 +12,8 @@ import { instanceName } from "./instance";
 // TODO: External message observers, kinda like event listeners in that they
 //       provide a list of subscriptions
 export type Root = {|
+  // This spread trick is used to preserve exact object
+  ...$Exact<EventEmitter>,
   nested: StateInstanceMap;
   /**
    * State-definitions, used for subscribers and messages.
@@ -20,8 +23,9 @@ export type Root = {|
 
 export function createRoot(): Root {
   return {
-    nested: {},
-    defs:   {},
+    nested:    {},
+    defs:      {},
+    listeners: {},
   };
 }
 

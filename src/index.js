@@ -51,3 +51,9 @@ export {
   createRoot,
   registerState,
 } from "./root";
+export {
+  addListener,
+  removeListener,
+  removeAllListeners,
+  emit,
+} from "./events";
