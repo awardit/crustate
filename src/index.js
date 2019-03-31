@@ -46,6 +46,7 @@ export {
 } from "./state";
 export {
   createState,
+  stateData,
   sendMessage,
   getNestedInstance,
 } from "./instance";

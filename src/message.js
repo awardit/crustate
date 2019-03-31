@@ -76,7 +76,14 @@ export function subscribe(tag: MessageTag, passive: boolean = false, matcher: Me
   };
 }
 
-export function subscriptionMatches({ tag, passive, matcher }: Subscription, message: Message, received: bool): boolean {
+/**
+ * @param {!Object} subscription
+ * @param {!Message} message
+ * @param {!boolean} received
+ */
+export function subscriptionMatches(subscription: Subscription, message: Message, received: bool): boolean {
+  const { tag, passive, matcher } = subscription;
+
   return (passive || ! received)
       && tag === message.tag
       && ( ! matcher || matcher(message));

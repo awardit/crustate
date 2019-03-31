@@ -67,9 +67,10 @@ export function getRoot(supervisor: Supervisor): Root {
 
 export function getNestedInstance<T, I>(supervisor: Supervisor, state: State<T, I>): ?StateInstance<T, I> {
   const { nested } = supervisor;
-  const root       = getRoot(supervisor);
 
-  ensureState(root, state);
+  if(process.env.NODE_ENV !== "production") {
+    ensureState(getRoot(supervisor), state);
+  }
 
   return nested[stateName(state)];
 }
@@ -104,6 +105,10 @@ export function createState<T, I>(supervisor: Supervisor, state: State<T, I>, in
   }
 
   return instance;
+}
+
+export function stateData<T>(state: StateInstance<T, any>): T {
+  return state.data;
 }
 
 // TODO: Drop state
