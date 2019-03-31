@@ -9,7 +9,8 @@ import type { InflightMessage
 import type { EventEmitter } from "./events";
 
 import { ensureState
-       , stateDefinition } from "./root";
+       , stateDefinition
+       , processMessages as rootProcessMessages } from "./root";
 import { updateHasData
        , updateStateData
        , updateStateDataNoNone
@@ -22,16 +23,16 @@ import { stateName
        , stateSubscriptions } from "./state";
 import { emit } from "./events";
 
-export const EVENT_NEW_STATE_INSTANCE = "newStateInstance";
-export const EVENT_MESSAGE_QUEUED     = "messageQueued";
-export const EVENT_MESSAGE_MATCHED    = "messageMatched";
-export const EVENT_STATE_NEW_DATA     = "stateNewData";
+export const EVENT_STATE_CREATED   = "stateCreated";
+export const EVENT_STATE_NEW_DATA  = "stateNewData";
+export const EVENT_MESSAGE_QUEUED  = "messageQueued";
+export const EVENT_MESSAGE_MATCHED = "messageMatched";
 
 export type StateInstanceMap = { [name:string]: StateInstance<any, any> };
 
 export type Supervisor = StateInstance<any, any> | Root;
 
-export opaque type StateInstance<T, I> = {|
+export opaque type StateInstance<T, I>: EventEmitter = {|
   ...$Exact<EventEmitter>,
   name:       string,
   data:       T,
@@ -73,7 +74,7 @@ export function getNestedInstance<T, I>(supervisor: Supervisor, state: State<T, 
   return nested[stateName(state)];
 }
 
-export function newState<T, I>(supervisor: Supervisor, state: State<T, I>, initialData: I): StateInstance<T, I> {
+export function createState<T, I>(supervisor: Supervisor, state: State<T, I>, initialData: I): StateInstance<T, I> {
   const { nested } = supervisor;
   const root       = getRoot(supervisor);
   const name       = stateName(state);
@@ -96,7 +97,7 @@ export function newState<T, I>(supervisor: Supervisor, state: State<T, I>, initi
 
   nested[name] = instance;
 
-  emit(root, EVENT_NEW_STATE_INSTANCE, path, data, initialData, instance);
+  emit(root, EVENT_STATE_CREATED, path, data, initialData, instance);
 
   if(messages.length) {
     processMessages(instance, messages);
@@ -105,10 +106,25 @@ export function newState<T, I>(supervisor: Supervisor, state: State<T, I>, initi
   return instance;
 }
 
+// TODO: Drop state
+
 export function sendMessage(instance: StateInstance<any, any>, message: Message): void {
   processMessages(instance, [message]);
 }
 
+export function enqueueMessages(root: Root, instance: StateInstance<any, any>, source: StatePath, target: StatePath, inflight: Array<InflightMessage>, messages: Array<Message>): void {
+  for(let i = 0; i < messages.length; i++) {
+    emit(root, EVENT_MESSAGE_QUEUED, messages[i], target, instance);
+
+    inflight.push({
+      message:  messages[i],
+      source,
+      received: null,
+    });
+  }
+}
+
+// TODO: Split this
 export function processMessages(instance: StateInstance<any, any>, messages: Array<Message>): void {
   // TODO: Move this to common stuff
   // TODO: Merge thesw two
@@ -116,19 +132,12 @@ export function processMessages(instance: StateInstance<any, any>, messages: Arr
   let currentPath: Array<string>         = instancePath(instance);
   let parentPath: Array<string>          = currentPath.slice(0, -1);
   const root: Root                       = getRoot(instance);
-  // TODO: Move this to a separate function to be able to reuse?
-  const inflight: Array<InflightMessage> = messages.map(m => {
-    emit(root, EVENT_MESSAGE_QUEUED, m, currentPath, instance);
+  const inflight = [];
 
-    return {
-      message:  m,
-      source:   currentPath,
-      received: null,
-    };
-  });
+  enqueueMessages(root, instance, currentPath, currentPath, inflight, messages);
 
   while(true) {
-    const definition = stateDefinition(root, instance);
+    const definition = stateDefinition(root, instance.name);
 
     if( ! definition) {
       // TODO: Eror type
@@ -159,7 +168,7 @@ export function processMessages(instance: StateInstance<any, any>, messages: Arr
 
           emit(root, EVENT_MESSAGE_MATCHED, message, currentPath, subscriptionIsPassive(currentFilter), instance);
 
-          const update   = receive(instance.data, message);
+          const update = receive(instance.data, message);
 
           if(updateHasData(update)) {
             const data     = updateStateData(update);
@@ -169,16 +178,7 @@ export function processMessages(instance: StateInstance<any, any>, messages: Arr
 
             emit(root, EVENT_STATE_NEW_DATA, data, currentPath, message, instance)
             emit(instance, EVENT_STATE_NEW_DATA, data, currentPath, message, instance)
-
-            for(let k = 0; k < outgoing.length; k++) {
-              emit(root, EVENT_MESSAGE_QUEUED, outgoing[k], parentPath, instance);
-
-              inflight.push({
-                message:  outgoing[k],
-                source:   currentPath,
-                received: null,
-              })
-            }
+            enqueueMessages(root, instance, currentPath, parentPath, inflight, outgoing);
 
             messageFilter = subscriptions(instance.data);
           }
@@ -198,6 +198,6 @@ export function processMessages(instance: StateInstance<any, any>, messages: Arr
     currentPath = currentPath.slice(0, -1);
     parentPath  = parentPath.slice(0, -1);
   }
-
-  // TODO: Handle root and subscribers at that level
+  
+  rootProcessMessages(root, inflight);
 }

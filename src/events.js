@@ -8,7 +8,7 @@ export type EventEmitter = {
   listeners: Listeners,
 };
 
-// TODO: Event types?
+// TODO: Event types? as in string + parameters
 
 // TODO: Convenience API with returning a function which will remove the callback?
 
@@ -39,10 +39,10 @@ export function removeListener(emitter: EventEmitter, eventName: string, listene
 
     if(i >= 0) {
       existing.splice(i, 1);
-    }
 
-    if(existing.length === 1) {
-      emitter.listeners[eventName] = existing[0];
+      if(existing.length === 1) {
+        emitter.listeners[eventName] = existing[0];
+      }
     }
   }
 }

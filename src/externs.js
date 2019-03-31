@@ -51,11 +51,17 @@ var exports;
 // NOTE: Keep in sync with index.js export
 
 exports.NONE;
+exports.addListener;
+exports.addSubscriber;
 exports.createRoot;
-exports.defineState
-exports.getState;
-exports.newState;
+exports.createState;
+exports.defineState;
+exports.emit;
+exports.getNestedInstance;
 exports.registerState;
+exports.removeAllListeners;
+exports.removeListener;
+exports.removeSubscriber;
 exports.sendMessage;
 exports.subscribe;
 exports.update;
