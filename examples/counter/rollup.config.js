@@ -17,6 +17,7 @@ const babelOpts = {
       },
       "exclude": [ "transform-typeof-symbol" ]
     }],
+    ["@babel/preset-flow"],
     ["@babel/preset-react"],
   ],
   plugins: [
