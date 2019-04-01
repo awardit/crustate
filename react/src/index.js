@@ -1,4 +1,10 @@
 /* @flow */
+/*
+ * We need to suppress Google Closure Compiler's checkTypes warnings throughout
+ * the file since @ampproject/rollup-plugin-closure-compiler generates bad
+ * externs for named external imports. Everything becomes function() {}, which
+ * causes argument-mismatch warnings preventing compilation.
+ */
 
 import type { Context } from "react";
 import type { Message
@@ -59,6 +65,8 @@ const InstanceProvider = StateContext.Provider;
 /**
  * Returns a function for passing messages into the state-tree at the current
  * nesting.
+ *
+ * @suppress {checkTypes}
  */
 export function useSendMessage(): (message: Message) => void {
   const supervisor = useContext(StateContext);
@@ -71,11 +79,12 @@ export function useSendMessage(): (message: Message) => void {
 }
 
 /**
+ * @suppress {checkTypes}
  * @return {!ReactState}
  */
 export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I> {
   const displayName  = `${stateName(state)} State.Provider`;
-  const DataContext  = createContext<T | void>(undefined);
+  const DataContext  = (createContext(undefined): React$Context<T | void>);
   const DataProvider = DataContext.Provider;
 
   /**

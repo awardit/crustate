@@ -5,36 +5,7 @@
 
 // Defines for import-statements
 
-/**
- * @suppress {duplicate}
- */
-var sendMessage = gurka.sendMessage;
-/**
- * @suppress {duplicate}
- */
-var createState = gurka.createState;
-/**
- * @suppress {duplicate}
- */
-var stateName = gurka.stateName;
-/**
- * @suppress {duplicate}
- */
-var stateData = gurka.stateData;
-/**
- * @suppress {duplicate}
- */
-var getNestedInstance = gurka.getNestedInstance;
-/**
- * @suppress {duplicate}
- */
-var addListener = gurka.addListener;
-/**
- * @suppress {duplicate}
- */
-var removeListener = gurka.removeListener;
-
-// Punblic API for CommonJS
+// Public API for CommonJS
 //
 // NOTE: Keep in sync with index.js export
 
