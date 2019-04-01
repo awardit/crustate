@@ -11,14 +11,13 @@ sendMessage,
 stateData,
 removeListener,
 } from "gurka";
+import { RootProvider
+       , useSendMessage
+       , createReactState } from "gurka/react";
 import React    from "react";
 import ReactDOM from "react-dom";
 
-// TODO: Fix imports
-const { createContext, useContext, useEffect, useState, Component } = React;
 const { render } = ReactDOM;
-
-const StateContext = createContext();
 
 const root = createRoot();
 
@@ -46,70 +45,30 @@ const Counter   = defineState("counter", {
       return update(state - 1);
      }
   },
-  subscriptions: (state)  => [
+  subscriptions: (state)  => state < 0 ? [] : [
     subscribe(INCREMENT),
     subscribe(DECREMENT),
   ],
 });
 
-const CounterState = createContext();
+const { Provider: CounterProvider, useData: useCounterData } = createReactState(Counter);
 
-function CounterStateProvider({ children }) {
-  const parent   = useContext(StateContext);
-  const instance = getNestedInstance(parent, Counter) || createState(parent, Counter, {});
-  // a way to force updates
-  const [instanceData, setData] = useState(stateData(instance));
+function ACounter() {
+  const sendMessage = useSendMessage();
+  const value       = useCounterData();
 
-  useEffect(() => {
-    function subscription(data) {
-      setData(data);
-    }
-
-    addListener(instance, "stateNewData", subscription);
-
-    return () => removeListener(instance, "stateNewData", subscription);
-  }, [instance])
-
-  return <StateContext.Provider value={instance}>
-    <CounterState.Provider value={instanceData}>
-      {children}
-    </CounterState.Provider>
-  </StateContext.Provider>;
-}
-
-function Add() {
-  const inst = useContext(StateContext);
-
-  return <button onClick={() => sendMessage(inst, increment())}>+</button>;
-}
-
-function Sub() {
-  const inst = useContext(StateContext);
-
-  return <button onClick={() => sendMessage(inst, decrement())}>-</button>;
-}
-
-class RootProvider extends Component {
-  // TODO: Register events
-
-  render() {
-    return <StateContext.Provider value={this.props.root}>
-      {this.props.children}
-    </StateContext.Provider>;
-  }
+  reutrn (<div>
+    <button onClick={() => sendMessage(increment())}>+</button>
+    <p>{value}</p>
+    <button onClick={() => sendMessage(decrement())}>-</button>
+  </div>);
 }
 
 function App() {
-  return <RootProvider root={root}>
-    <CounterStateProvider>
-      <p>
-        <Add />
-        <div>
-          <CounterState.Consumer>{d => d}</CounterState.Consumer>
-        </div>
-        <Sub />
-      </p>
-    </CounterStateProvider>
+  return <RootProvider value={root}>
+    <CounterProvider>
+      <ACounter />
+    </CounterProvider>
   </RootProvider>
 }
 

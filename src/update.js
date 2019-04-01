@@ -5,6 +5,7 @@ import type { Message } from "./message";
 /**
  * Empty update, indicates that the state has not been modified.
  *
+ * @export
  * @const
  */
 export const NONE: NoUpdate = 0;
@@ -33,6 +34,8 @@ export type Update<T> =
 
 /**
  * Creates an update replacing the data of the state.
+ *
+ * @export
  */
 export function update<T>(data: T): DataUpdate<T> {
   return { stateData: data };
@@ -40,6 +43,8 @@ export function update<T>(data: T): DataUpdate<T> {
 /**
  * Creates an update replacing the data of the state, and sends a list o
  * messages to supervisoring states.
+ *
+ * @export
  */
 export function updateAndSend<T>(data: T, ...messages: Array<Message>): MessageUpdate<T> {
   return { stateData: data, outgoingMessages: messages };
