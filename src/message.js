@@ -5,7 +5,6 @@ import type { StatePath } from "./state";
 /**
  * Tag identifying the message, used to subscribe and match messages.
  */
-// TODO: Opaque type?
 export type MessageTag = string;
 /**
  * Messages are used to inform states of new events/data which are of interest,
@@ -30,13 +29,6 @@ export type InflightMessage = {
    */
   received: ?StatePath,
 };
-
-// TODO: Maybe not eneueue messages in an inbox, but instead run the messages
-// synchronously when calling enqueue message. As in spawn a tree-walker walking
-// towards the root with the messages instead of having a message-inbox on all.
-// Spawn it using the root and the state instance, this enables a wrapper which takes
-// the root and the state path to be used for answering messages.
-// This also means that we do not need to carry the root inside the state instances
 
 /**
  * A function filtering messages.
