@@ -3,6 +3,7 @@
 import type { Context } from "react";
 import type { Message
             , State
+            , StateInstance
             , Supervisor } from "gurka";
 
 import React from "react";
@@ -11,20 +12,47 @@ import { addListener
        , getNestedInstance
        , removeListener
        , sendMessage
-       , stateData } from "gurka";
+       , stateData
+       , stateName } from "gurka";
 
 // @ampproject/rollup-plugin-closure-compiler generates bad externs for named external imports
 const { createContext
       , useContext
       , Component } = React;
 
+type StateProviderState<T, I> = {
+  instance: StateInstance<T, I>,
+  data:     T,
+};
+
+  // FIXME: Redefine this so it throws when
+export type StateFunction<T> = (data: T | void) => ?React$Node;
+
+export type ReactStateProvider<T, I> = React$ComponentType<I & { children: ?React$Node }>;
+export type ReactStateConsumer<T>    = React$ComponentType<{ children: StateFunction<T>}>;
+
 /**
- * The basic state context where we will carry either a Root, or a state instance.
+ * Hook returning the data from the state it was created from.
+ */
+export type UseData<T> = () => T;
+
+/**
+ * React-wrapper for a gurka-state.
+ */
+export type ReactState<T, I> = {
+  Provider: ReactStateProvider<T, I>,
+  Consumer: ReactStateConsumer<T>,
+  useData:  UseData<T>,
+};
+
+/**
+ * The basic state context where we will carry either a Root, or a state
+ * instance for the current nesting.
  */
 export const StateContext: Context<?Supervisor> = createContext(null);
 
 // TODO: better handling of this, should probably have more stuff?
-export const RootProvider = StateContext.Provider;
+export const StateRoot = StateContext.Provider;
 
 const InstanceProvider = StateContext.Provider;
 
@@ -42,20 +70,24 @@ export function useSendMessage(): (message: Message) => void {
   return (message: Message) => sendMessage(supervisor, message);
 }
 
-export function createReactState<T, I>(state: State<T, I>) {
-  const displayName  = `${state.name} State.Provider`;
-  const DataContext  = createContext(undefined);
+export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I> {
+  const displayName  = `${stateName(state)} State.Provider`;
+  const DataContext  = createContext<T | void>(undefined);
   const DataProvider = DataContext.Provider;
 
   /**
    * @constructor
    * @extends {React.Component}
    */
-  class StateProvider extends Component<I, ?Supervisor> {
+  class StateProvider extends Component<I & { children: ?React$Node }, StateProviderState<T, I>> {
     static contextType = StateContext;
     static displayName = displayName;
 
-    constructor(props: I, context: ?Supervisor) {
+    onNewData: (data: T) => void;
+    context:   ?Supervisor;
+    state:     StateProviderState<T, I>;
+
+    constructor(props: I & { children: ?React$Node }, context: ?Supervisor) {
       super(props, context);
 
       if( ! this.context) {
@@ -66,7 +98,7 @@ export function createReactState<T, I>(state: State<T, I>) {
       const data     = stateData(instance);
 
       // We use setState to prevent issues with re-rendering
-      this.onStateNewData = data => this.setState({ data: data });
+      this.onNewData = data => this.setState({ data: data });
 
       this.state = {
         instance,
@@ -75,24 +107,30 @@ export function createReactState<T, I>(state: State<T, I>) {
     }
 
     addListener() {
-      addListener(this.state.instance, "stateNewData", this.onStateNewData);
+      // TODO: Fix types for event listeners
+      addListener(this.state.instance, "stateNewData", (this.onNewData: any));
 
       // Data can be new since we are runnning componentDidMount() after render()
       const newData = stateData(this.state.instance);
 
       if(this.state.data !== newData) {
         // Force re-render immediately
-        this.onStateNewData(newData);
+        this.onNewData(newData);
       }
     }
 
     removeListener() {
-      removeListener(this.state.instance, "stateNewData", this.onStateNewData);
+      // TODO: Do we remove the state from the supervisor here?
+      removeListener(this.state.instance, "stateNewData", (this.onNewData: any));
     }
 
-    componentWillReceiveProps(props) {
+    componentWillReceiveProps(props: I & { children: ?React$Node }) {
+      if( ! this.context) {
+        throw new Error(`<${displayName} /> must be used inside a <StateRoot />`);
+      }
+
       // Check if we got a new context instance
-      // TODO: Send message if we have new props to the instance
+      // TODO: Send message if we have new props to the instance, move this into core
       const instance = getNestedInstance(this.context, state) || createState(this.context, state, props);
 
       if(this.state.instance !== instance) {
@@ -127,8 +165,8 @@ export function createReactState<T, I>(state: State<T, I>) {
   const useData = () => {
     const data = useContext(DataContext);
 
-    if(process.env.NODE_ENV !== "production" && data === undefined) {
-      throw new Error(`${state.name}.useData() must be used inside a <${state.name} State.Provider} />`);
+    if(data === undefined) {
+      throw new Error(`${stateName(state)}.useData() must be used inside a <${displayName} />`);
     }
 
     return data;

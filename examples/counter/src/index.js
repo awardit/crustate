@@ -1,10 +1,11 @@
 /* @flow */
-import { createRoot
+import { NONE
+       , createRoot
        , update
        , defineState
        , subscribe
        , addListener } from "gurka";
-import { RootProvider
+import { StateRoot
        , useSendMessage
        , createReactState } from "gurka/react";
 import React    from "react";
@@ -19,14 +20,16 @@ const increment = () => ({ tag: INCREMENT });
 const decrement = () => ({ tag: DECREMENT });
 
 const Counter   = defineState("counter", {
-  init: ({ initial = 0 }) => update(initial),
+  init: ({ initial = 0 }: { initial?: number }) => update(initial),
   receive: (state, msg)   => {
     switch(msg.tag) {
     case INCREMENT:
       return update(state + 1);
     case DECREMENT:
       return update(state - 1);
-     }
+    }
+
+    return NONE;
   },
   subscriptions: (state)  => state < 0 ? [] : [
     subscribe(INCREMENT),
@@ -57,11 +60,17 @@ function ACounter() {
 }
 
 function App() {
-  return <RootProvider value={root}>
+  return <StateRoot value={root}>
     <CounterProvider>
       <ACounter />
     </CounterProvider>
-  </RootProvider>
+  </StateRoot>
 }
 
-render(<App />, document.getElementById("app"));
+const el = document.getElementById("app");
+
+if( ! el) {
+  throw new Error(`Missing <div id="app />`);
+}
+
+render(<App />, el);

@@ -1,6 +1,7 @@
 /* @flow */
 
-export type Listener  = () => mixed;
+// TODO: Fix this type
+export type Listener  = (...args: Array<mixed>) => mixed;
 export type Listeners = { [eventName:string]: Listener | Array<Listener> };
 
 export type EventEmitter = {

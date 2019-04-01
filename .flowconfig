@@ -1,4 +1,5 @@
 [ignore]
+.*/node_modules/gurka/.*
 
 [include]
 
@@ -10,5 +11,6 @@
 suppress_comment=\\(.\\|\n\\)*\\$ExpectError
 include_warnings=true
 module.name_mapper='^gurka$' -> '<PROJECT_ROOT>/src/index.js'
+module.name_mapper='^gurka/react$' -> '<PROJECT_ROOT>/react/src/index.js'
 
 [strict]

@@ -43,6 +43,7 @@ export {
 } from "./update";
 export {
   defineState,
+  stateName,
 } from "./state";
 export {
   createState,
