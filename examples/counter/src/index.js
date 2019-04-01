@@ -1,16 +1,9 @@
 /* @flow */
-import {
-createRoot,
-update,
-defineState,
-subscribe,
-addListener,
-getNestedInstance,
-createState,
-sendMessage,
-stateData,
-removeListener,
-} from "gurka";
+import { createRoot
+       , update
+       , defineState
+       , subscribe
+       , addListener } from "gurka";
 import { RootProvider
        , useSendMessage
        , createReactState } from "gurka/react";
@@ -18,16 +11,6 @@ import React    from "react";
 import ReactDOM from "react-dom";
 
 const { render } = ReactDOM;
-
-const root = createRoot();
-
-[
-  "unhandledMessage",
-  "stateCreated",
-  "stateNewData",
-  "messageQueued",
-  "messageMatched",
-].map(event => addListener(root, event, (...args) => console.log(event, ...args)));
 
 const INCREMENT = "increment";
 const DECREMENT = "decrement";
@@ -52,16 +35,25 @@ const Counter   = defineState("counter", {
 });
 
 const { Provider: CounterProvider, useData: useCounterData } = createReactState(Counter);
+const root = createRoot();
+
+[
+  "unhandledMessage",
+  "stateCreated",
+  "stateNewData",
+  "messageQueued",
+  "messageMatched",
+].map(event => addListener(root, event, (...args) => console.log(event, ...args)));
 
 function ACounter() {
   const sendMessage = useSendMessage();
   const value       = useCounterData();
 
-  reutrn (<div>
+  return <div>
     <button onClick={() => sendMessage(increment())}>+</button>
     <p>{value}</p>
     <button onClick={() => sendMessage(decrement())}>-</button>
-  </div>);
+  </div>;
 }
 
 function App() {

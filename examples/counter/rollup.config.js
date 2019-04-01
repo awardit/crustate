@@ -4,7 +4,7 @@ import babel    from "rollup-plugin-babel";
 import replace  from "rollup-plugin-replace";
 
 const babelOpts = {
-  exclude:         "node_modules/**",
+  exclude:         "../../node_modules/**",
   babelrc:         false,
   externalHelpers: false,
   runtimeHelpers:  true,
