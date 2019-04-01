@@ -62,7 +62,7 @@ export const config = ({ input, output, externs }) => ({
       modulesOnly: true,
     }),
     // TODO: Fix issues with externs and named imports
-    // compiler(externs),
+    compiler(externs),
     isProduction ? gzip({ level: 9 }) : null,
   ],
   external: ["gurka", "react", "react-dom"],

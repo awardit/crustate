@@ -54,6 +54,10 @@ gurka.defineState = function(name, def) {};
 gurka.createState = function(instance, state, params) {};
 gurka.stateData = function(instance) {};
 /**
+ * @return {string}
+ */
+gurka.stateName = function(instance) {};
+/**
  * @param {!Message} message
  */
 gurka.sendMessage = function(instance, message) {};
