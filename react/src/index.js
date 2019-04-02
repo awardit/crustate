@@ -95,7 +95,7 @@ export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I>
     static contextType = StateContext;
     static displayName = displayName;
 
-    onNewData: (data: I) => void;
+    onNewData: (data: T) => void;
     context:   ?Supervisor;
     state:     StateProviderState<T, I>;
 
@@ -110,7 +110,7 @@ export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I>
       const data     = stateData(instance);
 
       // We use setState to prevent issues with re-rendering
-      this.onNewData = data => this.setState({ data: data });
+      this.onNewData = (data: T) => this.setState({ data });
 
       this.state = {
         instance,
