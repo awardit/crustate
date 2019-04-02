@@ -3,31 +3,9 @@ import closureCompiler from '@ampproject/rollup-plugin-closure-compiler';
 import gzip            from "rollup-plugin-gzip";
 import resolve         from "rollup-plugin-node-resolve";
 
+const babelConfig  = require("./build/babel.js");
 const isProduction = process.env.NODE_ENV === "production";
-const babel        = babelPlugin({
-  babelrc:         false,
-  externalHelpers: false,
-  runtimeHelpers:  true,
-  presets:         [
-    ["@babel/preset-react"],
-    ["@babel/preset-env", {
-      loose:            true,
-      shippedProposals: true,
-      targets: {
-        node:    8,
-        firefox: 50,
-        ie:      11,
-      },
-      exclude: [ "transform-typeof-symbol" ]
-    }],
-  ],
-  plugins: [
-    // We cannot use the preset since this must go before class-properties to avoid
-    // emitting `this.propertyName = void 0;` for typed class properties
-    ["@babel/plugin-transform-flow-strip-types"],
-    ["@babel/plugin-proposal-class-properties", { loose: true }],
-  ],
-});
+const babel        = babelPlugin(babelConfig);
 
 const compiler = externs => closureCompiler({
   compilation_level:       "ADVANCED",
