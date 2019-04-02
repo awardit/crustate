@@ -2,18 +2,50 @@
   "name": "gurka",
   "version": "0.0.1",
   "description": "",
+  "keywords": [
+    "elm",
+    "flux",
+    "functional",
+    "immutable",
+    "message",
+    "react",
+    "reactjs",
+    "state"
+  ],
+  "authors": [
+    "Martin Wernstål <m4rw3r@gmail.com>"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/m4rw3r/gurka.git"
+  },
+  "bugs": "https://github.com/m4rw3r/gurka/issues",
+  "homepage": "https://github.com/m4rw3r/gurka",
+  "license": "ISC",
+  "private": true,
+  "files": [
+    "dist",
+    "preact/dist",
+    "preact/package.json",
+    "preact/src",
+    "react/dist",
+    "react/package.json",
+    "react/src",
+    "src"
+  ],
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "source": "src/index.js",
   "scripts": {
     "ava": "ava --verbose",
     "build": "rollup -c rollup.config.js",
-    "clean": "rm -rf dist react/dist",
+    "clean": "rm -rf dist react/dist preact/dist",
     "coverage": "nyc --reporter=html ava",
     "dist": "cross-env NODE_ENV=production npm run build",
-    "distclean": "rm -rf package-lock.json node_modules dist react/dist examples/counter/dist examples/counter/node_modules examples/counter/package-lock.json",
+    "distclean": "rm -rf package-lock.json node_modules dist react/dist preact/dist examples/counter/dist examples/counter/node_modules examples/counter/package-lock.json",
     "flow": "flow check",
     "postinstall": "cd examples/counter && npm install",
+    "prepare": "npm run clean && npm run test && npm run dist",
     "test": "npm-run-all test:*",
     "test:ava": "ava --verbose",
     "test:flow": "flow status",
@@ -21,8 +53,6 @@
     "watch-build": "rollup -c rollup.config.js -w",
     "watch-test": "nodemon -w src -w test --exec \"npm run -q ava || true\""
   },
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "@ampproject/rollup-plugin-closure-compiler": "0.8.5",
     "@babel/core": "7.4.0",
