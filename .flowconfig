@@ -1,4 +1,5 @@
 [ignore]
+# We have a self-referencing module specified in package.json for testing
 .*/node_modules/gurka/.*
 
 [include]

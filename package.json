@@ -7,13 +7,7 @@
   "source": "src/index.js",
   "scripts": {
     "ava": "ava --verbose",
-    "build": "npm-run-all build:*",
-    "build:rollup-root": "rollup -c rollup.config.js",
-    "build:rollup-react": "rollup -c react/rollup.config.js",
-    "build:flow-root": "cp src/index.flowstub.js dist/index.js.flow",
-    "build:flow-root-mjs": "cp src/index.flowstub.js dist/index.mjs.flow",
-    "build:flow-react": "cp src/index.flowstub.js react/dist/index.js.flow",
-    "build:flow-react-mjs": "cp src/index.flowstub.js react/dist/index.mjs.flow",
+    "build": "rollup -c rollup.config.js",
     "clean": "rm -rf dist react/dist",
     "coverage": "nyc --reporter=html ava",
     "dist": "cross-env NODE_ENV=production npm run build",
@@ -24,7 +18,7 @@
     "test:ava": "ava --verbose",
     "test:flow": "flow status",
     "watch": "nodemon -w src -w test --exec \"npm run -q test || true\"",
-    "watch-build": "nodemon -w src -w test --exec \"npm run -q build || true\"",
+    "watch-build": "rollup -c rollup.config.js -w",
     "watch-test": "nodemon -w src -w test --exec \"npm run -q ava || true\""
   },
   "author": "",
@@ -48,6 +42,7 @@
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "rollup": "^1.7.4",
+    "rollup-plugin-alias": "^1.5.1",
     "rollup-plugin-babel": "^4.3.2",
     "rollup-plugin-commonjs": "^9.2.2",
     "rollup-plugin-gzip": "^2.2.0",
@@ -60,27 +55,29 @@
       "testOptions": {
         "presets": [
           [
+            "@babel/preset-react"
+          ],
+          [
             "@babel/preset-env",
             {
               "loose": true,
               "shippedProposals": true,
               "targets": {
                 "node": "current",
-                "browsers": "last 2 versions"
+                "firefox": "50",
+                "ie": "11"
               },
               "exclude": [
                 "transform-typeof-symbol"
               ]
             }
-          ],
-          [
-            "@babel/preset-flow"
-          ],
-          [
-            "@babel/preset-react"
           ]
         ]
-      }
+      },
+      "plugins": [
+        ["@babel/plugin-transform-flow-strip-types"],
+        ["@babel/plugin-proposal-class-properties", { "loose": true }]
+      ]
     },
     "files": [
       "**/*.test.js"

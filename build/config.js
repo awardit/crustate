@@ -42,7 +42,7 @@ const compiler = externs => closureCompiler({
   externs:                 ["externs/env.js"].concat(externs),
 });
 
-export const config = ({ input, output, externs }) => ({
+export const config = ({ input, output, plugins = [], external = [], externs }) => ({
   input,
   output: [
     {
@@ -56,16 +56,15 @@ export const config = ({ input, output, externs }) => ({
       format:    "cjs",
     },
   ],
-  plugins: [
+  plugins: plugins.concat([
     babel,
     resolve({
       module:      true,
       jsnext:      true,
       modulesOnly: true,
     }),
-    // TODO: Fix issues with externs and named imports
     compiler(externs),
     isProduction ? gzip({ level: 9 }) : null,
-  ],
-  external: ["gurka", "react", "react-dom"],
+  ]),
+  external,
 })
