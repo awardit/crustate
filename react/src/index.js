@@ -83,7 +83,7 @@ export function useSendMessage(): (message: Message) => void {
  * @return {!ReactState}
  */
 export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I> {
-  const displayName  = `${stateName(state)} State.Provider`;
+  const displayName  = stateName(state) + " State.Provider";
   const DataContext  = (createContext(undefined): React$Context<T | void>);
   const DataProvider = DataContext.Provider;
 
@@ -95,11 +95,9 @@ export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I>
     static contextType = StateContext;
     static displayName = displayName;
 
-    // We cannot have them declared since then @babel/plugin-proposal-class-prperties
-    // will overwrite the values from parent. So we have to be happy with type-comments.
-    /*:: onNewData: (data: I) => void; */
-    /*:: context:   ?Supervisor; */
-    /*:: state:     StateProviderState<T, I>; */
+    onNewData: (data: I) => void;
+    context:   ?Supervisor;
+    state:     StateProviderState<T, I>;
 
     constructor(props: I & { children: ?React$Node }, context: ?Supervisor) {
       super(props, context);

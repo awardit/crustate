@@ -8,20 +8,22 @@ const babelOpts = {
   babelrc:         false,
   externalHelpers: false,
   runtimeHelpers:  true,
-  presets: [
-    ["@babel/preset-env", {
-      "loose":            true,
-      "shippedProposals": true,
-      "targets": {
-        "firefox": 50,
-      },
-      "exclude": [ "transform-typeof-symbol" ]
-    }],
-    ["@babel/preset-flow"],
+  presets:         [
     ["@babel/preset-react"],
+    ["@babel/preset-env", {
+      loose:            true,
+      shippedProposals: true,
+      targets: {
+        node:    8,
+        firefox: 50,
+        ie:      11,
+      },
+      exclude: [ "transform-typeof-symbol" ]
+    }],
   ],
   plugins: [
-    "@babel/plugin-proposal-class-properties",
+    ["@babel/plugin-transform-flow-strip-types"],
+    ["@babel/plugin-proposal-class-properties", { loose: true }],
   ],
 };
 

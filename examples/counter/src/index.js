@@ -11,8 +11,6 @@ import { StateRoot
 import React    from "react";
 import ReactDOM from "react-dom";
 
-const { render } = ReactDOM;
-
 const INCREMENT = "increment";
 const DECREMENT = "decrement";
 
@@ -48,7 +46,7 @@ const root = createRoot();
   "messageMatched",
 ].map(event => addListener(root, event, (...args) => console.log(event, ...args)));
 
-function ACounter() {
+function TheCounter() {
   const sendMessage = useSendMessage();
   const value       = useCounterData();
 
@@ -62,7 +60,7 @@ function ACounter() {
 function App() {
   return <StateRoot value={root}>
     <CounterProvider>
-      <ACounter />
+      <TheCounter />
     </CounterProvider>
   </StateRoot>
 }
@@ -73,4 +71,4 @@ if( ! el) {
   throw new Error(`Missing <div id="app />`);
 }
 
-render(<App />, el);
+ReactDOM.render(<App />, el);
