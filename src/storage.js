@@ -6,87 +6,113 @@ import type { InflightMessage
             , Subscription } from "./message";
 import type { StateInstance
             , StateInstanceMap } from "./instance";
-import type { EventEmitter } from "./events";
 
+import { EventEmitter } from "./events";
 import { stateName } from "./state";
 import { subscriptionIsPassive
        , subscriptionMatches } from "./message";
-import { emit } from "./events";
 
 export type Sink = (message: Message, path: StatePath) => mixed;
 export type Subscribers = Array<{ listener: Sink, filter: Array<Subscription> }>;
 
+type StateDefs = { [key:string]: State<any, any> };
+
 export const EVENT_UNHANDLED_MESSAGE = "unhandledMessage";
+
+export type StorageEvents = {
+  // FIXME: Events
+  unhandledMessage: [Message, StatePath];
+};
 
 /**
  * Base node in a state-tree, anchors all states and carries all data.
  */
-export type Storage = {|
-  // This spread trick is used to preserve exact object
-  ...$Exact<EventEmitter>,
-  subscribers: Subscribers,
-  nested: StateInstanceMap;
+export class Storage extends EventEmitter<StorageEvents> {
+  subscribers: Subscribers = [];
+  nested: StateInstanceMap = {};
   /**
    * State-definitions, used for subscribers and messages.
    */
-  defs:   { [key:string]: State<any, any> };
-|};
+  defs: StateDefs   = {};
+  constructor() {
+    // TODO: Restore state
+    super();
+  }
 
-export function createStorage(): Storage {
-  return {
-    nested:      {},
-    defs:        {},
-    subscribers: [],
-    listeners:   {},
+  /**
+   * Test
+   */
+  registerState<T, I>(state: State<T, I>) {
+    if( ! this.ensureState(state)) {
+      // FIXME: Proper exception type
+      throw new Error(`Duplicate state name ${stateName(state)}`);
+    }
+  };
+
+  /**
+   * Loads the given state-definition for use, ensures that it is not a new
+   * state with the same name if it is already loaded. `true` returned if it
+   * was new, `false` otherwise.
+   */
+  ensureState<T, I>(state: State<T, I>): boolean {
+    const name = stateName(state);
+
+    if( ! this.defs[name]) {
+      this.defs[name] = state;
+
+      return true;
+    }
+
+    if(this.defs[name] !== state) {
+      // FIXME: Proper exception type
+      throw new Error(`State object mismatch for state ${name}`);
+    }
+
+    return false;
+  };
+
+  stateDefinition<T, I>(instanceName: string): ?State<T, I> {
+    return this.defs[instanceName];
+  };
+
+  getNested<T, I>(state: State<T, I>): ?StateInstance<T, I> {
+    const { nested } = this;
+
+    if(process.env.NODE_ENV !== "production") {
+      this.ensureState(state);
+    }
+
+    return nested[stateName(state)];
+  };
+
+  sendMessage(message: Message): void {
+    processMessage(this, {
+      message,
+      source: [],
+      received: null,
+    });
+  };
+
+  addSubscriber(listener: Sink, filter: Array<Subscription>) {
+    this.subscribers.push({ listener, filter });
+  };
+
+  removeSubscriber(listener: Sink) {
+    const { subscribers } = this;
+
+    for(let i = 0; i < subscribers.length; i++) {
+      if(subscribers[i].listener === listener) {
+        subscribers.splice(i, 1);
+
+        return;
+      }
+    }
   };
 }
 
-export function registerState<T, I>(storage: Storage, state: State<T, I>) {
-  if( ! ensureState(storage, state)) {
-    // FIXME: Proper exception type
-    throw new Error(`Duplicate state name ${stateName(state)}`);
-  }
-}
-
-/**
-  * Loads the given state-definition for use, ensures that it is not a new
-  * state with the same name if it is already loaded. `true` returned if it
-  * was new, `false` otherwise.
-  */
-export function ensureState<T, I>(storage: Storage, state: State<T, I>): boolean {
-  const name = stateName(state);
-
-  if( ! storage.defs[name]) {
-    storage.defs[name] = state;
-
-    return true;
-  }
-
-  if(storage.defs[name] !== state) {
-    // FIXME: Proper exception type
-    throw new Error(`State object mismatch for state ${name}`);
-  }
-
-  return false;
-}
-
-export function stateDefinition<T, I>(storage: Storage, instanceName: string): ?State<T, I> {
-  return storage.defs[instanceName];
-}
-
-export function addSubscriber(storage: Storage, listener: Sink, filter: Array<Subscription>) {
-  storage.subscribers.push({ listener, filter });
-}
-
-export function removeSubscriber(storage: Storage, listener: Sink) {
-  const { subscribers } = storage;
-
-  for(let i = 0; i < subscribers.length; i++) {
-    if(subscribers[i].listener === listener) {
-      subscribers.splice(i, 1);
-
-      return;
-    }
+export function processMessages(storage: Storage, messages: Array<InflightMessage>) {
+  for(let i = 0; i < messages.length; i++) {
+    processMessage(storage, messages[i]);
   }
 }
 
@@ -111,12 +137,6 @@ function processMessage(storage: Storage, inflight: InflightMessage) {
   }
 
   if( ! received) {
-    emit(storage, EVENT_UNHANDLED_MESSAGE, message, source);
-  }
-}
-
-export function processMessages(storage: Storage, messages: Array<InflightMessage>) {
-  for(let i = 0; i < messages.length; i++) {
-    processMessage(storage, messages[i]);
+    storage.emit(EVENT_UNHANDLED_MESSAGE, message, source);
   }
 }

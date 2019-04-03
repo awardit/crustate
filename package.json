@@ -47,8 +47,8 @@
     "postinstall": "cd examples/counter && npm install",
     "prepare": "npm run clean && npm run test && npm run dist",
     "test": "npm-run-all test:*",
-    "test:ava": "ava --verbose",
     "test:flow": "flow status",
+    "test:ava": "ava --verbose",
     "watch": "nodemon -w src -w test -w react/src --exec \"npm run -q test || true\"",
     "watch-build": "rollup -c rollup.config.js -w",
     "watch-test": "nodemon -w src -w test -w react/src --exec \"npm run -q ava || true\""
@@ -61,6 +61,7 @@
     "@babel/preset-env": "7.4.2",
     "@babel/preset-react": "7.0.0",
     "@babel/register": "7.4.0",
+    "@swc/core": "^1.0.39",
     "ava": "1.4.1",
     "cross-env": "5.2.0",
     "flow-bin": "0.96.0",

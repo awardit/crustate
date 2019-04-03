@@ -70,7 +70,7 @@ export function subscribe(tag: MessageTag, passive: boolean = false, matcher: Me
 
 /**
  * @param {!Object} subscription
- * @param {!Message} message
+ * @param {!gurka.Message} message
  * @param {!boolean} received
  */
 export function subscriptionMatches(subscription: Subscription, message: Message, received: bool): boolean {

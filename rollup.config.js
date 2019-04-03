@@ -6,7 +6,7 @@ export default [
   config({
     input:   "src/index.js",
     output:  "dist/index",
-    externs: ["src/externs.js"]
+    externs: ["externs/gurka.js", "src/externs.js"],
   }),
   gurkaReact,
   gurkaPreact,

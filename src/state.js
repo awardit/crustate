@@ -47,7 +47,7 @@ export opaque type State<T, I> = {
  * of the state.
  *
  * @param {!string} name
- * @param {!StateDefinition} definition
+ * @param {!gurka.StateDefinition} definition
  */
 export function defineState<T, I>(name: string, definition: StateDefinition<T, I>): State<T, I> {
   return {

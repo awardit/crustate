@@ -27,11 +27,7 @@ export type {
 } from "./state";
 export type {
   Supervisor,
-  StateInstance,
 } from "./instance";
-export type {
-  Storage,
-} from "./storage";
 
 export {
   subscribe,
@@ -46,20 +42,10 @@ export {
   stateName,
 } from "./state";
 export {
-  createState,
+  StateInstance,
   stateData,
-  sendMessage,
-  getNestedInstance,
+  createState,
 } from "./instance";
 export {
-  createStorage,
-  registerState,
-  addSubscriber,
-  removeSubscriber,
+  Storage,
 } from "./storage";
-export {
-  addListener,
-  removeListener,
-  removeAllListeners,
-  emit,
-} from "./events";

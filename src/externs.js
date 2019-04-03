@@ -4,63 +4,26 @@
  * @externs
  */
 
-// Internal API
-
-/**
- * @public
- * @interface
- */
-function Message() {}
-
-/**
- * @type {String}
- */
-Message.prototype.tag;
-
-/**
- * Public interface type
- *
- * @public
- * @interface
- */
-function StateDefinition() {}
-
-/**
- * @public
- */
-StateDefinition.prototype.init = function(initialData) {};
-/**
- * @public
- */
-StateDefinition.prototype.receive = function(state, message) {};
-/**
- * @public
- */
-StateDefinition.prototype.subscriptions = function(state) {};
-
-/**
- * @type {!Object}
- */
-var exports;
-
 // Punblic API for CommonJS
 //
 // NOTE: Keep in sync with index.js export
+/**
+ * @type {!Object}
+ */
+var exports = gurka;
 
-exports.NONE;
-exports.addListener;
-exports.addSubscriber;
-exports.createStoragee;
-exports.createState;
-exports.defineState;
-exports.emit;
-exports.getNestedInstance;
-exports.registerState;
-exports.removeAllListeners;
-exports.removeListener;
-exports.removeSubscriber;
-exports.removeState;
-exports.sendMessage;
-exports.subscribe;
-exports.update;
-exports.updateAndSend;
+/* Public symbols, by naming them here Google Closure compiler will not rename them */
+var init;
+var receive;
+var subscriptions;
+var addListener;
+var removeListener;
+var removeAllListeners;
+var listeners;
+var emit;
+var registerState;
+var ensureState;
+var sendMessage;
+var addSubscriber;
+var removeSubscriber;
+var getNested;

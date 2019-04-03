@@ -13,12 +13,8 @@ import type { Message
             , Supervisor } from "gurka";
 
 import React from "react";
-import { addListener
+import { stateData
        , createState
-       , getNestedInstance
-       , removeListener
-       , sendMessage
-       , stateData
        , stateName } from "gurka";
 
 // @ampproject/rollup-plugin-closure-compiler generates bad externs for named external imports
@@ -75,7 +71,7 @@ export function useSendMessage(): (message: Message) => void {
     throw new Error(`useSendMessage() must be used inside of a <State.Provider />.`);
   }
 
-  return (message: Message) => sendMessage(supervisor, message);
+  return (message: Message) => supervisor.sendMessage(message);
 }
 
 /**
@@ -102,11 +98,11 @@ export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I>
     constructor(props: I & { children: ?React$Node }, context: ?Supervisor) {
       super(props, context);
 
-      if( ! this.context) {
+      if( ! context) {
         throw new Error(`<${displayName} /> must be used inside a <StorageProvider />`);
       }
 
-      const instance = getNestedInstance(this.context, state) || createState(this.context, state, this.props);
+      const instance = context.getNested(state) || createState(context, state, this.props);
       const data     = stateData(instance);
 
       // We use setState to prevent issues with re-rendering
@@ -120,7 +116,7 @@ export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I>
 
     addListener() {
       // TODO: Fix types for event listeners
-      addListener(this.state.instance, "stateNewData", (this.onNewData: any));
+      this.state.instance.addListener("stateNewData", (this.onNewData: any));
 
       // Data can be new since we are runnning componentDidMount() after render()
       const newData = stateData(this.state.instance);
@@ -133,17 +129,18 @@ export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I>
 
     removeListener() {
       // TODO: Do we remove the state from the supervisor here?
-      removeListener(this.state.instance, "stateNewData", (this.onNewData: any));
+      this.state.instance.removeListener("stateNewData", (this.onNewData: any));
     }
 
     componentWillReceiveProps(props: I & { children: ?React$Node }) {
-      if( ! this.context) {
+      const context = this.context;
+      if( ! context) {
         throw new Error(`<${displayName} /> must be used inside a <StorageProvider />`);
       }
 
       // Check if we got a new context instance
       // TODO: Send message if we have new props to the instance, move this into core
-      const instance = getNestedInstance(this.context, state) || createState(this.context, state, props);
+      const instance = context.getNested(state) || createState(context, state, props);
 
       if(this.state.instance !== instance) {
         this.removeListener();
