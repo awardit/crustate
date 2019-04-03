@@ -5,7 +5,7 @@
 // NOTE: Keep in sync with externs.js
 
 // TODO: We might need to provide a separate type shim to ensure that the
-//       Root and StateInstance objects are compatible with the EventEmitter
+//       Storage and StateInstance objects are compatible with the EventEmitter
 export type {
   Message,
   MessageTag,
@@ -30,8 +30,8 @@ export type {
   StateInstance,
 } from "./instance";
 export type {
-  Root,
-} from "./root";
+  Storage,
+} from "./storage";
 
 export {
   subscribe,
@@ -52,11 +52,11 @@ export {
   getNestedInstance,
 } from "./instance";
 export {
-  createRoot,
+  createStorage,
   registerState,
   addSubscriber,
   removeSubscriber,
-} from "./root";
+} from "./storage";
 export {
   addListener,
   removeListener,

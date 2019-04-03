@@ -50,7 +50,7 @@ var exports;
 exports.NONE;
 exports.addListener;
 exports.addSubscriber;
-exports.createRoot;
+exports.createStoragee;
 exports.createState;
 exports.defineState;
 exports.emit;

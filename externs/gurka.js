@@ -62,6 +62,6 @@ gurka.stateName = function(instance) {};
  */
 gurka.sendMessage = function(instance, message) {};
 gurka.getNestedInstance = function(instance, state) {};
-gurka.createRoot = function() {};
+gurka.createStorage = function() {};
 gurka.addListener = function(instance, eventName, callback) {};
 gurka.removeListener = function(instance, eventName, callback) {};

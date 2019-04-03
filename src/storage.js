@@ -18,9 +18,10 @@ export type Subscribers = Array<{ listener: Sink, filter: Array<Subscription> }>
 
 export const EVENT_UNHANDLED_MESSAGE = "unhandledMessage";
 
-// TODO: External message observers, kinda like event listeners in that they
-//       provide a list of subscriptions
-export type Root = {|
+/**
+ * Base node in a state-tree, anchors all states and carries all data.
+ */
+export type Storage = {|
   // This spread trick is used to preserve exact object
   ...$Exact<EventEmitter>,
   subscribers: Subscribers,
@@ -31,7 +32,7 @@ export type Root = {|
   defs:   { [key:string]: State<any, any> };
 |};
 
-export function createRoot(): Root {
+export function createStorage(): Storage {
   return {
     nested:      {},
     defs:        {},
@@ -40,8 +41,8 @@ export function createRoot(): Root {
   };
 }
 
-export function registerState<T, I>(root: Root, state: State<T, I>) {
-  if( ! ensureState(root, state)) {
+export function registerState<T, I>(storage: Storage, state: State<T, I>) {
+  if( ! ensureState(storage, state)) {
     // FIXME: Proper exception type
     throw new Error(`Duplicate state name ${stateName(state)}`);
   }
@@ -52,16 +53,16 @@ export function registerState<T, I>(root: Root, state: State<T, I>) {
   * state with the same name if it is already loaded. `true` returned if it
   * was new, `false` otherwise.
   */
-export function ensureState<T, I>(root: Root, state: State<T, I>): boolean {
+export function ensureState<T, I>(storage: Storage, state: State<T, I>): boolean {
   const name = stateName(state);
 
-  if( ! root.defs[name]) {
-    root.defs[name] = state;
+  if( ! storage.defs[name]) {
+    storage.defs[name] = state;
 
     return true;
   }
 
-  if(root.defs[name] !== state) {
+  if(storage.defs[name] !== state) {
     // FIXME: Proper exception type
     throw new Error(`State object mismatch for state ${name}`);
   }
@@ -69,16 +70,16 @@ export function ensureState<T, I>(root: Root, state: State<T, I>): boolean {
   return false;
 }
 
-export function stateDefinition<T, I>(root: Root, instanceName: string): ?State<T, I> {
-  return root.defs[instanceName];
+export function stateDefinition<T, I>(storage: Storage, instanceName: string): ?State<T, I> {
+  return storage.defs[instanceName];
 }
 
-export function addSubscriber(root: Root, listener: Sink, filter: Array<Subscription>) {
-  root.subscribers.push({ listener, filter });
+export function addSubscriber(storage: Storage, listener: Sink, filter: Array<Subscription>) {
+  storage.subscribers.push({ listener, filter });
 }
 
-export function removeSubscriber(root: Root, listener: Sink) {
-  const { subscribers } = root;
+export function removeSubscriber(storage: Storage, listener: Sink) {
+  const { subscribers } = storage;
 
   for(let i = 0; i < subscribers.length; i++) {
     if(subscribers[i].listener === listener) {
@@ -89,8 +90,8 @@ export function removeSubscriber(root: Root, listener: Sink) {
   }
 }
 
-function processMessage(root: Root, inflight: InflightMessage) {
-  const { subscribers }     = root;
+function processMessage(storage: Storage, inflight: InflightMessage) {
+  const { subscribers }     = storage;
   const { message, source } = inflight;
   let   received            = Boolean(inflight.received);
 
@@ -110,12 +111,12 @@ function processMessage(root: Root, inflight: InflightMessage) {
   }
 
   if( ! received) {
-    emit(root, EVENT_UNHANDLED_MESSAGE, message, source);
+    emit(storage, EVENT_UNHANDLED_MESSAGE, message, source);
   }
 }
 
-export function processMessages(root: Root, messages: Array<InflightMessage>) {
+export function processMessages(storage: Storage, messages: Array<InflightMessage>) {
   for(let i = 0; i < messages.length; i++) {
-    processMessage(root, messages[i]);
+    processMessage(storage, messages[i]);
   }
 }

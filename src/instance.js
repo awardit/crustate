@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { Root } from "./root";
+import type { Storage } from "./storage";
 import type { State
             , StatePath } from "./state";
 import type { InflightMessage
@@ -10,7 +10,7 @@ import type { EventEmitter } from "./events";
 
 import { ensureState
        , stateDefinition
-       , processMessages as rootProcessMessages } from "./root";
+       , processMessages as storageProcessMessages } from "./storage";
 import { updateHasData
        , updateStateData
        , updateStateDataNoNone
@@ -30,7 +30,7 @@ export const EVENT_MESSAGE_MATCHED = "messageMatched";
 
 export type StateInstanceMap = { [name:string]: StateInstance<any, any> };
 
-export type Supervisor = StateInstance<any, any> | Root;
+export type Supervisor = StateInstance<any, any> | Storage;
 
 export opaque type StateInstance<T, I>: EventEmitter = {|
   ...$Exact<EventEmitter>,
@@ -57,7 +57,7 @@ export function instanceName(instance: StateInstance<any, any>): string {
   return instance.name;
 }
 
-export function getRoot(supervisor: Supervisor): Root {
+export function getStorage(supervisor: Supervisor): Storage {
   while(supervisor.supervisor) {
     supervisor = supervisor.supervisor;
   }
@@ -69,7 +69,7 @@ export function getNestedInstance<T, I>(supervisor: Supervisor, state: State<T, 
   const { nested } = supervisor;
 
   if(process.env.NODE_ENV !== "production") {
-    ensureState(getRoot(supervisor), state);
+    ensureState(getStorage(supervisor), state);
   }
 
   return nested[stateName(state)];
@@ -77,11 +77,11 @@ export function getNestedInstance<T, I>(supervisor: Supervisor, state: State<T, 
 
 export function createState<T, I>(supervisor: Supervisor, state: State<T, I>, initialData: I): StateInstance<T, I> {
   const { nested } = supervisor;
-  const root       = getRoot(supervisor);
+  const storage    = getStorage(supervisor);
   const name       = stateName(state);
   const init       = stateInit(state);
 
-  ensureState(root, state);
+  ensureState(storage, state);
 
   const update   = init(initialData);
   const data     = updateStateDataNoNone(update);
@@ -98,7 +98,7 @@ export function createState<T, I>(supervisor: Supervisor, state: State<T, I>, in
 
   nested[name] = instance;
 
-  emit(root, EVENT_STATE_CREATED, path, data, initialData, instance);
+  emit(storage, EVENT_STATE_CREATED, path, data, initialData, instance);
 
   if(messages.length) {
     processMessages(instance, messages);
@@ -117,9 +117,9 @@ export function sendMessage(instance: Supervisor, message: Message): void {
   processMessages(instance, [message]);
 }
 
-export function enqueueMessages(root: Root, instance: StateInstance<any, any>, source: StatePath, target: StatePath, inflight: Array<InflightMessage>, messages: Array<Message>): void {
+export function enqueueMessages(storage: Storage, instance: StateInstance<any, any>, source: StatePath, target: StatePath, inflight: Array<InflightMessage>, messages: Array<Message>): void {
   for(let i = 0; i < messages.length; i++) {
-    emit(root, EVENT_MESSAGE_QUEUED, messages[i], target, instance);
+    emit(storage, EVENT_MESSAGE_QUEUED, messages[i], target, instance);
 
     inflight.push({
       message:  messages[i],
@@ -136,13 +136,13 @@ export function processMessages(instance: Supervisor, messages: Array<Message>):
   // Make sure the current path is newly allocated when dropping the last segment to traverse upwards
   let currentPath = instancePath(instance);
   let parentPath  = currentPath.slice(0, -1);
-  const root      = getRoot(instance);
+  const storage   = getStorage(instance);
   const inflight  = [];
 
-  enqueueMessages(root, instance, currentPath, currentPath, inflight, messages);
+  enqueueMessages(storage, instance, currentPath, currentPath, inflight, messages);
 
   while(instance.supervisor) {
-    const definition = stateDefinition(root, instance.name);
+    const definition = stateDefinition(storage, instance.name);
 
     if( ! definition) {
       // TODO: Eror type
@@ -171,7 +171,7 @@ export function processMessages(instance: Supervisor, messages: Array<Message>):
             currentInflight.received = currentPath;
           }
 
-          emit(root, EVENT_MESSAGE_MATCHED, message, currentPath, subscriptionIsPassive(currentFilter), instance);
+          emit(storage, EVENT_MESSAGE_MATCHED, message, currentPath, subscriptionIsPassive(currentFilter), instance);
 
           const update = receive(instance.data, message);
 
@@ -181,9 +181,9 @@ export function processMessages(instance: Supervisor, messages: Array<Message>):
 
             instance.data = data;
 
-            emit(root, EVENT_STATE_NEW_DATA, data, currentPath, message, instance)
+            emit(storage, EVENT_STATE_NEW_DATA, data, currentPath, message, instance)
             emit(instance, EVENT_STATE_NEW_DATA, data, currentPath, message, instance)
-            enqueueMessages(root, instance, currentPath, parentPath, inflight, outgoing);
+            enqueueMessages(storage, instance, currentPath, parentPath, inflight, outgoing);
 
             messageFilter = subscriptions(instance.data);
           }
@@ -192,11 +192,11 @@ export function processMessages(instance: Supervisor, messages: Array<Message>):
         // No Match
       }
     }
-    
+
     instance    = instance.supervisor;
     currentPath = currentPath.slice(0, -1);
     parentPath  = parentPath.slice(0, -1);
   }
-  
-  rootProcessMessages(root, inflight);
+
+  storageProcessMessages(storage, inflight);
 }

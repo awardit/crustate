@@ -1,11 +1,11 @@
 /* @flow */
 import { NONE
-       , createRoot
+       , createStorage
        , update
        , defineState
        , subscribe
        , addListener } from "gurka";
-import { StateRoot
+import { StorageProvider
        , useSendMessage
        , createReactState } from "gurka/react";
 import React    from "react";
@@ -36,7 +36,7 @@ const Counter   = defineState("counter", {
 });
 
 const { Provider: CounterProvider, useData: useCounterData } = createReactState(Counter);
-const root = createRoot();
+const storage = createStorage();
 
 [
   "unhandledMessage",
@@ -44,7 +44,7 @@ const root = createRoot();
   "stateNewData",
   "messageQueued",
   "messageMatched",
-].map(event => addListener(root, event, (...args) => console.log(event, ...args)));
+].map(event => addListener(storage, event, (...args) => console.log(event, ...args)));
 
 function TheCounter() {
   const sendMessage = useSendMessage();
@@ -58,11 +58,11 @@ function TheCounter() {
 }
 
 function App() {
-  return <StateRoot value={root}>
+  return <StorageProvider value={storage}>
     <CounterProvider>
       <TheCounter />
     </CounterProvider>
-  </StateRoot>
+  </StorageProvider>
 }
 
 const el = document.getElementById("app");

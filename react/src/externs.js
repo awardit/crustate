@@ -34,6 +34,6 @@ ReactState.prototype.useData;
 var exports;
 
 exports.StateContext;
-exports.RootProvider;
+exports.StorageProvider;
 exports.createReactState;
 exports.useSendMessage;

@@ -43,7 +43,7 @@ export opaque type State<T, I> = {
 };
 
 /**
- * Creates a new type of State, can then be used with Root to create instances
+ * Creates a new type of State, can then be used with Storage to create instances
  * of the state.
  *
  * @param {!string} name

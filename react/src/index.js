@@ -52,13 +52,13 @@ export type ReactState<T, I> = {
 };
 
 /**
- * The basic state context where we will carry either a Root, or a state
+ * The basic state context where we will carry either a Storage, or a state
  * instance for the current nesting.
  */
 export const StateContext: Context<?Supervisor> = createContext(null);
 
 // TODO: better handling of this, should probably have more stuff?
-export const StateRoot = StateContext.Provider;
+export const StorageProvider = StateContext.Provider;
 
 const InstanceProvider = StateContext.Provider;
 
@@ -103,7 +103,7 @@ export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I>
       super(props, context);
 
       if( ! this.context) {
-        throw new Error(`<${displayName} /> must be used inside a <StateRoot />`);
+        throw new Error(`<${displayName} /> must be used inside a <StorageProvider />`);
       }
 
       const instance = getNestedInstance(this.context, state) || createState(this.context, state, this.props);
@@ -138,7 +138,7 @@ export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I>
 
     componentWillReceiveProps(props: I & { children: ?React$Node }) {
       if( ! this.context) {
-        throw new Error(`<${displayName} /> must be used inside a <StateRoot />`);
+        throw new Error(`<${displayName} /> must be used inside a <StorageProvider />`);
       }
 
       // Check if we got a new context instance
