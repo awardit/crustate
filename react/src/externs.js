@@ -13,20 +13,20 @@
  * @public
  * @record
  */
-function ReactState() {}
+function StateData() {}
 
 /**
  * @public
  */
-ReactState.prototype.Consumer;
+StateData.prototype.Consumer;
 /**
  * @public
  */
-ReactState.prototype.Provider;
+StateData.prototype.Provider;
 /**
  * @public
  */
-ReactState.prototype.useData;
+StateData.prototype.state;
 
 /**
  * @type {!Object}
@@ -35,5 +35,6 @@ var exports;
 
 exports.StateContext;
 exports.StorageProvider;
-exports.createReactState;
+exports.createStateData;
 exports.useSendMessage;
+exports.useData;

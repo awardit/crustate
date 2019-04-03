@@ -1,8 +1,9 @@
 /* @flow */
 
-// TODO: Fix this type
-export type Listener  = (...args: Array<mixed>) => mixed;
-export type Listeners = { [eventName:string]: Listener | Array<Listener> };
+type MaybeArray<T> = T | Array<T>;
+
+export type Listener<Events, Name>  = (...args: $ElementType<Events, Name>) => mixed;
+export type Listeners = { [eventName:string]: MaybeArray<Listener<{}, any>> };
 
 // TODO: Event types? as in string + parameters
 
@@ -11,8 +12,8 @@ export class EventEmitter<Events: {}> {
   // TODO: Maybe follow the example of EventEmitter and make the whole property optional?
   eventListeners: Listeners = {};
 
-  addListener(eventName: string, listener: Listener): void {
-    const existing = this.eventListeners[eventName];
+  addListener<K: $Keys<Events>>(eventName: K, listener: Listener<Events, K>): void {
+    const existing: MaybeArray<Listener<Events, K>> = this.eventListeners[eventName];
 
     if( ! existing) {
       this.eventListeners[eventName] = listener;
@@ -27,8 +28,8 @@ export class EventEmitter<Events: {}> {
     }
   };
 
-  removeListener(eventName: string, listener: Listener): void {
-    const existing = this.eventListeners[eventName];
+  removeListener<K: $Keys<Events>>(eventName: K, listener: Listener<Events, K>): void {
+    const existing: MaybeArray<Listener<Events, K>> = this.eventListeners[eventName];
 
     if(existing === listener) {
       delete this.eventListeners[eventName];
@@ -55,8 +56,8 @@ export class EventEmitter<Events: {}> {
     }
   };
 
-  listeners(eventName: string): Array<Listener> {
-    const existing = this.eventListeners[eventName];
+  listeners<K: $Keys<Events>>(eventName: K): Array<Listener<Events, K>> {
+    const existing: MaybeArray<Listener<Events, K>> = this.eventListeners[eventName];
 
     return ! existing ? [] : typeof existing === "function" ? [existing] : existing;
   };
@@ -64,8 +65,8 @@ export class EventEmitter<Events: {}> {
   /**
    * @param {!string} eventName
    */
-  emit(eventName: string, ...args: Array<mixed>): void {
-    const handler = this.eventListeners[eventName];
+  emit<K: $Keys<Events>>(eventName: K, ...args: $ElementType<Events, K>): void {
+    const handler: MaybeArray<Listener<Events, K>> = this.eventListeners[eventName];
 
     if(typeof handler === "function") {
       handler.apply(null, args);

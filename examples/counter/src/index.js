@@ -1,24 +1,22 @@
 /* @flow */
 import { NONE
        , update
-       , defineState
        , subscribe
        , Storage } from "gurka";
 import { StorageProvider
+       , useData
        , useSendMessage
-       , createReactState } from "gurka/react";
+       , createStateData } from "gurka/react";
 import React    from "react";
 import ReactDOM from "react-dom";
 
 const INCREMENT = "increment";
 const DECREMENT = "decrement";
 
-const increment = () => ({ tag: INCREMENT });
-const decrement = () => ({ tag: DECREMENT });
-
-const Counter   = defineState("counter", {
+const CounterData = createStateData({
+  name: "counter",
   init: ({ initial = 0 }: { initial?: number }) => update(initial),
-  receive: (state, msg)   => {
+  update: (state, msg) => {
     switch(msg.tag) {
     case INCREMENT:
       return update(state + 1);
@@ -28,13 +26,31 @@ const Counter   = defineState("counter", {
 
     return NONE;
   },
-  subscriptions: (state)  => state < 0 ? [] : [
+  subscriptions: (state) => state < 0 ? [] : [
     subscribe(INCREMENT),
     subscribe(DECREMENT),
   ],
 });
 
-const { Provider: CounterProvider, useData: useCounterData } = createReactState(Counter);
+function TheCounter() {
+  const sendMessage = useSendMessage();
+  const value       = useData(CounterData);
+
+  return <div>
+    <button onClick={() => sendMessage({ tag: INCREMENT })}>+</button>
+    <p>{value}</p>
+    <button onClick={() => sendMessage({ tag: DECREMENT })}>-</button>
+  </div>;
+}
+
+function App() {
+  return <StorageProvider value={storage}>
+    <CounterData.Provider>
+      <TheCounter />
+    </CounterData.Provider>
+  </StorageProvider>
+}
+
 const storage = new Storage();
 
 [
@@ -44,25 +60,6 @@ const storage = new Storage();
   "messageQueued",
   "messageMatched",
 ].map(event => storage.addListener(event, (...args) => console.log(event, ...args)));
-
-function TheCounter() {
-  const sendMessage = useSendMessage();
-  const value       = useCounterData();
-
-  return <div>
-    <button onClick={() => sendMessage(increment())}>+</button>
-    <p>{value}</p>
-    <button onClick={() => sendMessage(decrement())}>-</button>
-  </div>;
-}
-
-function App() {
-  return <StorageProvider value={storage}>
-    <CounterProvider>
-      <TheCounter />
-    </CounterProvider>
-  </StorageProvider>
-}
 
 const el = document.getElementById("app");
 

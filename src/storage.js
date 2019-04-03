@@ -6,9 +6,9 @@ import type { InflightMessage
             , Subscription } from "./message";
 import type { StateInstance
             , StateInstanceMap } from "./instance";
+import type { Supervisor } from "./supervisor";
 
 import { EventEmitter } from "./events";
-import { stateName } from "./state";
 import { subscriptionIsPassive
        , subscriptionMatches } from "./message";
 
@@ -17,11 +17,55 @@ export type Subscribers = Array<{ listener: Sink, filter: Array<Subscription> }>
 
 type StateDefs = { [key:string]: State<any, any> };
 
-export const EVENT_UNHANDLED_MESSAGE = "unhandledMessage";
-
 export type StorageEvents = {
-  // FIXME: Events
-  unhandledMessage: [Message, StatePath];
+  /**
+   * Emitted when a message did not find any active subscriber.
+   *
+   * Parameters:
+   *
+   *  * Message
+   *  * Path to the origin state
+   */
+  unhandledMessage: [Message, StatePath],
+  /**
+   * Emitted when a state-instance is created.
+   *
+   * Parameters:
+   *
+   *  * Path to the new state
+   *  * Initial data supplied to the state
+   *  * State data
+   */
+  stateCreated: [StatePath, mixed, mixed, StateInstance<any, any>],
+  /**
+   * Emitted when a state-instance updates its data.
+   *
+   * Parameters:
+   *
+   *  * The new data
+   *  * Path to the new state
+   *  * Message which caused the update
+   */
+  stateNewData: [mixed, StatePath, Message, StateInstance<any, any>],
+  /**
+   * Emitted when a message is queued for processing.
+   *
+   * Parameters:
+   *
+   *  * The message
+   *  * Path of the origin, the closest state
+   */
+  messageQueued: [Message, StatePath, StateInstance<any, any>];
+  /**
+   * Emitted when a message is queued for processing.
+   *
+   * Parameters:
+   *
+   *  * The message
+   *  * Path of the matching state-instance
+   *  * If the subscription was passive
+   */
+  messageMatched: [Message, StatePath, boolean, StateInstance<any, any>];
 };
 
 /**
@@ -34,9 +78,18 @@ export class Storage extends EventEmitter<StorageEvents> {
    * State-definitions, used for subscribers and messages.
    */
   defs: StateDefs   = {};
+
   constructor() {
     // TODO: Restore state
     super();
+  }
+
+  getStorage(): Storage {
+    return this;
+  }
+
+  getPath(): StatePath {
+    return [];
   }
 
   /**
@@ -45,7 +98,7 @@ export class Storage extends EventEmitter<StorageEvents> {
   registerState<T, I>(state: State<T, I>) {
     if( ! this.ensureState(state)) {
       // FIXME: Proper exception type
-      throw new Error(`Duplicate state name ${stateName(state)}`);
+      throw new Error(`Duplicate state name ${state.name}`);
     }
   };
 
@@ -55,7 +108,7 @@ export class Storage extends EventEmitter<StorageEvents> {
    * was new, `false` otherwise.
    */
   ensureState<T, I>(state: State<T, I>): boolean {
-    const name = stateName(state);
+    const { name } = state;
 
     if( ! this.defs[name]) {
       this.defs[name] = state;
@@ -82,7 +135,7 @@ export class Storage extends EventEmitter<StorageEvents> {
       this.ensureState(state);
     }
 
-    return nested[stateName(state)];
+    return nested[state.name];
   };
 
   sendMessage(message: Message): void {
@@ -137,6 +190,6 @@ function processMessage(storage: Storage, inflight: InflightMessage) {
   }
 
   if( ! received) {
-    storage.emit(EVENT_UNHANDLED_MESSAGE, message, source);
+    storage.emit("unhandledMessage", message, source);
   }
 }

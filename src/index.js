@@ -20,14 +20,13 @@ export type {
 } from "./update";
 export type {
   Init,
-  Receive,
+  StateUpdate,
   Subscriptions,
-  StateDefinition,
   State,
 } from "./state";
 export type {
   Supervisor,
-} from "./instance";
+} from "./supervisor";
 
 export {
   subscribe,
@@ -38,12 +37,7 @@ export {
   updateAndSend,
 } from "./update";
 export {
-  defineState,
-  stateName,
-} from "./state";
-export {
   StateInstance,
-  stateData,
   createState,
 } from "./instance";
 export {

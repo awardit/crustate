@@ -1,12 +1,12 @@
 /* @flow */
 
-import ninos from "ninos";
-import ava from "ava";
+import ninos            from "ninos";
+import ava              from "ava";
 import { EventEmitter } from "./events";
 
 const test = ninos(ava);
 
-class TestEmitter extends EventEmitter<{}> {
+class TestEmitter extends EventEmitter<{ foo: Array<mixed> }> {
   constructor(listeners: any) {
     super();
 
@@ -17,6 +17,7 @@ class TestEmitter extends EventEmitter<{}> {
 test("emit() does nothing on empty", t => {
   const emitter = new EventEmitter();
 
+  // $ExpectError
   emitter.emit("foo");
 
   t.deepEqual(emitter, new EventEmitter());
@@ -109,6 +110,7 @@ test("addListener() adds different listeners", t => {
   emitter.addListener("foo", stub1);
   t.deepEqual(emitter, new TestEmitter({ "foo": stub1 }));
 
+  // $ExpectError
   emitter.addListener("bar", stub2);
   t.deepEqual(emitter, new TestEmitter({ "foo": stub1, "bar": stub2 }));
 
@@ -127,9 +129,11 @@ test("removeListener() removes a listener", t => {
   emitter.removeListener("foo", stub1);
   t.deepEqual(emitter, new TestEmitter({ "bar": stub2 }));
 
+  // $ExpectError
   emitter.removeListener("bar", stub2);
   t.deepEqual(emitter, new TestEmitter({ }));
 
+  // $ExpectError
   emitter.removeListener("bar", stub2);
   t.deepEqual(emitter, new TestEmitter({ }));
 });

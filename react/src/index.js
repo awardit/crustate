@@ -13,9 +13,7 @@ import type { Message
             , Supervisor } from "gurka";
 
 import React from "react";
-import { stateData
-       , createState
-       , stateName } from "gurka";
+import { createState } from "gurka";
 
 // @ampproject/rollup-plugin-closure-compiler generates bad externs for named external imports
 const { createContext
@@ -28,10 +26,10 @@ type StateProviderState<T, I> = {
 };
 
   // FIXME: Redefine this so it throws when
-export type StateFunction<T> = (data: T | void) => ?React$Node;
+export type DataFunction<T> = (data: T | void) => ?React$Node;
 
-export type ReactStateProvider<T, I> = React$ComponentType<I & { children: ?React$Node }>;
-export type ReactStateConsumer<T>    = React$ComponentType<{ children: StateFunction<T>}>;
+export type DataProvider<T, I> = React$ComponentType<I & { children: ?React$Node }>;
+export type DataConsumer<T>    = React$ComponentType<{ children: DataFunction<T>}>;
 
 /**
  * Hook returning the data from the state it was created from.
@@ -41,10 +39,11 @@ export type UseData<T> = () => T;
 /**
  * React-wrapper for a gurka-state.
  */
-export type ReactState<T, I> = {
-  Provider: ReactStateProvider<T, I>,
-  Consumer: ReactStateConsumer<T>,
-  useData:  UseData<T>,
+export type StateData<T, I> = {
+  _dataContext: React$Context<T | void>,
+  state: State<T, I>,
+  Provider: DataProvider<T, I>,
+  Consumer: DataConsumer<T>,
 };
 
 /**
@@ -76,10 +75,9 @@ export function useSendMessage(): (message: Message) => void {
 
 /**
  * @suppress {checkTypes}
- * @return {!ReactState}
+ * @return {!StateData}
  */
-export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I> {
-  const displayName  = stateName(state) + " State.Provider";
+export function createStateData<T, I: {}>(state: State<T, I>): StateData<T, I> {
   const DataContext  = (createContext(undefined): React$Context<T | void>);
   const DataProvider = DataContext.Provider;
 
@@ -89,7 +87,7 @@ export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I>
    */
   class StateProvider extends Component<I & { children: ?React$Node }, StateProviderState<T, I>> {
     static contextType = StateContext;
-    static displayName = displayName;
+    static displayName = `${state.name}.Provider`;
 
     onNewData: (data: T) => void;
     context:   ?Supervisor;
@@ -99,11 +97,11 @@ export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I>
       super(props, context);
 
       if( ! context) {
-        throw new Error(`<${displayName} /> must be used inside a <StorageProvider />`);
+        throw new Error(`<${state.name}.Provider /> must be used inside a <StorageProvider />`);
       }
 
       const instance = context.getNested(state) || createState(context, state, this.props);
-      const data     = stateData(instance);
+      const data     = instance.getData();
 
       // We use setState to prevent issues with re-rendering
       this.onNewData = (data: T) => this.setState({ data });
@@ -119,7 +117,7 @@ export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I>
       this.state.instance.addListener("stateNewData", (this.onNewData: any));
 
       // Data can be new since we are runnning componentDidMount() after render()
-      const newData = stateData(this.state.instance);
+      const newData = this.state.instance.getData();
 
       if(this.state.data !== newData) {
         // Force re-render immediately
@@ -135,7 +133,7 @@ export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I>
     componentWillReceiveProps(props: I & { children: ?React$Node }) {
       const context = this.context;
       if( ! context) {
-        throw new Error(`<${displayName} /> must be used inside a <StorageProvider />`);
+        throw new Error(`<${state.name}.Provider /> must be used inside a <StorageProvider />`);
       }
 
       // Check if we got a new context instance
@@ -147,7 +145,7 @@ export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I>
 
         this.state = {
           instance,
-          data: stateData(instance),
+          data: instance.getData(),
         };
 
         this.addListener();
@@ -171,19 +169,21 @@ export function createReactState<T, I: {}>(state: State<T, I>): ReactState<T, I>
     }
   }
 
-  const useData = () => {
-    const data = useContext(DataContext);
-
-    if(data === undefined) {
-      throw new Error(`${stateName(state)}.useData() must be used inside a <${displayName} />`);
-    }
-
-    return data;
-  };
-
   return {
+    _dataContext: DataContext,
+    state: state,
     Provider: StateProvider,
     Consumer: DataContext.Consumer,
-    useData,
   };
+}
+
+export function useData<T, I>(context: StateData<T, I>): T {
+  const { _dataContext, state } = context;
+  const data = useContext(_dataContext);
+
+  if(data === undefined) {
+    throw new Error(`useData(${state.name}) must be used inside a <${state.name}.Provider /> or <StorageProvider />`);
+  }
+
+  return data;
 }

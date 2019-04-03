@@ -26,7 +26,11 @@ gurka.Message.prototype.tag;
  * @interface
  */
 gurka.StateDefinition = function() {}
-
+/**
+ * @public
+ * @type {!string}
+ */
+gurka.StateDefinition.prototype.name;
 /**
  * @public
  */
@@ -34,7 +38,7 @@ gurka.StateDefinition.prototype.init = function(initialData) {};
 /**
  * @public
  */
-gurka.StateDefinition.prototype.receive = function(state, message) {};
+gurka.StateDefinition.prototype.update = function(state, message) {};
 /**
  * @public
  */
@@ -46,19 +50,9 @@ gurka.update = function(data) {};
  * @param {...!gurka.Message} message
  */
 gurka.updateAndSend = function(data, message) {};
-/**
- * @param {!string} name
- * @param {!gurka.StateDefinition} def
- */
-gurka.defineState = function(name, def) {};
 gurka.createState = function(instance, state, params) {};
-gurka.stateData = function(instance) {};
-/**
- * @return {string}
- */
-gurka.stateName = function(instance) {};
 
-gurka.NONE = 0;
+gurka.subscribe;
 
 /**
  * @constructor
@@ -86,25 +80,19 @@ gurka.Storage.prototype.sendMessage;
    */
 gurka.Storage.prototype.addSubscriber;
 gurka.Storage.prototype.removeSubscriber;
+gurka.Storage.prototype.stateDefinition;
 gurka.Storage.prototype.getNested;
-gurka.Storage.prototype.addListener = function(eventName, callback) {};
-gurka.Storage.prototype.removeListener = function(eventName, callback) {};
-gurka.Storage.prototype.removeAllListeners;
-gurka.Storage.prototype.listeners;
-gurka.Storage.prototype.emit;
+gurka.Storage.prototype.getStorage;
+gurka.Storage.prototype.getPath;
 
 /**
  * @constructor
  * @extends {gurka.EventEmitter}
  */
 gurka.StateInstance = function() {};
+gurka.StateInstance.prototype.getName;
+gurka.StateInstance.prototype.getData;
+gurka.StateInstance.prototype.getPath;
 gurka.StateInstance.prototype.getNested;
+gurka.StateInstance.prototype.getStorage;
 gurka.StateInstance.prototype.sendMessage;
-
-gurka.createState;
-gurka.defineState;
-gurka.stateName;
-gurka.stateData;
-gurka.subscribe;
-gurka.update;
-gurka.updateAndSend;
