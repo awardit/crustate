@@ -22,6 +22,10 @@ StateData.prototype.Consumer;
 /**
  * @public
  */
+StateData.prototype.TestProvider;
+/**
+ * @public
+ */
 StateData.prototype.Provider;
 /**
  * @public

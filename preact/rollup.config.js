@@ -11,5 +11,5 @@ export default config({
     }),
   ],
   external: ["gurka", "preact"],
-  externs:  ["externs/gurka.js", "externs/react.js", "react/src/externs.js"],
+  externs:  ["resources/externs/gurka.js", "resources/externs/react.js", "resources/exports/react.js"],
 });

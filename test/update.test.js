@@ -1,13 +1,13 @@
 /* @flow */
 
-import type { Update } from "./update"
+import type { Update } from "../src/update"
 import test from "ava";
 import { NONE
        , update
        , updateAndSend
        , updateStateData
        , updateOutgoingMessages
-       , updateStateDataNoNone } from "./update";
+       , updateStateDataNoNone } from "../src/update";
 
 // Type tests
 (NONE: Update<null>);

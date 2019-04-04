@@ -4,5 +4,5 @@ export default config({
   input:    "react/src/index.js",
   output:   "react/dist/index",
   external: ["gurka", "react", "react-dom"],
-  externs:  ["externs/gurka.js", "externs/react.js", "react/src/externs.js"],
+  externs:  ["resources/externs/gurka.js", "resources/externs/react.js", "resources/exports/react.js"],
 });

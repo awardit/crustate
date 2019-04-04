@@ -40,8 +40,10 @@
   "source": "src/index.js",
   "scripts": {
     "ava": "ava --verbose",
-    "build": "rollup -c rollup.config.js",
-    "clean": "rm -rf dist react/dist preact/dist",
+    "build": "npm-run-all build:*",
+    "build:rollup": "rollup -c rollup.config.js",
+    "build:flowstub": "cp resources/flowstub.js dist/index.js.flow && cp resources/flowstub.js dist/index.mjs.flow && cp resources/flowstub.js react/dist/index.js.flow && cp resources/flowstub.js react/dist/index.mjs.flow && cp resources/flowstub.js preact/dist/index.js.flow && cp resources/flowstub.js preact/dist/index.mjs.flow",
+    "clean": "rm -rf dist react/dist preact/dist examples/counter/dist",
     "coverage": "nyc --reporter=html ava",
     "dist": "cross-env NODE_ENV=production npm run build",
     "distclean": "rm -rf package-lock.json node_modules dist react/dist preact/dist examples/counter/dist",

@@ -24,23 +24,39 @@ type StateProviderState<T, I> = {
   data:     T,
 };
 
-  // FIXME: Redefine this so it throws when
+// FIXME: Redefine this so it throws when undefined
 export type DataFunction<T> = (data: T | void) => ?React$Node;
 
+/**
+ * DataProvider is a component which will load or instantiate a state-instance
+ * with the given props as its initial data, and supply the state-data to its
+ * children.
+ */
 export type DataProvider<T, I> = React$ComponentType<I & { children: ?React$Node }>;
 export type DataConsumer<T>    = React$ComponentType<{ children: DataFunction<T>}>;
 
 /**
- * Hook returning the data from the state it was created from.
+ * TestProvider is a component which exposes a property for setting the
+ * state-data value used in children, useful for testing components by
+ * supplying the state-data without having to instantiate a state.
  */
-export type UseData<T> = () => T;
+export type TestProvider<T> = React$ComponentType<{ value: T, children: ?React$Node }>;
 
 /**
  * React-wrapper for a gurka-state.
  */
 export type StateData<T, I> = {
+  /**
+   * Internal: Reference to the data-context.
+   */
   _dataContext: React$Context<T | void>,
+  /**
+   * The state-definition, exposed to be loaded for hydration and for testing.
+   *
+   * TODO: Rename to something better
+   */
   state: State<T, I>,
+  TestProvider: TestProvider<T>,
   Provider: DataProvider<T, I>,
   Consumer: DataConsumer<T>,
 };
@@ -171,6 +187,10 @@ export function createStateData<T, I: {}>(state: State<T, I>): StateData<T, I> {
   return {
     _dataContext: DataContext,
     state: state,
+    // We have to cheat here since the value must be possible to use as
+    // undefined internally, but when testing it should not be possible to use
+    // without a fully defined `T`:
+    TestProvider: (DataContext.Provider: React$ComponentType<{ children: ?React$Node, value: any }>),
     Provider: StateProvider,
     Consumer: DataContext.Consumer,
   };

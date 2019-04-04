@@ -2,7 +2,7 @@
 
 import ninos            from "ninos";
 import ava              from "ava";
-import { EventEmitter } from "./events";
+import { EventEmitter } from "../src/events";
 
 const test = ninos(ava);
 

@@ -1,5 +1,5 @@
 /**
- * @fileoverview
+ * @fileoverview Public API for the environment
  *
  * @externs
  */
