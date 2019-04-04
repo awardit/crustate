@@ -8,11 +8,13 @@ import resolve         from "rollup-plugin-node-resolve";
 const babelConfig  = require("./build/babel.js");
 const isProduction = process.env.NODE_ENV === "production";
 const babel        = babelPlugin(babelConfig);
+// Use no formatting options for production
+const formatting   = isProduction ? { } : { formatting: "PRETTY_PRINT" };
 
 const compiler = externs => closureCompiler({
+  ...formatting,
   compilation_level:       "ADVANCED",
   assume_function_wrapper: true,
-  formatting:              isProduction ? "PRINT_INPUT_DELIMITER" : "PRETTY_PRINT",
   warning_level:           "VERBOSE",
   language_in:             "ECMASCRIPT_2018",
   language_out:            "ECMASCRIPT5_STRICT",
