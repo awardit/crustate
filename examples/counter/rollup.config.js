@@ -4,7 +4,7 @@ import babel    from "rollup-plugin-babel";
 import replace  from "rollup-plugin-replace";
 
 const babelOpts = {
-  exclude:         "../../node_modules/**",
+  exclude:         "node_modules/**",
   babelrc:         false,
   externalHelpers: false,
   runtimeHelpers:  true,
@@ -28,9 +28,9 @@ const babelOpts = {
 };
 
 export default {
-  input: "src/index.js",
+  input: "examples/counter/src/index.js",
   output: {
-    file:      "dist/index.js",
+    file:      "examples/counter/dist/index.js",
     format:    "iife",
     sourcemap: true,
   },
