@@ -67,7 +67,7 @@ export type StorageEvents = {
    *  * The message
    *  * Path of the origin, the closest state
    */
-  messageQueued: [Message, StatePath, StateInstance<any, any>];
+  messageQueued: [Message, StatePath, ?StateInstance<any, any>];
   /**
    * Emitted when a message is queued for processing.
    *
@@ -155,11 +155,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   }
 
   sendMessage(message: Message): void {
-    processStorageMessage(this, {
-      message,
-      source: [],
-      received: null,
-    });
+    processStorageMessage(this, createInflightMessage(this, null, [], [], message));
   };
 
   addSubscriber(listener: Sink, filter: Array<Subscription>) {
@@ -329,15 +325,19 @@ export function createState<T, I>(supervisor: Supervisor, state: State<T, I>, in
 
 // TODO: Drop state
 
+export function createInflightMessage(storage: Storage, instance: ?StateInstance<any, any>, source: StatePath, target: StatePath, message: Message) {
+  storage.emit("messageQueued", message, target, (instance: ?StateInstance<any, any>));
+
+  return {
+    message: message,
+    source,
+    received: null,
+  };
+}
+
 export function enqueueMessages(storage: Storage, instance: StateInstance<any, any>, source: StatePath, target: StatePath, inflight: Array<InflightMessage>, messages: Array<Message>): void {
   for(let i = 0; i < messages.length; i++) {
-    storage.emit("messageQueued", messages[i], target, instance);
-
-    inflight.push({
-      message:  messages[i],
-      source,
-      received: null,
-    });
+    inflight.push(createInflightMessage(storage, instance, source, target, messages[i]));
   }
 }
 
