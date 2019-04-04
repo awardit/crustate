@@ -5,8 +5,6 @@ type MaybeArray<T> = T | Array<T>;
 export type Listener<Events, Name>  = (...args: $ElementType<Events, Name>) => mixed;
 export type Listeners = { [eventName:string]: MaybeArray<Listener<{}, any>> };
 
-// TODO: Event types? as in string + parameters
-
 // TODO: Convenience API with returning a function which will remove the callback?
 export class EventEmitter<Events: {}> {
   // TODO: Maybe follow the example of EventEmitter and make the whole property optional?

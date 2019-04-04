@@ -10,8 +10,9 @@
     "message",
     "react",
     "reactjs",
-    "state",
-    "server-side-rendering"
+    "server-side-rendering",
+    "ssr",
+    "state"
   ],
   "authors": [
     "Martin Wernstål <m4rw3r@gmail.com>"
