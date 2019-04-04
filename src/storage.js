@@ -17,15 +17,32 @@ import { EventEmitter } from "./events";
 interface AbstractSupervisor {
   nested: StateInstanceMap;
   getStorage(): Storage;
+  getPath(): StatePath;
   getNested<T, I>(state: State<T, I>): ?StateInstance<T, I>;
   getNestedOrCreate<U, J>(state: State<U, J>, params: J): StateInstance<U, J>;
-  getPath(): StatePath;
+  // TODO: Implement
+  // removeNested<T, I>(state: State<T, I>): void;
 }
+
+/**
+ * A snapshot of the state of the application, can be used to restore the state
+ * provided the requisite state-definitions have been loaded.
+ */
+export type Snapshot = { [instanceName:string]: StateSnapshot };
+export type StateSnapshot = {
+  // Name to use to find the state-definition when loading the snapshot
+  defName: string,
+  data:    mixed,
+  params:  mixed,
+  nested:  Snapshot,
+};
 
 export type Supervisor = (Storage | StateInstance<any, any>);
 
 export type Sink = (message: Message, path: StatePath) => mixed;
 export type Subscribers = Array<{ listener: Sink, filter: Array<Subscription> }>;
+
+export type StateInstanceMap = { [name:string]: StateInstance<any, any> };
 
 type StateDefs = { [key:string]: State<any, any> };
 
@@ -94,15 +111,15 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   constructor() {
     // TODO: Restore state
     super();
-  }
+  };
 
   getStorage(): Storage {
     return this;
-  }
+  };
 
   getPath(): StatePath {
     return [];
-  }
+  };
 
   /**
    * Test
@@ -152,7 +169,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
 
   getNestedOrCreate<U, J>(state: State<U, J>, params: J): StateInstance<U, J> {
     return getNestedOrCreate(this, state, params);
-  }
+  };
 
   sendMessage(message: Message): void {
     processStorageMessage(this, createInflightMessage(this, null, [], [], message));
@@ -173,40 +190,13 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
       }
     }
   };
-}
 
-export function processStorageMessages(storage: Storage, messages: Array<InflightMessage>) {
-  for(let i = 0; i < messages.length; i++) {
-    processStorageMessage(storage, messages[i]);
-  }
-}
-
-function processStorageMessage(storage: Storage, inflight: InflightMessage) {
-  const { subscribers }     = storage;
-  const { message, source } = inflight;
-  let   received            = Boolean(inflight.received);
-
-  for(let i = 0; i < subscribers.length; i++) {
-    const { listener, filter } = subscribers[i];
-
-    // TODO: Split
-    for(let j = 0; j < filter.length; j++) {
-      if(subscriptionMatches(filter[j], message, Boolean(received))) {
-        if( ! subscriptionIsPassive(filter[j])) {
-          received = true;
-        }
-
-        listener(message, source);
-      }
-    }
+  getSnapshot(): Snapshot {
+    return createSnapshot(this);
   }
 
-  if( ! received) {
-    storage.emit("unhandledMessage", message, source);
-  }
+  // TODO: restoreSnapshot(snapshot: Snapshot): void
 }
-
-export type StateInstanceMap = { [name:string]: StateInstance<any, any> };
 
 export type StateEvents = {
   /**
@@ -239,11 +229,21 @@ export class StateInstance<T, I> extends EventEmitter<StateEvents> implements Ab
 
   getName(): string {
     return this.name;
-  }
+  };
 
   getData(): T {
     return this.data;
-  }
+  };
+
+  getStorage(): Storage {
+    let supervisor = this.supervisor;
+
+    while(supervisor instanceof StateInstance) {
+      supervisor = supervisor.supervisor;
+    }
+
+    return supervisor;
+  };
 
   getPath(): StatePath {
     const path  = [];
@@ -256,7 +256,7 @@ export class StateInstance<T, I> extends EventEmitter<StateEvents> implements Ab
     }
 
     return path;
-  }
+  };
 
   getNested<U, J>(state: State<U, J>): ?StateInstance<U, J> {
     const { nested } = this;
@@ -270,17 +270,7 @@ export class StateInstance<T, I> extends EventEmitter<StateEvents> implements Ab
 
   getNestedOrCreate<U, J>(state: State<U, J>, params: J): StateInstance<U, J> {
     return getNestedOrCreate(this, state, params);
-  }
-
-  getStorage(): Storage {
-    let supervisor = this.supervisor;
-
-    while(supervisor instanceof StateInstance) {
-      supervisor = supervisor.supervisor;
-    }
-
-    return supervisor;
-  }
+  };
 
   sendMessage(message: Message): void {
     processInstanceMessages(this, [message]);
@@ -322,8 +312,6 @@ export function createState<T, I>(supervisor: Supervisor, state: State<T, I>, in
 
   return instance;
 }
-
-// TODO: Drop state
 
 export function createInflightMessage(storage: Storage, instance: ?StateInstance<any, any>, source: StatePath, target: StatePath, message: Message) {
   storage.emit("messageQueued", message, target, (instance: ?StateInstance<any, any>));
@@ -414,4 +402,53 @@ export function processInstanceMessages(instance: StateInstance<any, any>, messa
   }
 
   processStorageMessages(storage, inflight);
+}
+
+export function processStorageMessages(storage: Storage, messages: Array<InflightMessage>) {
+  for(let i = 0; i < messages.length; i++) {
+    processStorageMessage(storage, messages[i]);
+  }
+}
+
+function processStorageMessage(storage: Storage, inflight: InflightMessage) {
+  const { subscribers }     = storage;
+  const { message, source } = inflight;
+  let   received            = Boolean(inflight.received);
+
+  for(let i = 0; i < subscribers.length; i++) {
+    const { listener, filter } = subscribers[i];
+
+    // TODO: Split
+    for(let j = 0; j < filter.length; j++) {
+      if(subscriptionMatches(filter[j], message, Boolean(received))) {
+        if( ! subscriptionIsPassive(filter[j])) {
+          received = true;
+        }
+
+        listener(message, source);
+      }
+    }
+  }
+
+  if( ! received) {
+    storage.emit("unhandledMessage", message, source);
+  }
+}
+
+export function createStateSnapshot(node: StateInstance<any, any>): StateSnapshot {
+  return {
+    defName: node.getName(),
+    // We assume it is immutably updated
+    data:    node.data,
+    params:  node.params,
+    nested:  createSnapshot(node),
+  };
+}
+
+export function createSnapshot(node: Supervisor): Snapshot {
+  return Object.keys(node.nested).reduce((a, key) => {
+    a[key] = createStateSnapshot(node.nested[key]);
+
+    return a;
+  }, {});
 }
