@@ -1,13 +1,6 @@
 {
   "name": "gurka-counter-example",
   "scripts": {
-    "start": "http-server -c-1 .",
-    "build": "rollup -c rollup.config.js",
-    "watch": "rollup -c rollup.config.js -w"
   },
-  "private": true,
-  "devDependencies": {
-    "http-server": "^0.11.1",
-    "rollup": "^1.7.4"
-  }
+  "private": true
 }

@@ -1,6 +1,7 @@
-import { config }  from "./build/config";
-import gurkaReact  from "./react/rollup.config";
-import gurkaPreact from "./preact/rollup.config";
+import { config }     from "./build/config";
+import gurkaReact     from "./react/rollup.config";
+import gurkaPreact    from "./preact/rollup.config";
+import exampleCounter from "./preact/rollup.config";
 
 export default [
   config({
@@ -10,4 +11,5 @@ export default [
   }),
   gurkaReact,
   gurkaPreact,
+  exampleCounter,
 ];
