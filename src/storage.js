@@ -401,12 +401,8 @@ export function processInstanceMessages(instance: StateInstance<any, any>, messa
     parentPath  = parentPath.slice(0, -1);
   }
 
-  processStorageMessages(storage, inflight);
-}
-
-export function processStorageMessages(storage: Storage, messages: Array<InflightMessage>) {
-  for(let i = 0; i < messages.length; i++) {
-    processStorageMessage(storage, messages[i]);
+  for(let i = 0; i < inflight.length; i++) {
+    processStorageMessage(storage, inflight[i]);
   }
 }
 
