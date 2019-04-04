@@ -8,7 +8,8 @@ import type { StatePath } from "./state";
 export type MessageTag = string;
 /**
  * Messages are used to inform states of new events/data which are of interest,
- * these are passed to `Receive` functions of matching states in the state-hierarchy.
+ * these are passed to `StateUpdate` functions of matching states in the
+ * state-hierarchy.
  *
  * Extra data can be assigned on the messages, use the `tag` property to
  * differentiate between different messages.

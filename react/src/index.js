@@ -13,7 +13,6 @@ import type { Message
             , Supervisor } from "gurka";
 
 import React from "react";
-import { createState } from "gurka";
 
 // @ampproject/rollup-plugin-closure-compiler generates bad externs for named external imports
 const { createContext
@@ -100,7 +99,7 @@ export function createStateData<T, I: {}>(state: State<T, I>): StateData<T, I> {
         throw new Error(`<${state.name}.Provider /> must be used inside a <StorageProvider />`);
       }
 
-      const instance = context.getNested(state) || createState(context, state, this.props);
+      const instance = context.getNestedOrCreate(state, this.props);
       const data     = instance.getData();
 
       // We use setState to prevent issues with re-rendering
@@ -138,7 +137,7 @@ export function createStateData<T, I: {}>(state: State<T, I>): StateData<T, I> {
 
       // Check if we got a new context instance
       // TODO: Send message if we have new props to the instance, move this into core
-      const instance = context.getNested(state) || createState(context, state, props);
+      const instance = context.getNestedOrCreate(state, props);
 
       if(this.state.instance !== instance) {
         this.removeListener();

@@ -20,6 +20,7 @@ var ensureState;
 var getData;
 var getName;
 var getNested;
+var getNestedOrCreate;
 var getPath;
 var getStorage;
 var init;

@@ -26,7 +26,7 @@ export type {
 } from "./state";
 export type {
   Supervisor,
-} from "./supervisor";
+} from "./storage";
 
 export {
   subscribe,
@@ -38,8 +38,5 @@ export {
 } from "./update";
 export {
   StateInstance,
-  createState,
-} from "./instance";
-export {
   Storage,
 } from "./storage";

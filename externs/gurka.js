@@ -50,7 +50,6 @@ gurka.update = function(data) {};
  * @param {...!gurka.Message} message
  */
 gurka.updateAndSend = function(data, message) {};
-gurka.createState = function(instance, state, params) {};
 
 gurka.subscribe;
 
@@ -82,6 +81,7 @@ gurka.Storage.prototype.addSubscriber;
 gurka.Storage.prototype.removeSubscriber;
 gurka.Storage.prototype.stateDefinition;
 gurka.Storage.prototype.getNested;
+gurka.Storage.prototype.getNestedOrCreate = function(state, params) {};
 gurka.Storage.prototype.getStorage;
 gurka.Storage.prototype.getPath;
 
@@ -94,5 +94,6 @@ gurka.StateInstance.prototype.getName;
 gurka.StateInstance.prototype.getData;
 gurka.StateInstance.prototype.getPath;
 gurka.StateInstance.prototype.getNested;
+gurka.StateInstance.prototype.getNestedOrCreate = function(state, params) {};
 gurka.StateInstance.prototype.getStorage;
 gurka.StateInstance.prototype.sendMessage;
