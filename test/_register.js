@@ -1,2 +1,2 @@
 /* @flow */
-require("@babel/register")(require("../build/babel"));
+require("@babel/register")(require("../build/babel").test);

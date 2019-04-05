@@ -7,7 +7,7 @@ import resolve         from "rollup-plugin-node-resolve";
 // on the current working directory:
 const babelConfig  = require("./build/babel.js");
 const isProduction = process.env.NODE_ENV === "production";
-const babel        = babelPlugin(babelConfig);
+const babel        = babelPlugin(babelConfig.compiler);
 // Use no formatting options for production
 const formatting   = isProduction ? { } : { formatting: "PRETTY_PRINT" };
 
