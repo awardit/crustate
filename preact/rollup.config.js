@@ -7,10 +7,16 @@ export default config({
   output:   "preact/dist/index",
   plugins:  [
     alias({
-      "react":     path.join(__dirname, "./preact/src/react-shim"),
-      "react-dom": path.join(__dirname, "./preact/src/react-shim"),
+      "gurka/react": path.join(__dirname, "./react/src/index"),
+      "react":       path.join(__dirname, "./preact/src/react-shim"),
+      "react-dom":   path.join(__dirname, "./preact/src/react-shim"),
     }),
   ],
   external: ["gurka", "preact", "preact/hooks"],
-  externs:  ["resources/externs/gurka.js", "resources/externs/react.js", "resources/exports/react.js"],
+  externs:  [
+    "resources/externs/gurka.js",
+    "resources/externs/react.js",
+    "resources/externs/preact.js",
+    "resources/exports/react.js",
+  ],
 });

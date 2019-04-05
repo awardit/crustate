@@ -1,2 +1,2 @@
-export type * from "../../react/src";
-export * from "../../react/src";
+export type * from "gurka/react";
+export * from "gurka/react";

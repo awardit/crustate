@@ -1,13 +1,13 @@
 /* @flow */
 
-export { useState
-       , useReducer
-       , useEffect
-       , useLayoutEffect
-       , useRef
-       , useMemo
-       , useCallback
-       , useContext } from "preact/hooks";
-export { createContext
+import { useContext } from "preact/hooks";
+import { createContext
        , h as createElement
        , Component } from "preact";
+
+export default {
+  useContext,
+  createContext,
+  createElement,
+  Component,
+}

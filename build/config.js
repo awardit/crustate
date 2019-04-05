@@ -41,11 +41,6 @@ export const config = ({ input, output, plugins = [], external = [], externs }) 
   ],
   plugins: plugins.concat([
     babel,
-    resolve({
-      module:      true,
-      jsnext:      true,
-      modulesOnly: true,
-    }),
     compiler(externs),
     isProduction ? gzip({ level: 9 }) : null,
   ]),

@@ -12,10 +12,12 @@ import type { Message
             , StateInstance
             , Supervisor } from "gurka";
 
-import { createContext
-       , createElement
-       , useContext
-       , Component } from "react";
+import React from "react";
+
+const { createContext
+      , createElement
+      , useContext
+      , Component } = React;
 
 type StateProviderState<T, I> = {
   instance: StateInstance<T, I>,
