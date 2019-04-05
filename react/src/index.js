@@ -12,12 +12,10 @@ import type { Message
             , StateInstance
             , Supervisor } from "gurka";
 
-import React from "react";
-
-// @ampproject/rollup-plugin-closure-compiler generates bad externs for named external imports
-const { createContext
-      , useContext
-      , Component } = React;
+import { createContext
+       , createElement
+       , useContext
+       , Component } from "react";
 
 type StateProviderState<T, I> = {
   instance: StateInstance<T, I>,
@@ -64,6 +62,7 @@ export type StateData<T, I> = {
 /**
  * The basic state context where we will carry either a Storage, or a state
  * instance for the current nesting.
+ * @suppress {checkTypes}
  */
 export const StateContext: Context<?Supervisor> = createContext(null);
 
@@ -176,11 +175,9 @@ export function createStateData<T, I: {}>(state: State<T, I>): StateData<T, I> {
     }
 
     render() {
-      return <InstanceProvider value={this.state.instance}>
-        <DataProvider value={this.state.data}>
-          {this.props.children}
-        </DataProvider>
-      </InstanceProvider>;
+      return createElement(InstanceProvider, { value:this.state.instance },
+        createElement(DataProvider, { value: this.state.data },
+          this.props.children));
     }
   }
 
@@ -196,6 +193,12 @@ export function createStateData<T, I: {}>(state: State<T, I>): StateData<T, I> {
   };
 }
 
+/**
+ * Returns the data in the topmost state-instance associated with the supplied
+ * state-data. Will throw if a StateData.Provider is not a parent node.
+ *
+ * @suppress {checkTypes}
+ */
 export function useData<T, I>(context: StateData<T, I>): T {
   const { _dataContext, state } = context;
   const data = useContext(_dataContext);
