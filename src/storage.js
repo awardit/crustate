@@ -37,14 +37,19 @@ export type StateSnapshot = {
   nested:  Snapshot,
 };
 
-export type Supervisor = (Storage | StateInstance<any, any>);
+/**
+ * Supervisor is a parent state or a storage instance.
+ *
+ * NOTE: Essentially the same as AbstractSupervisor, just that this type is
+ * closed to make it possible to differentiate between the two types while
+ * traversing the tree.
+ */
+export type Supervisor = Storage | StateInstance<any, any>;
 
 export type Sink = (message: Message, path: StatePath) => mixed;
 export type Subscribers = Array<{ listener: Sink, filter: Array<Subscription> }>;
 
 export type StateInstanceMap = { [name:string]: StateInstance<any, any> };
-
-type StateDefs = { [key:string]: State<any, any> };
 
 export type StorageEvents = {
   /**
@@ -106,7 +111,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   /**
    * State-definitions, used for subscribers and messages.
    */
-  defs: StateDefs   = {};
+  defs: { [key:string]: State<any, any> } = {};
 
   constructor() {
     // TODO: Restore state
@@ -212,6 +217,9 @@ export type StateEvents = {
 };
 
 export class StateInstance<T, I> extends EventEmitter<StateEvents> implements AbstractSupervisor {
+  /**
+   * Matches the key used in the supervisor's `nested` collection.
+   */
   name:       string;
   data:       T;
   params:     I;
