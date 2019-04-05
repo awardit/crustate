@@ -4,6 +4,7 @@ import type { Update } from "../src/update"
 import test from "ava";
 import { NONE
        , updateData
+       , updateHasData
        , updateAndSend
        , updateStateData
        , updateOutgoingMessages
@@ -31,6 +32,7 @@ import { NONE
 
 test("NONE contains no data", t => {
   t.is(updateStateData(NONE), null);
+  t.is(updateHasData(NONE), false);
 });
 
 test("NONE has no messages", t => {
@@ -41,6 +43,7 @@ test("updateData() contains data", t => {
   const o = { object: "object" };
 
   t.deepEqual(updateData(o), updateData(o));
+  t.is(updateHasData(updateData(o)), true);
   t.is(updateStateData(updateData(o)), o);
   t.is(updateStateDataNoNone(updateData(o)), o);
 });
@@ -54,6 +57,7 @@ test("updateAndSend() contains data", t => {
   const o = { object: "object" };
 
   t.deepEqual(updateAndSend(o), updateAndSend(o));
+  t.is(updateHasData(updateAndSend(o)), true);
   t.is(updateStateData(updateAndSend(o)), o);
   t.is(updateStateDataNoNone(updateAndSend(o)), o);
 });
@@ -64,9 +68,11 @@ test("updateAndSend() contains messages", t => {
   const n = { tag: "another" };
 
   t.deepEqual(updateAndSend(o, m), updateAndSend(o, m));
+  t.is(updateHasData(updateAndSend(o, m)), true);
   t.is(updateStateData(updateAndSend(o, m)), o);
   t.deepEqual(updateOutgoingMessages(updateAndSend(o, m)), [m]);
   t.deepEqual(updateAndSend(o, m, n), updateAndSend(o, m, n));
+  t.is(updateHasData(updateAndSend(o, m, n)), true);
   t.is(updateStateData(updateAndSend(o, m, n)), o);
   t.deepEqual(updateOutgoingMessages(updateAndSend(o, m, n)), [m, n]);
 });

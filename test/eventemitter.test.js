@@ -156,3 +156,48 @@ test("removeListener() removes a listener when we have multiple", t => {
   emitter.removeListener("foo", stub3);
   t.deepEqual(emitter, new TestEmitter({}));
 });
+
+test("removeAllListeners(eventName) removes all listeners for a specific event", t => {
+  const stub1   = t.context.stub();
+  const stub2   = t.context.stub();
+  const stub3   = t.context.stub();
+  const emitter = new TestEmitter({ "foo": [stub1, stub2], "bar": stub3 });
+
+  emitter.removeAllListeners("foo");
+  t.deepEqual(emitter, new TestEmitter({ "bar": stub3 }));
+
+  emitter.removeAllListeners("foo");
+  t.deepEqual(emitter, new TestEmitter({ "bar": stub3 }));
+
+  emitter.removeAllListeners("bar");
+  t.deepEqual(emitter, new TestEmitter({}));
+});
+
+test("removeAllListeners() removes all listeners for all events", t => {
+  const stub1   = t.context.stub();
+  const stub2   = t.context.stub();
+  const stub3   = t.context.stub();
+  const emitter = new TestEmitter({ "foo": [stub1, stub2], "bar": stub3 });
+
+  emitter.removeAllListeners();
+  t.deepEqual(emitter, new TestEmitter({}));
+
+  emitter.removeAllListeners("foo");
+  t.deepEqual(emitter, new TestEmitter({}));
+
+  emitter.removeAllListeners("bar");
+  t.deepEqual(emitter, new TestEmitter({}));
+});
+
+test("listeners() returns all listeners for a specific event", t => {
+  const stub1   = t.context.stub();
+  const stub2   = t.context.stub();
+  const stub3   = t.context.stub();
+  const emitter = new TestEmitter({ "foo": [stub1, stub2], "bar": stub3 });
+
+  t.deepEqual(emitter.listeners("foo"), [stub1, stub2]);
+  // $ExpectError
+  t.deepEqual(emitter.listeners("bar"), [stub3]);
+  // $ExpectError
+  t.deepEqual(emitter.listeners("baz"), []);
+});
