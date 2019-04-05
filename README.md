@@ -51,12 +51,12 @@ This is very similar to Redux's Reducer concept with the main difference
 being that the Receive-function can send new messages.
 
 ```javascript
-import { NONE, update } from "gurka";
+import { NONE, updateData } from "gurka";
 
 function receive(state, message, send) {
   switch(message.tag) {
   case ADD:
-    return update(state + message.value);
+    return updateData(state + message.value);
   }
 
   return NONE;

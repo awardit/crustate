@@ -45,7 +45,7 @@ gurka.StateDefinition.prototype.update = function(state, message) {};
 gurka.StateDefinition.prototype.subscriptions = function(state) {};
 
 gurka.NONE = 0;
-gurka.update = function(data) {};
+gurka.updateData = function(data) {};
 /**
  * @param {...!gurka.Message} message
  */

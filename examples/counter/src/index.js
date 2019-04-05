@@ -1,6 +1,6 @@
 /* @flow */
 import { NONE
-       , update
+       , updateData
        , subscribe
        , Storage } from "gurka";
 import { StorageProvider
@@ -15,13 +15,13 @@ const DECREMENT = "decrement";
 
 const CounterData = createStateData({
   name: "counter",
-  init: ({ initial = 0 }: { initial?: number }) => update(initial),
+  init: ({ initial = 0 }: { initial?: number }) => updateData(initial),
   update: (state, msg) => {
     switch(msg.tag) {
     case INCREMENT:
-      return update(state + 1);
+      return updateData(state + 1);
     case DECREMENT:
-      return update(state - 1);
+      return updateData(state - 1);
     }
 
     return NONE;

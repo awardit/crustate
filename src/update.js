@@ -37,7 +37,7 @@ export type Update<T> =
  *
  * @export
  */
-export function update<T>(data: T): DataUpdate<T> {
+export function updateData<T>(data: T): DataUpdate<T> {
   return { stateData: data };
 }
 /**

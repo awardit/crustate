@@ -33,7 +33,7 @@ export {
 } from "./message";
 export {
   NONE,
-  update,
+  updateData,
   updateAndSend,
 } from "./update";
 export {

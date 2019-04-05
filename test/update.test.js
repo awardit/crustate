@@ -3,7 +3,7 @@
 import type { Update } from "../src/update"
 import test from "ava";
 import { NONE
-       , update
+       , updateData
        , updateAndSend
        , updateStateData
        , updateOutgoingMessages
@@ -12,8 +12,8 @@ import { NONE
 // Type tests
 (NONE: Update<null>);
 (NONE: Update<string>);
-(update(null): Update<null>);
-(update("string"): Update<string>);
+(updateData(null): Update<null>);
+(updateData("string"): Update<string>);
 (updateAndSend(null): Update<null>);
 (updateAndSend("string"): Update<string>);
 // $ExpectError
@@ -37,17 +37,17 @@ test("NONE has no messages", t => {
   t.deepEqual(updateOutgoingMessages(NONE), []);
 });
 
-test("update() contains data", t => {
+test("updateData() contains data", t => {
   const o = { object: "object" };
 
-  t.deepEqual(update(o), update(o));
-  t.is(updateStateData(update(o)), o);
-  t.is(updateStateDataNoNone(update(o)), o);
+  t.deepEqual(updateData(o), updateData(o));
+  t.is(updateStateData(updateData(o)), o);
+  t.is(updateStateDataNoNone(updateData(o)), o);
 });
 
-test("update() has no messages", t => {
-  t.deepEqual(updateOutgoingMessages(update(null)), []);
-  t.deepEqual(updateOutgoingMessages(update(0)), []);
+test("updateData() has no messages", t => {
+  t.deepEqual(updateOutgoingMessages(updateData(null)), []);
+  t.deepEqual(updateOutgoingMessages(updateData(0)), []);
 })
 
 test("updateAndSend() contains data", t => {
