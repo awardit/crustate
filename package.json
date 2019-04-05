@@ -53,7 +53,8 @@
     "test:ava": "ava --verbose",
     "watch": "nodemon -w src -w test -w react/src --exec \"npm run -q test || true\"",
     "watch-build": "rollup -c rollup.config.js -w",
-    "watch-test": "nodemon -w src -w test -w react/src --exec \"npm run -q ava || true\""
+    "watch-test": "nodemon -w src -w test -w react/src --exec \"npm run -q ava || true\"",
+    "watch-coverage": "nodemon -w src -w test -w react/src --exec \"npm run -q coverage || true\""
   },
   "devDependencies": {
     "@ampproject/rollup-plugin-closure-compiler": "0.8.5",
