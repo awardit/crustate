@@ -12,7 +12,7 @@ import { updateHasData
        , updateOutgoingMessages } from "./update";
 import { subscriptionIsPassive
        , subscriptionMatches } from "./message";
-import { EventEmitter } from "./events";
+import { EventEmitter } from "./eventemitter";
 
 interface AbstractSupervisor {
   nested: StateInstanceMap;
