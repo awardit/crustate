@@ -18,6 +18,9 @@ interface AbstractSupervisor {
   nested: StateInstanceMap;
   getStorage(): Storage;
   getPath(): StatePath;
+  // TODO: Possibility to specify a name which does not match the state-name
+  //       for the instance storage, would enable multiple instances on the
+  //       same level
   getNested<T, I>(state: State<T, I>): ?StateInstance<T, I>;
   getNestedOrCreate<U, J>(state: State<U, J>, params: J): StateInstance<U, J>;
   // TODO: Implement

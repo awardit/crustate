@@ -2,6 +2,7 @@ import resolve  from "rollup-plugin-node-resolve";
 import commonjs from "rollup-plugin-commonjs";
 import babel    from "rollup-plugin-babel";
 import replace  from "rollup-plugin-replace";
+import alias    from "rollup-plugin-alias";
 
 const babelOpts = {
   exclude:         "node_modules/**",
@@ -35,6 +36,12 @@ export default {
     sourcemap: true,
   },
   plugins: [
+    alias({
+      // More specific needs to be first, otherwise will alias try to suffix
+      // `/react` on top of `index.mjs`:
+      "gurka/react": "react/dist/index.mjs",
+      "gurka":       "dist/index.mjs",
+    }),
     babel(babelOpts),
     commonjs(),
     resolve({
