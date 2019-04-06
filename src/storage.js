@@ -116,7 +116,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
    */
   _defs: { [key:string]: State<any, any> } = {};
 
-  constructor() {
+  constructor(): void {
     // TODO: Restore state
     super();
   };
@@ -133,7 +133,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
    * Test
    */
   registerState<T, I>(state: State<T, I>) {
-    if( ! this.ensureState(state)) {
+    if( ! this.tryRegisterState(state)) {
       // FIXME: Proper exception type
       throw new Error(`Duplicate state name ${state.name}`);
     }
@@ -144,7 +144,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
    * state with the same name if it is already loaded. `true` returned if it
    * was new, `false` otherwise.
    */
-  ensureState<T, I>(state: State<T, I>): boolean {
+  tryRegisterState<T, I>(state: State<T, I>): boolean {
     const { name } = state;
 
     if( ! this._defs[name]) {
@@ -153,10 +153,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
       return true;
     }
 
-    if(this._defs[name] !== state) {
-      // FIXME: Proper exception type
-      throw new Error(`State object mismatch for state ${name}`);
-    }
+    ensureState(this, state);
 
     return false;
   };
@@ -168,8 +165,8 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   getNested<T, I>(state: State<T, I>): ?StateInstance<T, I> {
     const { _nested } = this;
 
-    if(process.env.NODE_ENV !== "production") {
-      this.ensureState(state);
+    if(_nested[state.name] && process.env.NODE_ENV !== "production") {
+      ensureState(this, state);
     }
 
     return _nested[state.name];
@@ -206,6 +203,15 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   // TODO: restoreSnapshot(snapshot: Snapshot): void
 }
 
+export function ensureState<T, I>(storage: Storage, state: State<T, I>): void {
+  const { name } = state;
+
+  if(storage._defs[name] !== state) {
+    // FIXME: Proper exception type
+    throw new Error(`State object mismatch for state ${name}`);
+  }
+}
+
 export type StateEvents = {
   /**
    * Emitted when a state-instance updates its data.
@@ -229,7 +235,7 @@ export class StateInstance<T, I> extends EventEmitter<StateEvents> implements Ab
   _supervisor: Supervisor;
   _nested:     StateInstanceMap = {};
 
-  constructor(name: string, supervisor: Supervisor, params: I, data: T) {
+  constructor(name: string, supervisor: Supervisor, params: I, data: T): void {
     super();
 
     this._name       = name;
@@ -272,8 +278,8 @@ export class StateInstance<T, I> extends EventEmitter<StateEvents> implements Ab
   getNested<U, J>(state: State<U, J>): ?StateInstance<U, J> {
     const { _nested } = this;
 
-    if(process.env.NODE_ENV !== "production") {
-      this.getStorage().ensureState(state);
+    if(_nested[state.name] && process.env.NODE_ENV !== "production") {
+      ensureState(this.getStorage(), state);
     }
 
     return _nested[state.name];
@@ -305,12 +311,12 @@ export function createState<T, I>(supervisor: Supervisor, state: State<T, I>, in
   const storage        = supervisor.getStorage();
   const { name, init } = state;
 
-  storage.ensureState(state);
+  storage.tryRegisterState(state);
 
   const update   = init(initialData);
   const data     = updateStateDataNoNone(update);
   const messages = updateOutgoingMessages(update);
-  const instance = new StateInstance<T, I>(name, supervisor, initialData, data);
+  const instance = new StateInstance(name, supervisor, initialData, data);
   const path     = instance.getPath();
 
   _nested[name] = instance;
