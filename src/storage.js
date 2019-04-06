@@ -15,7 +15,7 @@ import { subscriptionIsPassive
 import { EventEmitter } from "./eventemitter";
 
 interface AbstractSupervisor {
-  nested: StateInstanceMap;
+  _nested: StateInstanceMap;
   getStorage(): Storage;
   getPath(): StatePath;
   // TODO: Possibility to specify a name which does not match the state-name
@@ -109,12 +109,12 @@ export type StorageEvents = {
  * Base node in a state-tree, anchors all states and carries all data.
  */
 export class Storage extends EventEmitter<StorageEvents> implements AbstractSupervisor {
-  subscribers: Subscribers = [];
-  nested: StateInstanceMap = {};
+  _subscribers: Subscribers = [];
+  _nested: StateInstanceMap = {};
   /**
    * State-definitions, used for subscribers and messages.
    */
-  defs: { [key:string]: State<any, any> } = {};
+  _defs: { [key:string]: State<any, any> } = {};
 
   constructor() {
     // TODO: Restore state
@@ -147,13 +147,13 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   ensureState<T, I>(state: State<T, I>): boolean {
     const { name } = state;
 
-    if( ! this.defs[name]) {
-      this.defs[name] = state;
+    if( ! this._defs[name]) {
+      this._defs[name] = state;
 
       return true;
     }
 
-    if(this.defs[name] !== state) {
+    if(this._defs[name] !== state) {
       // FIXME: Proper exception type
       throw new Error(`State object mismatch for state ${name}`);
     }
@@ -162,17 +162,17 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   };
 
   stateDefinition<T, I>(instanceName: string): ?State<T, I> {
-    return this.defs[instanceName];
+    return this._defs[instanceName];
   };
 
   getNested<T, I>(state: State<T, I>): ?StateInstance<T, I> {
-    const { nested } = this;
+    const { _nested } = this;
 
     if(process.env.NODE_ENV !== "production") {
       this.ensureState(state);
     }
 
-    return nested[state.name];
+    return _nested[state.name];
   };
 
   getNestedOrCreate<U, J>(state: State<U, J>, params: J): StateInstance<U, J> {
@@ -184,15 +184,15 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   };
 
   addSubscriber(listener: Sink, filter: Array<Subscription>) {
-    this.subscribers.push({ listener, filter });
+    this._subscribers.push({ listener, filter });
   };
 
   removeSubscriber(listener: Sink) {
-    const { subscribers } = this;
+    const { _subscribers } = this;
 
-    for(let i = 0; i < subscribers.length; i++) {
-      if(subscribers[i].listener === listener) {
-        subscribers.splice(i, 1);
+    for(let i = 0; i < _subscribers.length; i++) {
+      if(_subscribers[i].listener === listener) {
+        _subscribers.splice(i, 1);
 
         return;
       }
@@ -221,62 +221,62 @@ export type StateEvents = {
 
 export class StateInstance<T, I> extends EventEmitter<StateEvents> implements AbstractSupervisor {
   /**
-   * Matches the key used in the supervisor's `nested` collection.
+   * Matches the key used in the supervisor's `_nested` collection.
    */
-  name:       string;
-  data:       T;
-  params:     I;
-  supervisor: Supervisor;
-  nested:     StateInstanceMap = {};
+  _name:       string;
+  _data:       T;
+  _params:     I;
+  _supervisor: Supervisor;
+  _nested:     StateInstanceMap = {};
 
   constructor(name: string, supervisor: Supervisor, params: I, data: T) {
     super();
 
-    this.name       = name;
-    this.supervisor = supervisor;
-    this.params     = params;
-    this.data       = data;
+    this._name       = name;
+    this._supervisor = supervisor;
+    this._params     = params;
+    this._data       = data;
   };
 
   getName(): string {
-    return this.name;
+    return this._name;
   };
 
   getData(): T {
-    return this.data;
+    return this._data;
   };
 
   getStorage(): Storage {
-    let supervisor = this.supervisor;
+    let s = this._supervisor;
 
-    while(supervisor instanceof StateInstance) {
-      supervisor = supervisor.supervisor;
+    while(s instanceof StateInstance) {
+      s = s._supervisor;
     }
 
-    return supervisor;
+    return s;
   };
 
   getPath(): StatePath {
-    const path  = [];
-    let   state = this;
+    const path = [];
+    let   s    = this;
 
-    while(state instanceof StateInstance) {
-      path.push(state.name);
+    while(s instanceof StateInstance) {
+      path.push(s._name);
 
-      state = state.supervisor;
+      s = s._supervisor;
     }
 
     return path;
   };
 
   getNested<U, J>(state: State<U, J>): ?StateInstance<U, J> {
-    const { nested } = this;
+    const { _nested } = this;
 
     if(process.env.NODE_ENV !== "production") {
       this.getStorage().ensureState(state);
     }
 
-    return nested[state.name];
+    return _nested[state.name];
   };
 
   getNestedOrCreate<U, J>(state: State<U, J>, params: J): StateInstance<U, J> {
@@ -289,19 +289,19 @@ export class StateInstance<T, I> extends EventEmitter<StateEvents> implements Ab
 };
 
 export function getNestedOrCreate<T, I>(supervisor: Supervisor, state: State<T, I>, params: I): StateInstance<T, I> {
-  const nested = supervisor.getNested(state);
+  const child = supervisor.getNested(state);
 
-  if(nested) {
+  if(child) {
     // TODO: Diff and send message if the params are different
 
-    return nested;
+    return child;
   }
 
   return createState(supervisor, state, params);
 }
 
 export function createState<T, I>(supervisor: Supervisor, state: State<T, I>, initialData: I): StateInstance<T, I> {
-  const { nested }     = supervisor;
+  const { _nested }    = supervisor;
   const storage        = supervisor.getStorage();
   const { name, init } = state;
 
@@ -313,7 +313,7 @@ export function createState<T, I>(supervisor: Supervisor, state: State<T, I>, in
   const instance = new StateInstance<T, I>(name, supervisor, initialData, data);
   const path     = instance.getPath();
 
-  nested[name] = instance;
+  _nested[name] = instance;
 
   storage.emit("stateCreated", path, (initialData: any), data, instance);
 
@@ -324,13 +324,13 @@ export function createState<T, I>(supervisor: Supervisor, state: State<T, I>, in
   return instance;
 }
 
-export function createInflightMessage(storage: Storage, instance: ?StateInstance<any, any>, source: StatePath, target: StatePath, message: Message) {
+export function createInflightMessage(storage: Storage, instance: ?StateInstance<any, any>, source: StatePath, target: StatePath, message: Message): InflightMessage {
   storage.emit("messageQueued", message, target, (instance: ?StateInstance<any, any>));
 
   return {
-    message: message,
-    source,
-    received: null,
+    _message:  message,
+    _source:   source,
+    _received: null,
   };
 }
 
@@ -353,10 +353,10 @@ export function processInstanceMessages(instance: StateInstance<any, any>, messa
 
   enqueueMessages(storage, instance, currentPath, currentPath, inflight, messages);
 
-  let supervisor: Supervisor = instance;
+  let currentNode: Supervisor = instance;
 
-  while(supervisor instanceof StateInstance) {
-    const definition = storage.stateDefinition(supervisor.name);
+  while(currentNode instanceof StateInstance) {
+    const definition = storage.stateDefinition(currentNode._name);
 
     if( ! definition) {
       // TODO: Eror type
@@ -368,38 +368,38 @@ export function processInstanceMessages(instance: StateInstance<any, any>, messa
     const currentLimit  = inflight.length;
     const { update, subscriptions } = definition;
     // We need to be able to update the filters if the data changes
-    let   messageFilter = subscriptions(supervisor.data);
+    let   messageFilter = subscriptions(currentNode._data);
 
     // TODO: Emit event? that we are considering messags for state?
 
     for(let i = 0; i < currentLimit; i++) {
       const currentInflight = inflight[i];
-      const { message }     = currentInflight;
+      const { _message: m } = currentInflight;
 
       for(let j = 0; j < messageFilter.length; j++) {
         const currentFilter: Subscription = messageFilter[j];
 
-        if(subscriptionMatches(currentFilter, message, Boolean(currentInflight.received))) {
+        if(subscriptionMatches(currentFilter, m, Boolean(currentInflight._received))) {
           if( ! subscriptionIsPassive(currentFilter)) {
-            currentInflight.received = currentPath;
+            currentInflight._received = currentPath;
           }
 
-          storage.emit("messageMatched", message, currentPath, subscriptionIsPassive(currentFilter), supervisor);
+          storage.emit("messageMatched", m, currentPath, subscriptionIsPassive(currentFilter), currentNode);
 
-          const updateRequest = update(supervisor.data, message);
+          const updateRequest = update(currentNode._data, m);
 
           if(updateHasData(updateRequest)) {
             const data     = updateStateData(updateRequest);
             const outgoing = updateOutgoingMessages(updateRequest);
 
-            supervisor.data = data;
+            currentNode._data = data;
 
-            storage.emit("stateNewData", data, currentPath, message, supervisor)
-            supervisor.emit("stateNewData", data, currentPath, message, supervisor)
+            storage.emit("stateNewData", data, currentPath, m, currentNode)
+            currentNode.emit("stateNewData", data, currentPath, m, currentNode)
 
-            enqueueMessages(storage, supervisor, currentPath, parentPath, inflight, outgoing);
+            enqueueMessages(storage, currentNode, currentPath, parentPath, inflight, outgoing);
 
-            messageFilter = subscriptions(supervisor.data);
+            messageFilter = subscriptions(currentNode._data);
           }
         }
 
@@ -407,7 +407,7 @@ export function processInstanceMessages(instance: StateInstance<any, any>, messa
       }
     }
 
-    supervisor  = supervisor.supervisor;
+    currentNode = currentNode._supervisor;
     currentPath = currentPath.slice(0, -1);
     parentPath  = parentPath.slice(0, -1);
   }
@@ -418,27 +418,27 @@ export function processInstanceMessages(instance: StateInstance<any, any>, messa
 }
 
 function processStorageMessage(storage: Storage, inflight: InflightMessage) {
-  const { subscribers }     = storage;
-  const { message, source } = inflight;
-  let   received            = Boolean(inflight.received);
+  const { _subscribers: s }   = storage;
+  const { _message, _source } = inflight;
+  let   received              = Boolean(inflight._received);
 
-  for(let i = 0; i < subscribers.length; i++) {
-    const { listener, filter } = subscribers[i];
+  for(let i = 0; i < s.length; i++) {
+    const { listener, filter } = s[i];
 
     // TODO: Split
     for(let j = 0; j < filter.length; j++) {
-      if(subscriptionMatches(filter[j], message, Boolean(received))) {
+      if(subscriptionMatches(filter[j], _message, Boolean(received))) {
         if( ! subscriptionIsPassive(filter[j])) {
           received = true;
         }
 
-        listener(message, source);
+        listener(_message, _source);
       }
     }
   }
 
   if( ! received) {
-    storage.emit("unhandledMessage", message, source);
+    storage.emit("unhandledMessage", _message, _source);
   }
 }
 
@@ -446,15 +446,15 @@ export function createStateSnapshot(node: StateInstance<any, any>): StateSnapsho
   return {
     defName: node.getName(),
     // We assume it is immutably updated
-    data:    node.data,
-    params:  node.params,
+    data:    node._data,
+    params:  node._params,
     nested:  createSnapshot(node),
   };
 }
 
 export function createSnapshot(node: Supervisor): Snapshot {
-  return Object.keys(node.nested).reduce((a, key) => {
-    a[key] = createStateSnapshot(node.nested[key]);
+  return Object.keys(node._nested).reduce((a, key) => {
+    a[key] = createStateSnapshot(node._nested[key]);
 
     return a;
   }, {});

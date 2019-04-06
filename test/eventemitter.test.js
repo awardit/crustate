@@ -10,7 +10,7 @@ class TestEmitter extends EventEmitter<{ foo: Array<mixed> }> {
   constructor(listeners: any) {
     super();
 
-    this.eventListeners = listeners;
+    this._eventListeners = listeners;
   }
 }
 

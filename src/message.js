@@ -22,13 +22,13 @@ export type Message = {
  * A message on its way upwards in the hierarchy.
  */
 export type InflightMessage = {
-  message:  Message,
-  source:   StatePath,
+  _message:  Message,
+  _source:   StatePath,
   /**
    * If an active subscription has received this message this is the state path
    * which received it.
    */
-  received: ?StatePath,
+  _received: ?StatePath,
 };
 
 /**
@@ -57,15 +57,15 @@ export opaque type Subscription = {
   /**
    * Extra, user-supplied, filtering logic.
    */
-  matcher: MessageFilter | null,
+  filter: MessageFilter | null,
 };
 
 // TODO: Avoid the boolean parameter
-export function subscribe(tag: MessageTag, passive: boolean = false, matcher: MessageFilter | null = null): Subscription {
+export function subscribe(tag: MessageTag, passive: boolean = false, filter: MessageFilter | null = null): Subscription {
   return {
     tag,
     passive,
-    matcher,
+    filter,
   };
 }
 
@@ -75,11 +75,11 @@ export function subscribe(tag: MessageTag, passive: boolean = false, matcher: Me
  * @param {!boolean} received
  */
 export function subscriptionMatches(subscription: Subscription, message: Message, received: bool): boolean {
-  const { tag, passive, matcher } = subscription;
+  const { tag, passive, filter } = subscription;
 
   return (passive || ! received)
       && tag === message.tag
-      && ( ! matcher || matcher(message));
+      && ( ! filter || filter(message));
 }
 
 /**

@@ -1,6 +1,6 @@
 [ignore]
-# We have a self-referencing module specified in package.json for testing
-.*/node_modules/gurka/.*
+<PROJECT_ROOT>/dist/.*\.[m]?js
+<PROJECT_ROOT>/[p]?react/dist/.*\.[m]?js
 
 [include]
 

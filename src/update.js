@@ -16,12 +16,12 @@ export opaque type NoUpdate = 0;
 /**
  * An update containing new data for the state. Created using `update`.
  */
-export opaque type DataUpdate<T> = {| stateData: T |};
+export opaque type DataUpdate<T> = {| _stateData: T |};
 /**
  * An update containing new data for the state, and a few messages. Created
  * using `updateAndSend`.
  */
-export opaque type MessageUpdate<T> = {| stateData: T, outgoingMessages: Array<Message> |};
+export opaque type MessageUpdate<T> = {| _stateData: T, _outgoingMessages: Array<Message> |};
 /**
  * Update containing new state-data if any, and any messages to send to supervisors.
  */
@@ -38,7 +38,7 @@ export type Update<T> =
  * @export
  */
 export function updateData<T>(data: T): DataUpdate<T> {
-  return { stateData: data };
+  return { _stateData: data };
 }
 /**
  * Creates an update replacing the data of the state, and sends a list o
@@ -47,7 +47,7 @@ export function updateData<T>(data: T): DataUpdate<T> {
  * @export
  */
 export function updateAndSend<T>(data: T, ...messages: Array<Message>): MessageUpdate<T> {
-  return { stateData: data, outgoingMessages: messages };
+  return { _stateData: data, _outgoingMessages: messages };
 }
 
 export function updateHasData(update: Update<any>): boolean %checks {
@@ -60,7 +60,7 @@ export function updateHasData(update: Update<any>): boolean %checks {
  * NOTE: Should not be exported so it can be inlined.
  */
 export function updateStateData<T>(update: Update<T>): ?T {
-  return updateHasData(update) ? update.stateData : null;
+  return updateHasData(update) ? update._stateData : null;
 }
 /**
  * Internal: Retrieves the array of outgoing messages from an update.
@@ -68,7 +68,7 @@ export function updateStateData<T>(update: Update<T>): ?T {
  * NOTE: Should not be exported so it can be inlined.
  */
 export function updateOutgoingMessages(update: Update<any>): Array<Message> {
-  return updateHasData(update) && update.outgoingMessages ? update.outgoingMessages : [];
+  return updateHasData(update) && update._outgoingMessages ? update._outgoingMessages : [];
 }
 /**
  * Retrieves the data from types which are guaranteed to contain state data.
@@ -76,5 +76,5 @@ export function updateOutgoingMessages(update: Update<any>): Array<Message> {
  * NOTE: Should not be exported so it can be inlined.
  */
 export function updateStateDataNoNone<T>(update: DataUpdate<T> | MessageUpdate<T>): T {
-  return update.stateData;
+  return update._stateData;
 }
