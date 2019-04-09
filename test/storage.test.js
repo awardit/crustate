@@ -508,5 +508,108 @@ test("StateInstance init is sent to parent instances, but not siblings", t => {
   });
 });
 
+test("Messages generated during processing are handled in order", t => {
+  const s             = new Storage();
+  const stub1         = t.context.stub();
+  const firstData     = { name: "firstData" };
+  const secondData    = { name: "secondData" };
+  const initMsg       = { tag: "initMsg" };
+  const firstMsg      = { tag: "firstMsg" };
+  const firstDef      = {
+    name: "first",
+    init: t.context.stub(() => updateData(firstData)),
+    update: t.context.stub(() => updateAndSend(secondData, firstMsg)),
+    subscriptions: t.context.stub(() => [subscribe("initMsg", true)]),
+  };
+
+  s.addListener("unhandledMessage", stub1);
+
+  const first  = s.getNestedOrCreate(firstDef);
+
+  first.sendMessage(initMsg);
+
+  t.is(stub1.calls.length, 2);
+  t.is(stub1.calls[0].arguments[0], initMsg);
+  t.deepEqual(stub1.calls[0].arguments[1], ["first"]);
+  t.is(stub1.calls[1].arguments[0], firstMsg);
+  t.deepEqual(stub1.calls[1].arguments[1], ["first"]);
+  t.is(firstDef.update.calls.length, 1);
+  t.is(firstDef.update.calls[0].arguments[0], firstData);
+  t.is(firstDef.update.calls[0].arguments[1], initMsg);
+  t.is(first.getData(), secondData);
+});
+
+test("Active subscribers prevent parents and unhandledMessage from receiving", t => {
+  const s             = new Storage();
+  const stub1         = t.context.stub();
+  const stub2         = t.context.stub();
+  const stub3         = t.context.stub();
+  const firstData     = { name: "firstData" };
+  const initMsg       = { tag: "initMsg" };
+  const firstMsg      = { tag: "firstMsg" };
+  const firstDef      = {
+    name: "first",
+    init: t.context.stub(() => updateData(firstData)),
+    update: t.context.stub(() => updateAndSend(firstData, firstMsg)),
+    subscriptions: t.context.stub(() => [subscribe("initMsg")]),
+  };
+
+  s.addListener("unhandledMessage", stub1);
+  s.addSubscriber(stub2, [subscribe("initMsg")]);
+  s.addSubscriber(stub3, [subscribe("firstMsg")]);
+
+  const first  = s.getNestedOrCreate(firstDef);
+
+  first.sendMessage(initMsg);
+
+  t.is(stub1.calls.length, 0);
+  t.is(stub2.calls.length, 0);
+  t.is(stub3.calls.length, 1);
+  t.is(stub3.calls[0].arguments[0], firstMsg);
+  t.deepEqual(stub3.calls[0].arguments[1], ["first"]);
+  t.is(firstDef.update.calls.length, 1);
+  t.is(firstDef.update.calls[0].arguments[0], firstData);
+  t.is(firstDef.update.calls[0].arguments[1], initMsg);
+  t.is(first.getData(), firstData);
+});
+
+test("Passive subscribers always receive messages from children", t => {
+  const s             = new Storage();
+  const stub1         = t.context.stub();
+  const stub2         = t.context.stub();
+  const stub3         = t.context.stub();
+  const firstData     = { name: "firstData" };
+  const initMsg       = { tag: "initMsg" };
+  const firstMsg      = { tag: "firstMsg" };
+  const firstDef      = {
+    name: "first",
+    init: t.context.stub(() => updateData(firstData)),
+    update: t.context.stub(() => updateAndSend(firstData, firstMsg)),
+    subscriptions: t.context.stub(() => [subscribe("initMsg")]),
+  };
+
+  s.addListener("unhandledMessage", stub1);
+  s.addSubscriber(stub2, [subscribe("initMsg", true)]);
+  s.addSubscriber(stub3, [subscribe("firstMsg", true)]);
+
+  const first  = s.getNestedOrCreate(firstDef);
+
+  first.sendMessage(initMsg);
+
+  t.is(stub1.calls.length, 1);
+  t.is(stub1.calls[0].arguments[0], firstMsg);
+  t.deepEqual(stub1.calls[0].arguments[1], ["first"]);
+  t.is(stub2.calls.length, 1);
+  t.is(stub2.calls[0].arguments[0], initMsg);
+  t.deepEqual(stub2.calls[0].arguments[1], ["first"]);
+  t.is(stub3.calls.length, 1);
+  t.is(stub3.calls[0].arguments[0], firstMsg);
+  t.deepEqual(stub3.calls[0].arguments[1], ["first"]);
+  t.is(firstDef.update.calls.length, 1);
+  t.is(firstDef.update.calls[0].arguments[0], firstData);
+  t.is(firstDef.update.calls[0].arguments[1], initMsg);
+  t.is(first.getData(), firstData);
+});
+
 test.todo("Add event tests");
-test.todo("Add nested message tests, internal order of processing");
+test.todo("Add nested message tests, internal order of processing, active/passive subscribers");
