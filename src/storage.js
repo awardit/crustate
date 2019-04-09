@@ -267,7 +267,7 @@ export class StateInstance<T, I> extends EventEmitter<StateEvents> implements Ab
     let   s    = this;
 
     while(s instanceof StateInstance) {
-      path.push(s._name);
+      path.unshift(s._name);
 
       s = s._supervisor;
     }
@@ -278,7 +278,7 @@ export class StateInstance<T, I> extends EventEmitter<StateEvents> implements Ab
   getNested<U, J>(state: State<U, J>): ?StateInstance<U, J> {
     const { _nested } = this;
 
-    if(_nested[state.name] && process.env.NODE_ENV !== "production") {
+    if(process.env.NODE_ENV !== "production") {
       ensureState(this.getStorage(), state);
     }
 
