@@ -165,7 +165,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   getNested<T, I>(state: State<T, I>): ?StateInstance<T, I> {
     const { _nested } = this;
 
-    if(_nested[state.name] && process.env.NODE_ENV !== "production") {
+    if(process.env.NODE_ENV !== "production") {
       ensureState(this, state);
     }
 
@@ -206,7 +206,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
 export function ensureState<T, I>(storage: Storage, state: State<T, I>): void {
   const { name } = state;
 
-  if(storage._defs[name] !== state) {
+  if(storage._defs[name] && storage._defs[name] !== state) {
     // FIXME: Proper exception type
     throw new Error(`State object mismatch for state ${name}`);
   }

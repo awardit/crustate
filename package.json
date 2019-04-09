@@ -124,6 +124,7 @@
       "**/*.test.js"
     ],
     "sources": [
+      "src/**/*.js",
       "**/src/**/*.js"
     ],
     "require": [
