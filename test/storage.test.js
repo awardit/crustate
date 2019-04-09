@@ -4,7 +4,9 @@ import ninos            from "ninos";
 import ava              from "ava";
 import { Storage
        , StateInstance } from "../src/storage";
-import { updateData } from "../src/update";
+import { NONE
+       , updateData
+       , updateAndSend } from "../src/update";
 import { subscribe } from "../src/message";
 
 // We redefine this here so we can test it
@@ -93,6 +95,10 @@ test("Storage getNestedOrCreate creates a new state instance", t => {
   t.is(s.stateDefinition("test"), state);
   t.is(s.getNested(state), instance);
   t.deepEqual(s.getSnapshot(), { test: { defName: "test", data: { name: "initData" }, params: undefined, nested: {} } });
+  t.is(instance.getName(), "test");
+  t.is(instance.getData(), initData);
+  t.is(instance.getStorage(), s);
+  t.deepEqual(instance.getPath(), ["test"]);
   // Looking at internals
   t.deepEqual(s._nested, { test: instance });
   t.deepEqual(s._defs, { test: state });
@@ -299,5 +305,208 @@ test("Sending messages on a store should also trigger unhandledMessage if no act
   t.deepEqual(recv2.calls[0].arguments[1], []);
 });
 
-test.todo("More Storage tests");
-test.todo("StateInstance tests");
+test.failing("States with init using updateAndSend should send messages to parent Storage", t => {
+  const s             = new Storage();
+  const recv1         = t.context.stub();
+  const initData      = { name: "initData" };
+  const initMsg       = { tag: "initMsg" };
+  const init          = t.context.stub(() => updateAndSend(initData, initMsg));
+  const update        = t.context.stub(() => NONE);
+  // Should never receive this since messages are not self-referencing
+  const subscriptions = t.context.stub(() => [subscribe("initMsg")]);
+  const state         = { name: "test", init, update, subscriptions };
+
+  s.addListener("unhandledMessage", recv1);
+
+  const instance = s.getNestedOrCreate(state);
+
+  t.is(init.calls.length, 1);
+  t.is(recv1.calls.length, 1);
+  t.is(recv1.calls[0].arguments[0], initMsg);
+  t.deepEqual(recv1.calls[0].arguments[1], ["test"]);
+  t.is(subscriptions.calls.length, 0);
+  t.is(update.calls.length, 0);
+});
+
+test("States can be nested", t => {
+  const s             = new Storage();
+  const firstData     = { name: "firstData" };
+  const firstDef      = {
+    name: "first",
+    init: t.context.stub(() => updateData(firstData)),
+    update: t.context.stub(),
+    subscriptions: t.context.stub(() => []),
+  };
+  const secondData    = { name: "secondData" };
+  const secondDef     = {
+    name: "second",
+    init: t.context.stub(() => updateData(secondData)),
+    update: t.context.stub(),
+    subscriptions: t.context.stub(() => []),
+  };
+
+  const first  = s.getNestedOrCreate(firstDef);
+  const second = first.getNestedOrCreate(secondDef);
+
+  t.is(second instanceof StateInstance, true);
+  t.is(second.getName(), "second");
+  t.deepEqual(second.getPath(), ["first", "second"]);
+  t.is(second.getData(), secondData);
+  t.is(second.getStorage(), s);
+  t.is(first.getNested(firstDef), undefined);
+  t.is(first.getNested(secondDef), second);
+  t.is(second.getNested(firstDef), undefined);
+});
+
+test("States of the same definition can be nested", t => {
+  const s             = new Storage();
+  const initData      = { name: "initData" };
+  const init          = t.context.stub(() => updateData(initData));
+  const update        = t.context.stub(() => NONE);
+  const subscriptions = t.context.stub(() => []);
+  const state         = { name: "test", init, update, subscriptions };
+  const first         = s.getNestedOrCreate(state);
+
+  t.is(first.getNested(state), undefined);
+
+  const second = first.getNestedOrCreate(state);
+
+  t.is(second instanceof StateInstance, true);
+  t.is(second.getName(), "test");
+  t.deepEqual(second.getPath(), ["test", "test"]);
+  t.is(second.getData(), initData);
+  t.is(second.getStorage(), s);
+  t.not(second, first);
+});
+
+test("StateInstance getNested throws when trying to use a new state definition with the same identifier", t => {
+  const s             = new Storage();
+  const initData      = { name: "initData" };
+  const init          = t.context.stub(() => updateData(initData));
+  const update        = t.context.stub();
+  const subscriptions = t.context.stub(() => []);
+  const state         = { name: "test", init, update, subscriptions };
+  const state2        = { name: "test", init, update, subscriptions };
+  s.registerState(state);
+  const inst = s.getNestedOrCreate(state);
+
+  t.throws(() => inst.getNested(state2), { instanceOf: Error, message: "State object mismatch for state test" });
+
+  t.deepEqual(s.getSnapshot(), { test: { defName: "test", data: { name: "initData" }, params: undefined, nested: {} } });
+  // Looking at internals
+  t.deepEqual(s._nested, { test: inst });
+  t.deepEqual(s._defs, { test: state });
+  t.is(init.calls.length, 1)
+  t.is(update.calls.length, 0);
+  t.is(subscriptions.calls.length, 0);
+});
+
+test("StateInstance getNested on non-existing state instance should return undefined when using a mismatched state-definition of same name in dev-mode", t => {
+  const nodeEnv = process.env.NODE_ENV;
+  process.env.NODE_ENV = "production";
+
+  try {
+    const s             = new Storage();
+    const initData      = { name: "initData" };
+    const init          = t.context.stub(() => updateData(initData));
+    const update        = t.context.stub();
+    const subscriptions = t.context.stub(() => []);
+    const state         = { name: "test", init, update, subscriptions };
+    const state2        = { name: "test", init, update, subscriptions };
+
+    s.registerState(state);
+
+    const inst = s.getNestedOrCreate(state);
+
+    t.is(inst instanceof StateInstance, true);
+
+    t.is(inst.getNested(state2), undefined);
+
+    t.is(s.stateDefinition("test"), state);
+    t.is(inst.getNested(state), undefined);
+    t.deepEqual(s.getSnapshot(), { test: { defName: "test", data: { name: "initData" }, params: undefined, nested: {} } });
+    t.is(init.calls.length, 1)
+    t.is(update.calls.length, 0);
+    t.is(subscriptions.calls.length, 0);
+  }
+  finally {
+    process.env.NODE_ENV = nodeEnv;
+  }
+});
+
+test("StateInstance init is sent to parent instances", t => {
+  const s             = new Storage();
+  const stub1         = t.context.stub();
+  const firstData     = { name: "firstData" };
+  const firstDef      = {
+    name: "first",
+    init: t.context.stub(() => updateData(firstData)),
+    update: t.context.stub(() => NONE),
+    // Passive, so we should get it but also passthrough
+    subscriptions: t.context.stub(() => [subscribe("secondInit", true)]),
+  };
+  const secondData    = { name: "secondData" };
+  const secondInit    = { tag: "secondInit" };
+  const secondDef     = {
+    name: "second",
+    init: t.context.stub(() => updateAndSend(secondData, secondInit)),
+    update: t.context.stub(() => NONE),
+    subscriptions: t.context.stub(() => []),
+  };
+
+  s.addListener("unhandledMessage", stub1);
+
+  const first  = s.getNestedOrCreate(firstDef);
+  const second = first.getNestedOrCreate(secondDef);
+
+  t.is(stub1.calls.length, 1);
+  t.is(stub1.calls[0].arguments[0], secondInit);
+  t.deepEqual(stub1.calls[0].arguments[1], ["first", "second"]);
+  t.is(firstDef.update.calls.length, 1);
+  t.is(firstDef.update.calls[0].arguments[0], firstData);
+  t.is(firstDef.update.calls[0].arguments[1], secondInit);
+  t.is(first.getData(), firstData);
+  t.deepEqual(s.getSnapshot(), {
+    first:  { defName: "first",  data: { name: "firstData" },  params: undefined, nested: {
+      second: { defName: "second", data: { name: "secondData" }, params: undefined, nested: {} },
+    } },
+  });
+});
+
+test("StateInstance init is sent to parent instances, but not siblings", t => {
+  const s             = new Storage();
+  const stub1         = t.context.stub();
+  const firstData     = { name: "firstData" };
+  const firstDef      = {
+    name: "first",
+    init: t.context.stub(() => updateData(firstData)),
+    update: t.context.stub(() => NONE),
+    // Passive, so we should get it but also passthrough
+    subscriptions: t.context.stub(() => [subscribe("secondInit", true)]),
+  };
+  const secondData    = { name: "secondData" };
+  const secondInit    = { tag: "secondInit" };
+  const secondDef     = {
+    name: "second",
+    init: t.context.stub(() => updateAndSend(secondData, secondInit)),
+    update: t.context.stub(() => NONE),
+    subscriptions: t.context.stub(() => []),
+  };
+
+  s.addListener("unhandledMessage", stub1);
+
+  const first  = s.getNestedOrCreate(firstDef);
+  const second = s.getNestedOrCreate(secondDef);
+
+  t.is(stub1.calls.length, 1);
+  t.is(stub1.calls[0].arguments[0], secondInit);
+  t.deepEqual(stub1.calls[0].arguments[1], ["second"]);
+  t.is(firstDef.update.calls.length, 0);
+  t.deepEqual(s.getSnapshot(), {
+    first:  { defName: "first",  data: { name: "firstData" },  params: undefined, nested: {} },
+    second: { defName: "second", data: { name: "secondData" }, params: undefined, nested: {} },
+  });
+});
+
+test.todo("Add event tests");
+test.todo("Add nested message tests, internal order of processing");
