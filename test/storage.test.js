@@ -231,5 +231,73 @@ test("Sending messages on an empty storage only results in unhandledMessage even
   t.deepEqual(recv.calls[0].arguments[1], []);
 });
 
+test("Sending messages on a store should send them to matching subscribers", t => {
+  const s     = new Storage();
+  const recv1 = t.context.stub();
+  const recv2 = t.context.stub();
+  const recv3 = t.context.stub();
+  const msg   = { tag: "testMessage" };
+  const msg2  = { tag: "uncaught" };
+
+  s.addListener("unhandledMessage", recv1);
+  s.addSubscriber(recv2, [subscribe("testMessage")]);
+  s.addSubscriber(recv3, [subscribe("fooMessage")]);
+
+  s.sendMessage(msg);
+
+  t.is(recv1.calls.length, 0);
+  t.is(recv2.calls.length, 1);
+  t.is(recv2.calls[0].arguments[0], msg);
+  t.deepEqual(recv2.calls[0].arguments[1], []);
+  t.is(recv3.calls.length, 0);
+
+  s.sendMessage(msg2);
+
+  t.is(recv1.calls.length, 1);
+  t.is(recv1.calls[0].arguments[0], msg2);
+  t.deepEqual(recv2.calls[0].arguments[1], []);
+  t.is(recv2.calls.length, 1);
+  t.is(recv2.calls[0].arguments[0], msg);
+  t.deepEqual(recv2.calls[0].arguments[1], []);
+  t.is(recv3.calls.length, 0);
+});
+
+test("Removing a subscriber should not fire when a matching message is sent", t => {
+  const s     = new Storage();
+  const recv1 = t.context.stub();
+  const recv2 = t.context.stub();
+  const msg   = { tag: "testMessage" };
+
+  s.addSubscriber(recv1, [subscribe("testMessage")]);
+  s.addSubscriber(recv2, [subscribe("testMessage")]);
+  s.removeSubscriber(recv2);
+
+  s.sendMessage(msg);
+
+  t.is(recv1.calls.length, 1);
+  t.is(recv1.calls[0].arguments[0], msg);
+  t.deepEqual(recv1.calls[0].arguments[1], []);
+  t.is(recv2.calls.length, 0);
+});
+
+test("Sending messages on a store should also trigger unhandledMessage if no active subscribers are present", t => {
+  const s     = new Storage();
+  const recv1 = t.context.stub();
+  const recv2 = t.context.stub();
+  const msg   = { tag: "testMessage" };
+
+  s.addListener("unhandledMessage", recv1);
+  s.addSubscriber(recv2, [subscribe("testMessage", true)]);
+
+  s.sendMessage(msg);
+
+  t.is(recv1.calls.length, 1);
+  t.is(recv1.calls[0].arguments[0], msg);
+  t.deepEqual(recv1.calls[0].arguments[1], []);
+  t.is(recv2.calls.length, 1);
+  t.is(recv2.calls[0].arguments[0], msg);
+  t.deepEqual(recv2.calls[0].arguments[1], []);
+});
+
 test.todo("More Storage tests");
 test.todo("StateInstance tests");
