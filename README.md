@@ -1,5 +1,5 @@
 
-# Crustate is a message-based state management library
+# Crustate is a message-based modular state-management library for JavaScript applications
 
 This library is based on the principles of message passing found in languages
 like Elm and Elixir/Erlang. The purpose is to be able to build modular state

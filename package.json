@@ -1,7 +1,7 @@
 {
   "name": "crustate",
   "version": "0.0.1",
-  "description": "",
+  "description": "Crustate is a message-based modular state-management library.",
   "keywords": [
     "elm",
     "flux",
@@ -21,8 +21,7 @@
   },
   "bugs": "https://github.com/m4rw3r/crustate/issues",
   "homepage": "https://github.com/m4rw3r/crustate",
-  "license": "ISC",
-  "private": true,
+  "license": "MIT",
   "files": [
     "dist",
     "preact/dist",
