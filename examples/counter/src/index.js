@@ -2,11 +2,11 @@
 import { NONE
        , updateData
        , subscribe
-       , Storage } from "gurka";
+       , Storage } from "crustate";
 import { StorageProvider
        , useData
        , useSendMessage
-       , createStateData } from "gurka/react";
+       , createStateData } from "crustate/react";
 import React    from "react";
 import ReactDOM from "react-dom";
 

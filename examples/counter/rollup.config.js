@@ -39,8 +39,8 @@ export default {
     alias({
       // More specific needs to be first, otherwise will alias try to suffix
       // `/react` on top of `index.mjs`:
-      "gurka/react": "react/dist/index.mjs",
-      "gurka":       "dist/index.mjs",
+      "crustate/react": "react/dist/index.mjs",
+      "crustate":       "dist/index.mjs",
     }),
     babel(babelOpts),
     commonjs(),

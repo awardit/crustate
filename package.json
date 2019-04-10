@@ -1,5 +1,5 @@
 {
-  "name": "gurka",
+  "name": "crustate",
   "version": "0.0.1",
   "description": "",
   "keywords": [
@@ -17,10 +17,10 @@
   "author": "Martin Wernstål <m4rw3r@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/m4rw3r/gurka.git"
+    "url": "https://github.com/m4rw3r/crustate.git"
   },
-  "bugs": "https://github.com/m4rw3r/gurka/issues",
-  "homepage": "https://github.com/m4rw3r/gurka",
+  "bugs": "https://github.com/m4rw3r/crustate/issues",
+  "homepage": "https://github.com/m4rw3r/crustate",
   "license": "ISC",
   "private": true,
   "files": [

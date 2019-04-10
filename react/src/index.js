@@ -10,7 +10,7 @@ import type { Context } from "react";
 import type { Message
             , State
             , StateInstance
-            , Supervisor } from "gurka";
+            , Supervisor } from "crustate";
 
 import React from "react";
 
@@ -43,7 +43,7 @@ export type DataConsumer<T>    = React$ComponentType<{ children: DataFunction<T>
 export type TestProvider<T> = React$ComponentType<{ value: T, children: ?React$Node }>;
 
 /**
- * React-wrapper for a gurka-state.
+ * React-wrapper for a crustate-state.
  */
 export type StateData<T, I> = {
   /**

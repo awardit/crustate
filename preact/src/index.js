@@ -1,2 +1,2 @@
-export type * from "gurka/react";
-export * from "gurka/react";
+export type * from "crustate/react";
+export * from "crustate/react";

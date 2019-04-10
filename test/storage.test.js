@@ -10,7 +10,7 @@ import { NONE
 import { subscribe } from "../src/message";
 
 // We redefine this here so we can test it
-const MESSAGE_NEW_PARAMS = "gurka/stateNewParams";
+const MESSAGE_NEW_PARAMS = "crustate/stateNewParams";
 
 const test = ninos(ava);
 

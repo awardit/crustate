@@ -1,11 +1,11 @@
 {
-  "name": "gurka/preact",
+  "name": "crustate/preact",
   "private": true,
   "version": "0.0.1",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "source": "src/index.js",
   "peerDependencies": {
-    "gurka": "^0.0.1"
+    "crustate": "^0.0.1"
   }
 }

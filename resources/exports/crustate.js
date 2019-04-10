@@ -10,7 +10,7 @@
 /**
  * @type {!Object}
  */
-var exports = gurka;
+var exports = crustate;
 
 /* Public symbols, by naming them here Google Closure compiler will not rename them */
 var addListener;

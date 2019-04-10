@@ -1,5 +1,5 @@
 
-# X is a message-based state management library
+# Crustate is a message-based state management library
 
 This library is based on the principles of message passing found in languages
 like Elm and Elixir/Erlang. The purpose is to be able to build modular state
@@ -8,7 +8,12 @@ with controlled side-effects through messaging.
 ## State
 
 ```javascript
-createState(name: string, definition: { init, receive, subscriptions }): State<_, _>
+type State<T, I> = {
+  name: string,
+  init: (init: I) => DataUpdate<T> | MessageUpdate<T>,
+  update: (state: T, msg: Message) => Update<T>,
+  subscriptions: (state: T) => Array<Subscription>,
+};
 ```
 
 Sates use messages to communicate with other state-instances and the runtime.
@@ -37,23 +42,23 @@ let msg = {
 };
 ```
 
-### Receive
+### Update
 
 ```javascript
-type Receive = <T>(state: T, msg: Message) => Update<T>;
+type StateUpdate = <T>(state: T, msg: Message) => Update<T>;
 ```
 
-Conceptually `receive` is responsible for receiving messages, interpreting
+Conceptually `update` is responsible for receiving messages, interpreting
 them, updating the state, and send new messages in case other components need
 to be informed or additional data requested.
 
 This is very similar to Redux's Reducer concept with the main difference
-being that the Receive-function can send new messages.
+being that the Update-function can send new messages.
 
 ```javascript
-import { NONE, updateData } from "gurka";
+import { NONE, updateData } from "crustate";
 
-function receive(state, message, send) {
+function update(state, message, send) {
   switch(message.tag) {
   case ADD:
     return updateData(state + message.value);
@@ -63,7 +68,7 @@ function receive(state, message, send) {
 }
 ```
 
-Messages sent from the receive function are propagated upwards in the
+Messages sent from the update function are propagated upwards in the
 state-hierarchy and can be subscribed to in supervising states.
 
 ### Subscriber
