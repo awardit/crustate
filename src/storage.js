@@ -203,6 +203,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   };
 
   // TODO: restoreSnapshot(snapshot: Snapshot): void
+  // TODO: replyMessage(message: Message, targetState: StatePath)
 }
 
 export function ensureState<T, I>(storage: Storage, state: State<T, I>): void {
