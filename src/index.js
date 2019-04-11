@@ -26,6 +26,8 @@ export type {
 } from "./state";
 export type {
   Supervisor,
+  Snapshot,
+  StateSnapshot,
 } from "./storage";
 
 export {

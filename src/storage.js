@@ -14,6 +14,8 @@ import { subscriptionIsPassive
        , subscriptionMatches } from "./message";
 import { EventEmitter } from "./eventemitter";
 
+const STATE_MESSAGE_TAG = "$";
+
 interface AbstractSupervisor {
   _nested: StateInstanceMap;
   getStorage(): Storage;
@@ -49,7 +51,7 @@ export type StateSnapshot = {
  */
 export type Supervisor = Storage | StateInstance<any, any>;
 
-export type Sink = (message: Message, path: StatePath) => mixed;
+export type Sink = (message: Message, sourcePath: StatePath) => mixed;
 export type Subscribers = Array<{ listener: Sink, filter: Array<Subscription> }>;
 
 export type StateInstanceMap = { [name:string]: StateInstance<any, any> };
@@ -73,7 +75,7 @@ export type StorageEvents = {
    *  * Initial data supplied to the state
    *  * State data
    */
-  stateCreated: [StatePath, mixed, mixed, StateInstance<any, any>],
+  stateCreated: [StatePath, mixed, mixed],
   /**
    * Emitted when a state-instance updates its data.
    *
@@ -83,16 +85,16 @@ export type StorageEvents = {
    *  * Path to the new state
    *  * Message which caused the update
    */
-  stateNewData: [mixed, StatePath, Message, StateInstance<any, any>],
+  stateNewData: [mixed, StatePath, Message],
   /**
    * Emitted when a message is queued for processing.
    *
    * Parameters:
    *
    *  * The message
-   *  * Path of the origin, the closest state
+   *  * Path of the origin, the closest state + the event source name
    */
-  messageQueued: [Message, StatePath, ?StateInstance<any, any>];
+  messageQueued: [Message, StatePath];
   /**
    * Emitted when a message is queued for processing.
    *
@@ -102,7 +104,7 @@ export type StorageEvents = {
    *  * Path of the matching state-instance
    *  * If the subscription was passive
    */
-  messageMatched: [Message, StatePath, boolean, ?StateInstance<any, any>];
+  messageMatched: [Message, StatePath, boolean];
 };
 
 /**
@@ -176,8 +178,8 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     return getNestedOrCreate(this, state, params);
   };
 
-  sendMessage(message: Message): void {
-    processStorageMessage(this, createInflightMessage(this, null, [], [], message));
+  sendMessage(message: Message, sourceName?: string = "$"): void {
+    processStorageMessage(this, createInflightMessage(this, [sourceName], message));
   };
 
   addSubscriber(listener: Sink, filter: Array<Subscription>) {
@@ -198,7 +200,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
 
   getSnapshot(): Snapshot {
     return createSnapshot(this);
-  }
+  };
 
   // TODO: restoreSnapshot(snapshot: Snapshot): void
 }
@@ -222,7 +224,7 @@ export type StateEvents = {
    *  * Path to the new state
    *  * Message which caused the update
    */
-  stateNewData: [mixed, StatePath, Message, StateInstance<mixed, mixed>],
+  stateNewData: [mixed, StatePath, Message],
 };
 
 export class StateInstance<T, I> extends EventEmitter<StateEvents> implements AbstractSupervisor {
@@ -289,8 +291,10 @@ export class StateInstance<T, I> extends EventEmitter<StateEvents> implements Ab
     return getNestedOrCreate(this, state, params);
   };
 
-  sendMessage(message: Message): void {
-    processInstanceMessages(this, [message]);
+  sendMessage(message: Message, sourceName?: string = STATE_MESSAGE_TAG): void {
+    const msgPath = this.getPath().concat([sourceName]);
+
+    processInstanceMessages(this.getStorage(), this, [message], msgPath);
   };
 };
 
@@ -321,17 +325,17 @@ export function createState<T, I>(supervisor: Supervisor, state: State<T, I>, in
 
   _nested[name] = instance;
 
-  storage.emit("stateCreated", path, (initialData: any), data, instance);
+  storage.emit("stateCreated", path, (initialData: any), data);
 
   if(messages.length) {
-    processInstanceMessages(instance, messages);
+    processInstanceMessages(storage, instance._supervisor, messages, path);
   }
 
   return instance;
 }
 
-export function createInflightMessage(storage: Storage, instance: ?StateInstance<any, any>, source: StatePath, target: StatePath, message: Message): InflightMessage {
-  storage.emit("messageQueued", message, target, (instance: ?StateInstance<any, any>));
+export function createInflightMessage(storage: Storage, source: StatePath, message: Message): InflightMessage {
+  storage.emit("messageQueued", message, source);
 
   return {
     _message:  message,
@@ -340,32 +344,27 @@ export function createInflightMessage(storage: Storage, instance: ?StateInstance
   };
 }
 
-export function enqueueMessages(storage: Storage, instance: StateInstance<any, any>, source: StatePath, target: StatePath, inflight: Array<InflightMessage>, messages: Array<Message>): void {
+export function enqueueMessages(storage: Storage, source: StatePath, inflight: Array<InflightMessage>, messages: Array<Message>): void {
   for(let i = 0; i < messages.length; i++) {
-    inflight.push(createInflightMessage(storage, instance, source, target, messages[i]));
+    inflight.push(createInflightMessage(storage, source, messages[i]));
   }
 }
 
 // TODO: Split this
-export function processInstanceMessages(instance: StateInstance<any, any>, messages: Array<Message>): void {
-  // TODO: Move this to common stuff
-  // TODO: Merge thesw two
-  // Make sure the current path is newly allocated when dropping the last segment to traverse upwards
+export function processInstanceMessages(storage: Storage, instance: Supervisor, messages: Array<Message>, sourcePath: StatePath): void {
+  const inflight = [];
 
-  let currentPath = instance.getPath();
-  let parentPath  = currentPath.slice(0, -1);
-  const storage   = instance.getStorage();
-  const inflight  = [];
+  // TODO: Test-assertion for sourcePath.length === instance.getPath().length + 1 ?
 
-  enqueueMessages(storage, instance, currentPath, currentPath, inflight, messages);
+  enqueueMessages(storage, sourcePath, inflight, messages);
 
-  let currentNode: Supervisor = instance;
-
-  while(currentNode instanceof StateInstance) {
-    const definition = storage.stateDefinition(currentNode._name);
+  while(instance instanceof StateInstance) {
+    const definition = storage.stateDefinition(instance._name);
+    // Traverse down one level
+    sourcePath = sourcePath.slice(0, -1);
 
     if( ! definition) {
-      // TODO: Eror type
+      // TODO: Error type
       throw new Error(`Missing state definition for instantiated state with name ${instance.getName()}`);
     }
 
@@ -374,7 +373,7 @@ export function processInstanceMessages(instance: StateInstance<any, any>, messa
     const currentLimit  = inflight.length;
     const { update, subscriptions } = definition;
     // We need to be able to update the filters if the data changes
-    let   messageFilter = subscriptions(currentNode._data);
+    let   messageFilter = subscriptions(instance._data);
 
     // TODO: Emit event? that we are considering messags for state?
 
@@ -387,25 +386,25 @@ export function processInstanceMessages(instance: StateInstance<any, any>, messa
 
         if(subscriptionMatches(currentFilter, m, Boolean(currentInflight._received))) {
           if( ! subscriptionIsPassive(currentFilter)) {
-            currentInflight._received = currentPath;
+            currentInflight._received = sourcePath;
           }
 
-          storage.emit("messageMatched", m, currentPath, subscriptionIsPassive(currentFilter), currentNode);
+          storage.emit("messageMatched", m, sourcePath, subscriptionIsPassive(currentFilter));
 
-          const updateRequest = update(currentNode._data, m);
+          const updateRequest = update(instance._data, m);
 
           if(updateHasData(updateRequest)) {
             const data     = updateStateData(updateRequest);
             const outgoing = updateOutgoingMessages(updateRequest);
 
-            currentNode._data = data;
+            instance._data = data;
 
-            storage.emit("stateNewData", data, currentPath, m, currentNode)
-            currentNode.emit("stateNewData", data, currentPath, m, currentNode)
+            storage.emit("stateNewData", data, sourcePath, m);
+            instance.emit("stateNewData", data, sourcePath, m);
 
-            enqueueMessages(storage, currentNode, currentPath, parentPath, inflight, outgoing);
+            enqueueMessages(storage, sourcePath, inflight, outgoing);
 
-            messageFilter = subscriptions(currentNode._data);
+            messageFilter = subscriptions(instance._data);
           }
         }
 
@@ -413,9 +412,7 @@ export function processInstanceMessages(instance: StateInstance<any, any>, messa
       }
     }
 
-    currentNode = currentNode._supervisor;
-    currentPath = currentPath.slice(0, -1);
-    parentPath  = parentPath.slice(0, -1);
+    instance = instance._supervisor;
   }
 
   for(let i = 0; i < inflight.length; i++) {
@@ -440,7 +437,7 @@ function processStorageMessage(storage: Storage, inflight: InflightMessage) {
           received = true;
         }
 
-        storage.emit("messageMatched", _message, [], subscriptionIsPassive(currentFilter), (null: ?StateInstance<any, any>));
+        storage.emit("messageMatched", _message, [], subscriptionIsPassive(currentFilter));
 
         listener(_message, _source);
       }

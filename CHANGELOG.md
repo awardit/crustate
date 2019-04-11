@@ -7,8 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Added license file, MIT, same as `package.json` already specifies
-- Added `messageMatched` events when subscribers on `Storage` match messages
+- Added license file, MIT, same as `package.json` already specifies.
+- Added `messageMatched` events when subscribers on `Storage` match messages.
+- Added an optional parameter of `sourceName` to `sendMessage` which is appended
+  to the source-path, this parameter defaults to the anonymous source "`$`".
+
+### Changed
+- Changed all events which had a `StateInstance` as the last parameter now no
+  longer have that parameter.
+
+### Fixed
+- Messages queued by an instance creation are no longer processed by the same
+  instance, this prevents any logic loops from forming.
 
 ## [0.0.1] - 2019-04-10
 ### Added

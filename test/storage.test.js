@@ -109,7 +109,7 @@ test("Storage getNestedOrCreate creates a new state instance", t => {
   t.is(instance.getStorage(), s);
   t.deepEqual(instance.getPath(), ["test"]);
   t.is(emit.calls.length, 1);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, initData, instance]);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, initData]);
   // Looking at internals
   t.deepEqual(s._nested, { test: instance });
   t.deepEqual(s._defs, { test: state });
@@ -137,7 +137,7 @@ test("Storage getNestedOrCreate returns the same instance given the same params"
   t.is(update.calls.length, 0);
   t.is(subscriptions.calls.length, 0);
   t.deepEqual(emit.calls.length, 1);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, initData, instance]);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, initData]);
 });
 
 test.failing("Storage getNestedOrCreate sends an update message and returns the same instance when new params are supplied", t => {
@@ -160,11 +160,11 @@ test.failing("Storage getNestedOrCreate sends an update message and returns the 
   t.is(subscriptions.calls.length, 1);
   t.deepEqual(subscriptions.calls[0].arguments, initData);
   t.is(emit.calls.length, 2);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, initData, instance]);
-  t.deepEqual(emit.calls[1].arguments, ["stateNewData", 2, ["test"], { tag: MESSAGE_NEW_PARAMS, params: 2 }, instance]);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, initData]);
+  t.deepEqual(emit.calls[1].arguments, ["stateNewData", 2, ["test"], { tag: MESSAGE_NEW_PARAMS, params: 2 }]);
   // TODO: How to ensure call order? instance should fire before storage
   t.deepEqual(instanceEmit.calls.length, 1);
-  t.deepEqual(instanceEmit.calls[1].arguments, ["stateNewData", 2, ["test"], { tag: MESSAGE_NEW_PARAMS, params: 2 }, instance]);
+  t.deepEqual(instanceEmit.calls[1].arguments, ["stateNewData", 2, ["test"], { tag: MESSAGE_NEW_PARAMS, params: 2 }]);
 });
 
 test("Storage getNestedOrCreate throws when trying to use a new state definition with the same identifier", t => {
@@ -259,11 +259,23 @@ test("Sending messages on an empty storage only results in unhandledMessage even
   s.sendMessage(msg);
 
   t.deepEqual(emit.calls.length, 2);
-  t.deepEqual(emit.calls[0].arguments, ["messageQueued", msg, [], null]);
-  t.deepEqual(emit.calls[1].arguments, ["unhandledMessage", msg, []]);
+  t.deepEqual(emit.calls[0].arguments, ["messageQueued", msg, ["$"]]);
+  t.deepEqual(emit.calls[1].arguments, ["unhandledMessage", msg, ["$"]]);
 });
 
-test("Sending messages on a store should send them to matching subscribers", t => {
+test("Sending messages with a name Storage should use the name as source", t => {
+  const s    = new Storage();
+  const emit = t.context.spy(s, "emit");
+  const msg  = { tag: "testMessage" };
+
+  s.sendMessage(msg, "mysource");
+
+  t.deepEqual(emit.calls.length, 2);
+  t.deepEqual(emit.calls[0].arguments, ["messageQueued", msg, ["mysource"]]);
+  t.deepEqual(emit.calls[1].arguments, ["unhandledMessage", msg, ["mysource"]]);
+});
+
+test("Sending messages on a Storage should send them to matching subscribers", t => {
   const s     = new Storage();
   const emit  = t.context.spy(s, "emit");
   const recv1 = t.context.stub();
@@ -277,20 +289,38 @@ test("Sending messages on a store should send them to matching subscribers", t =
   s.sendMessage(msg);
 
   t.is(recv1.calls.length, 1);
-  t.deepEqual(recv1.calls[0].arguments, [msg, []]);
+  t.deepEqual(recv1.calls[0].arguments, [msg, ["$"]]);
   t.is(recv2.calls.length, 0);
   t.is(emit.calls.length, 2);
-  t.deepEqual(emit.calls[0].arguments, ["messageQueued", msg, [], null]);
-  t.deepEqual(emit.calls[1].arguments, ["messageMatched", msg, [], false, null]);
+  t.deepEqual(emit.calls[0].arguments, ["messageQueued", msg, ["$"]]);
+  t.deepEqual(emit.calls[1].arguments, ["messageMatched", msg, [], false]);
 
   s.sendMessage(msg2);
 
   t.is(recv1.calls.length, 1);
-  t.deepEqual(recv1.calls[0].arguments, [msg, []]);
+  t.deepEqual(recv1.calls[0].arguments, [msg, ["$"]]);
   t.is(recv2.calls.length, 0);
   t.is(emit.calls.length, 4);
-  t.deepEqual(emit.calls[2].arguments, ["messageQueued", msg2, [], null]);
-  t.deepEqual(emit.calls[3].arguments, ["unhandledMessage", msg2, []]);
+  t.deepEqual(emit.calls[2].arguments, ["messageQueued", msg2, ["$"]]);
+  t.deepEqual(emit.calls[3].arguments, ["unhandledMessage", msg2, ["$"]]);
+});
+
+test("Sending messages with a name on a Storage should propagate the name", t => {
+  const s     = new Storage();
+  const emit  = t.context.spy(s, "emit");
+  const recv1 = t.context.stub();
+  const msg   = { tag: "testMessage" };
+  const msg2  = { tag: "uncaught" };
+
+  s.addSubscriber(recv1, [subscribe("testMessage")]);
+
+  s.sendMessage(msg, "themessage");
+
+  t.is(recv1.calls.length, 1);
+  t.deepEqual(recv1.calls[0].arguments, [msg, ["themessage"]]);
+  t.is(emit.calls.length, 2);
+  t.deepEqual(emit.calls[0].arguments, ["messageQueued", msg, ["themessage"]]);
+  t.deepEqual(emit.calls[1].arguments, ["messageMatched", msg, [], false]);
 });
 
 test("Removing a subscriber should not fire when a matching message is sent", t => {
@@ -307,14 +337,14 @@ test("Removing a subscriber should not fire when a matching message is sent", t 
   s.sendMessage(msg);
 
   t.is(emit.calls.length, 2);
-  t.deepEqual(emit.calls[0].arguments, ["messageQueued", msg, [], null]);
-  t.deepEqual(emit.calls[1].arguments, ["messageMatched", msg, [], false, null]);
+  t.deepEqual(emit.calls[0].arguments, ["messageQueued", msg, ["$"]]);
+  t.deepEqual(emit.calls[1].arguments, ["messageMatched", msg, [], false]);
   t.is(recv1.calls.length, 1);
-  t.deepEqual(recv1.calls[0].arguments, [msg, []]);
+  t.deepEqual(recv1.calls[0].arguments, [msg, ["$"]]);
   t.is(recv2.calls.length, 0);
 });
 
-test("Sending messages on a store should also trigger unhandledMessage if no active subscribers are present", t => {
+test("Sending messages on a Storage should also trigger unhandledMessage if no active subscribers are present", t => {
   const s    = new Storage();
   const emit = t.context.spy(s, "emit");
   const recv = t.context.stub();
@@ -325,14 +355,14 @@ test("Sending messages on a store should also trigger unhandledMessage if no act
   s.sendMessage(msg);
 
   t.is(recv.calls.length, 1);
-  t.deepEqual(recv.calls[0].arguments, [msg, []]);
+  t.deepEqual(recv.calls[0].arguments, [msg, ["$"]]);
   t.is(emit.calls.length, 3);
-  t.deepEqual(emit.calls[0].arguments, ["messageQueued", msg, [], null]);
-  t.deepEqual(emit.calls[1].arguments, ["messageMatched", msg, [], true, null]);
-  t.deepEqual(emit.calls[2].arguments, ["unhandledMessage", msg, []]);
+  t.deepEqual(emit.calls[0].arguments, ["messageQueued", msg, ["$"]]);
+  t.deepEqual(emit.calls[1].arguments, ["messageMatched", msg, [], true]);
+  t.deepEqual(emit.calls[2].arguments, ["unhandledMessage", msg, ["$"]]);
 });
 
-test.failing("States with init using updateAndSend should send messages to parent Storage", t => {
+test("States with init using updateAndSend should send messages to parent Storage", t => {
   const s             = new Storage();
   const emit          = t.context.spy(s, "emit");
   const initData      = { name: "initData" };
@@ -349,8 +379,8 @@ test.failing("States with init using updateAndSend should send messages to paren
   t.is(subscriptions.calls.length, 0);
   t.is(update.calls.length, 0);
   t.is(emit.calls.length, 3);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, initData, instance]);
-  t.deepEqual(emit.calls[1].arguments, ["messageQueued", initMsg, ["test"], instance]);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, initData]);
+  t.deepEqual(emit.calls[1].arguments, ["messageQueued", initMsg, ["test"]]);
   t.deepEqual(emit.calls[2].arguments, ["unhandledMessage", initMsg, ["test"]]);
 });
 
@@ -384,8 +414,8 @@ test("States can be nested", t => {
   t.is(first.getNested(secondDef), second);
   t.is(second.getNested(firstDef), undefined);
   t.is(emit.calls.length, 2);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }, first]);
-  t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["first", "second"], undefined, { name: "secondData" }, second]);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }]);
+  t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["first", "second"], undefined, { name: "secondData" }]);
 });
 
 test("States of the same definition can be nested", t => {
@@ -409,8 +439,8 @@ test("States of the same definition can be nested", t => {
   t.is(second.getStorage(), s);
   t.not(second, first);
   t.is(emit.calls.length, 2);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, { name: "initData" }, first]);
-  t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["test", "test"], undefined, { name: "initData" }, second]);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, { name: "initData" }]);
+  t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["test", "test"], undefined, { name: "initData" }]);
 });
 
 test("StateInstance getNested throws when trying to use a new state definition with the same identifier", t => {
@@ -429,7 +459,7 @@ test("StateInstance getNested throws when trying to use a new state definition w
 
   t.deepEqual(s.getSnapshot(), { test: { defName: "test", data: { name: "initData" }, params: undefined, nested: {} } });
   t.is(emit.calls.length, 1);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, { name: "initData" }, inst]);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, { name: "initData" }]);
   // Looking at internals
   t.deepEqual(s._nested, { test: inst });
   t.deepEqual(s._defs, { test: state });
@@ -467,11 +497,59 @@ test("StateInstance getNested on non-existing state instance should return undef
     t.is(update.calls.length, 0);
     t.is(subscriptions.calls.length, 0);
     t.is(emit.calls.length, 1);
-    t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, { name: "initData" }, inst]);
+    t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, { name: "initData" }]);
   }
   finally {
     process.env.NODE_ENV = nodeEnv;
   }
+});
+
+test("Messages sent on StateInstance should propagate upwards", t => {
+  const s             = new Storage();
+  const emit          = t.context.spy(s, "emit");
+  const firstData     = { name: "firstData" };
+  const initMsg       = { tag: "initMsg" };
+  const firstDef      = {
+    name: "first",
+    init: t.context.stub(() => updateData(firstData)),
+    update: t.context.stub(() => NONE),
+    subscriptions: t.context.stub(() => []),
+  };
+
+  const first = s.getNestedOrCreate(firstDef);
+
+  first.sendMessage(initMsg);
+
+  t.is(firstDef.update.calls.length, 0);
+  t.is(first.getData(), firstData);
+  t.is(emit.calls.length, 3);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }]);
+  t.deepEqual(emit.calls[1].arguments, ["messageQueued", { tag: "initMsg" }, ["first", "$"]]);
+  t.deepEqual(emit.calls[2].arguments, ["unhandledMessage", { tag: "initMsg" }, ["first", "$"]]);
+});
+
+test("Messages with a sourceName sent on StateInstance should propagate upwards with that name", t => {
+  const s             = new Storage();
+  const emit          = t.context.spy(s, "emit");
+  const firstData     = { name: "firstData" };
+  const initMsg       = { tag: "initMsg" };
+  const firstDef      = {
+    name: "first",
+    init: t.context.stub(() => updateData(firstData)),
+    update: t.context.stub(() => NONE),
+    subscriptions: t.context.stub(() => []),
+  };
+
+  const first = s.getNestedOrCreate(firstDef);
+
+  first.sendMessage(initMsg, "thesource");
+
+  t.is(firstDef.update.calls.length, 0);
+  t.is(first.getData(), firstData);
+  t.is(emit.calls.length, 3);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }]);
+  t.deepEqual(emit.calls[1].arguments, ["messageQueued", { tag: "initMsg" }, ["first", "thesource"]]);
+  t.deepEqual(emit.calls[2].arguments, ["unhandledMessage", { tag: "initMsg" }, ["first", "thesource"]]);
 });
 
 test("StateInstance init is sent to parent instances", t => {
@@ -506,10 +584,10 @@ test("StateInstance init is sent to parent instances", t => {
     } },
   });
   t.is(emit.calls.length, 5);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }, first]);
-  t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["first", "second"], undefined, { name: "secondData" }, second]);
-  t.deepEqual(emit.calls[2].arguments, ["messageQueued", secondInit, ["first", "second"], second]);
-  t.deepEqual(emit.calls[3].arguments, ["messageMatched", secondInit, ["first"], true, first]);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }]);
+  t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["first", "second"], undefined, { name: "secondData" }]);
+  t.deepEqual(emit.calls[2].arguments, ["messageQueued", secondInit, ["first", "second"]]);
+  t.deepEqual(emit.calls[3].arguments, ["messageMatched", secondInit, ["first"], true]);
   t.deepEqual(emit.calls[4].arguments, ["unhandledMessage", secondInit, ["first", "second"]]);
 });
 
@@ -542,13 +620,13 @@ test("StateInstance init is sent to parent instances, but not siblings", t => {
     second: { defName: "second", data: { name: "secondData" }, params: undefined, nested: {} },
   });
   t.is(emit.calls.length, 4);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }, first]);
-  t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["second"], undefined, { name: "secondData" }, second]);
-  t.deepEqual(emit.calls[2].arguments, ["messageQueued", secondInit, ["second"], second]);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }]);
+  t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["second"], undefined, { name: "secondData" }]);
+  t.deepEqual(emit.calls[2].arguments, ["messageQueued", secondInit, ["second"]]);
   t.deepEqual(emit.calls[3].arguments, ["unhandledMessage", secondInit, ["second"]]);
 });
 
-test.failing("Messages generated during processing are handled in order", t => {
+test("Messages generated during processing are handled in order", t => {
   const s             = new Storage();
   const emit          = t.context.spy(s, "emit");
   const firstData     = { name: "firstData" };
@@ -570,13 +648,12 @@ test.failing("Messages generated during processing are handled in order", t => {
   t.deepEqual(firstDef.update.calls[0].arguments, [firstData, initMsg]);
   t.is(first.getData(), secondData);
   t.is(emit.calls.length, 7);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }, first]);
-  t.deepEqual(emit.calls[1].arguments, ["messageQueued", initMsg, ["first"], first]);
-  t.deepEqual(emit.calls[2].arguments, ["messageMatched", initMsg, ["first"], true, first]);
-  t.deepEqual(emit.calls[3].arguments, ["stateNewData", secondData, ["first"], initMsg, first]);
-  // TODO: Should we count it as first origin? It should, right? We currently emit target when queued
-  t.deepEqual(emit.calls[4].arguments, ["messageQueued", firstMsg, ["first"], first]);
-  t.deepEqual(emit.calls[5].arguments, ["unhandledMessage", initMsg, ["first"]]);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }]);
+  t.deepEqual(emit.calls[1].arguments, ["messageQueued", initMsg, ["first", "$"]]);
+  t.deepEqual(emit.calls[2].arguments, ["messageMatched", initMsg, ["first"], true]);
+  t.deepEqual(emit.calls[3].arguments, ["stateNewData", secondData, ["first"], initMsg]);
+  t.deepEqual(emit.calls[4].arguments, ["messageQueued", firstMsg, ["first"]]);
+  t.deepEqual(emit.calls[5].arguments, ["unhandledMessage", initMsg, ["first", "$"]]);
   t.deepEqual(emit.calls[6].arguments, ["unhandledMessage", firstMsg, ["first"]]);
 });
 
@@ -609,12 +686,12 @@ test("Active subscribers prevent parents and unhandledMessage from receiving", t
   t.deepEqual(firstDef.update.calls[0].arguments, [firstData, initMsg]);
   t.is(first.getData(), firstData);
   t.is(emit.calls.length, 6);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }, first]);
-  t.deepEqual(emit.calls[1].arguments, ["messageQueued", { tag: "initMsg" }, ["first"], first]);
-  t.deepEqual(emit.calls[2].arguments, ["messageMatched", { tag: "initMsg" }, ["first"], false, first]);
-  t.deepEqual(emit.calls[3].arguments, ["stateNewData", { name: "firstData" }, ["first"], { tag: "initMsg" }, first]);
-  t.deepEqual(emit.calls[4].arguments, ["messageQueued", { tag: "firstMsg" }, [], first]);
-  t.deepEqual(emit.calls[5].arguments, ["messageMatched", { tag: "firstMsg" }, [], false, null]);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }]);
+  t.deepEqual(emit.calls[1].arguments, ["messageQueued", { tag: "initMsg" }, ["first", "$"]]);
+  t.deepEqual(emit.calls[2].arguments, ["messageMatched", { tag: "initMsg" }, ["first"], false]);
+  t.deepEqual(emit.calls[3].arguments, ["stateNewData", { name: "firstData" }, ["first"], { tag: "initMsg" }]);
+  t.deepEqual(emit.calls[4].arguments, ["messageQueued", { tag: "firstMsg" }, ["first"]]);
+  t.deepEqual(emit.calls[5].arguments, ["messageMatched", { tag: "firstMsg" }, [], false]);
 });
 
 test("Passive subscribers always receive messages from children", t => {
@@ -640,7 +717,7 @@ test("Passive subscribers always receive messages from children", t => {
   first.sendMessage(initMsg);
 
   t.is(stub1.calls.length, 1);
-  t.deepEqual(stub1.calls[0].arguments, [initMsg, ["first"]]);
+  t.deepEqual(stub1.calls[0].arguments, [initMsg, ["first", "$"]]);
   t.is(stub2.calls.length, 1);
   t.deepEqual(stub2.calls[0].arguments, [firstMsg, ["first"]]);
   t.is(firstDef.update.calls.length, 1);
@@ -648,13 +725,13 @@ test("Passive subscribers always receive messages from children", t => {
   t.is(first.getData(), firstData);
 
   t.is(emit.calls.length, 8);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }, first]);
-  t.deepEqual(emit.calls[1].arguments, ["messageQueued", { tag: "initMsg" }, ["first"], first]);
-  t.deepEqual(emit.calls[2].arguments, ["messageMatched", { tag: "initMsg" }, ["first"], false, first]);
-  t.deepEqual(emit.calls[3].arguments, ["stateNewData", { name: "firstData" }, ["first"], { tag: "initMsg" }, first]);
-  t.deepEqual(emit.calls[4].arguments, ["messageQueued", { tag: "firstMsg" }, [], first]);
-  t.deepEqual(emit.calls[5].arguments, ["messageMatched", { tag: "initMsg" }, [], true, null]);
-  t.deepEqual(emit.calls[6].arguments, ["messageMatched", { tag: "firstMsg" }, [], true, null]);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }]);
+  t.deepEqual(emit.calls[1].arguments, ["messageQueued", { tag: "initMsg" }, ["first", "$"]]);
+  t.deepEqual(emit.calls[2].arguments, ["messageMatched", { tag: "initMsg" }, ["first"], false]);
+  t.deepEqual(emit.calls[3].arguments, ["stateNewData", { name: "firstData" }, ["first"], { tag: "initMsg" }]);
+  t.deepEqual(emit.calls[4].arguments, ["messageQueued", { tag: "firstMsg" }, ["first"]]);
+  t.deepEqual(emit.calls[5].arguments, ["messageMatched", { tag: "initMsg" }, [], true]);
+  t.deepEqual(emit.calls[6].arguments, ["messageMatched", { tag: "firstMsg" }, [], true]);
   t.deepEqual(emit.calls[7].arguments, ["unhandledMessage", { tag: "firstMsg" }, ["first"]]);
 });
 
