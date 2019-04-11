@@ -156,11 +156,10 @@ test.failing("Storage getNestedOrCreate sends an update message and returns the 
   t.is(init.calls.length, 1)
   t.deepEqual(init.calls[0].arguments, [undefined]);
   t.is(update.calls.length, 1);
-  t.is(init.calls[0].arguments[0], initData);
-  t.deepEquals(init.calls[0].arguments[1], { tag: MESSAGE_NEW_PARAMS, params: 2 });
+  t.deepEqual(init.calls[0].arguments, [initData, { tag: MESSAGE_NEW_PARAMS, params: 2 }]);
   t.is(subscriptions.calls.length, 1);
-  t.is(subscriptions.calls[0].arguments[0], initData);
-  t.deepEqual(emit.calls.length, 2);
+  t.deepEqual(subscriptions.calls[0].arguments, initData);
+  t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, initData, instance]);
   t.deepEqual(emit.calls[1].arguments, ["stateNewData", 2, ["test"], { tag: MESSAGE_NEW_PARAMS, params: 2 }, instance]);
   // TODO: How to ensure call order? instance should fire before storage
@@ -277,23 +276,20 @@ test("Sending messages on a store should send them to matching subscribers", t =
 
   s.sendMessage(msg);
 
+  t.is(recv1.calls.length, 1);
+  t.deepEqual(recv1.calls[0].arguments, [msg, []]);
+  t.is(recv2.calls.length, 0);
   t.is(emit.calls.length, 1);
   t.deepEqual(emit.calls[0].arguments, ["messageQueued", msg, [], null]);
-  t.is(recv1.calls.length, 1);
-  t.is(recv1.calls[0].arguments[0], msg);
-  t.deepEqual(recv1.calls[0].arguments[1], []);
-  t.is(recv2.calls.length, 0);
 
   s.sendMessage(msg2);
 
+  t.is(recv1.calls.length, 1);
+  t.deepEqual(recv1.calls[0].arguments, [msg, []]);
+  t.is(recv2.calls.length, 0);
   t.is(emit.calls.length, 3);
   t.deepEqual(emit.calls[1].arguments, ["messageQueued", msg2, [], null]);
   t.deepEqual(emit.calls[2].arguments, ["unhandledMessage", msg2, []]);
-  t.deepEqual(recv1.calls[0].arguments[1], []);
-  t.is(recv1.calls.length, 1);
-  t.is(recv1.calls[0].arguments[0], msg);
-  t.deepEqual(recv1.calls[0].arguments[1], []);
-  t.is(recv2.calls.length, 0);
 });
 
 test("Removing a subscriber should not fire when a matching message is sent", t => {
@@ -312,8 +308,7 @@ test("Removing a subscriber should not fire when a matching message is sent", t 
   t.is(emit.calls.length, 1);
   t.deepEqual(emit.calls[0].arguments, ["messageQueued", msg, [], null]);
   t.is(recv1.calls.length, 1);
-  t.is(recv1.calls[0].arguments[0], msg);
-  t.deepEqual(recv1.calls[0].arguments[1], []);
+  t.deepEqual(recv1.calls[0].arguments, [msg, []]);
   t.is(recv2.calls.length, 0);
 });
 
@@ -328,8 +323,7 @@ test("Sending messages on a store should also trigger unhandledMessage if no act
   s.sendMessage(msg);
 
   t.is(recv.calls.length, 1);
-  t.is(recv.calls[0].arguments[0], msg);
-  t.deepEqual(recv.calls[0].arguments[1], []);
+  t.deepEqual(recv.calls[0].arguments, [msg, []]);
   t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["messageQueued", msg, [], null]);
   t.deepEqual(emit.calls[1].arguments, ["unhandledMessage", msg, []]);
@@ -501,8 +495,7 @@ test("StateInstance init is sent to parent instances", t => {
   const second = first.getNestedOrCreate(secondDef);
 
   t.is(firstDef.update.calls.length, 1);
-  t.is(firstDef.update.calls[0].arguments[0], firstData);
-  t.is(firstDef.update.calls[0].arguments[1], secondInit);
+  t.deepEqual(firstDef.update.calls[0].arguments, [firstData, secondInit]);
   t.is(first.getData(), firstData);
   t.deepEqual(s.getSnapshot(), {
     first:  { defName: "first",  data: { name: "firstData" },  params: undefined, nested: {
@@ -571,8 +564,7 @@ test.failing("Messages generated during processing are handled in order", t => {
   first.sendMessage(initMsg);
 
   t.is(firstDef.update.calls.length, 1);
-  t.is(firstDef.update.calls[0].arguments[0], firstData);
-  t.is(firstDef.update.calls[0].arguments[1], initMsg);
+  t.deepEqual(firstDef.update.calls[0].arguments, [firstData, initMsg]);
   t.is(first.getData(), secondData);
   t.is(emit.calls.length, 7);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }, first]);
@@ -585,12 +577,11 @@ test.failing("Messages generated during processing are handled in order", t => {
   t.deepEqual(emit.calls[6].arguments, ["unhandledMessage", firstMsg, ["first"]]);
 });
 
-test("Active subscribers prevent parents and unhandledMessage from receiving", t => {
+test.failing("Active subscribers prevent parents and unhandledMessage from receiving", t => {
   const s             = new Storage();
   const emit          = t.context.spy(s, "emit");
   const stub1         = t.context.stub();
   const stub2         = t.context.stub();
-  const stub3         = t.context.stub();
   const firstData     = { name: "firstData" };
   const initMsg       = { tag: "initMsg" };
   const firstMsg      = { tag: "firstMsg" };
@@ -601,31 +592,33 @@ test("Active subscribers prevent parents and unhandledMessage from receiving", t
     subscriptions: t.context.stub(() => [subscribe("initMsg")]),
   };
 
-  s.addListener("unhandledMessage", stub1);
-  s.addSubscriber(stub2, [subscribe("initMsg")]);
-  s.addSubscriber(stub3, [subscribe("firstMsg")]);
+  s.addSubscriber(stub1, [subscribe("initMsg")]);
+  s.addSubscriber(stub2, [subscribe("firstMsg")]);
 
-  const first  = s.getNestedOrCreate(firstDef);
+  const first = s.getNestedOrCreate(firstDef);
 
   first.sendMessage(initMsg);
 
   t.is(stub1.calls.length, 0);
-  t.is(stub2.calls.length, 0);
-  t.is(stub3.calls.length, 1);
-  t.is(stub3.calls[0].arguments[0], firstMsg);
-  t.deepEqual(stub3.calls[0].arguments[1], ["first"]);
+  t.is(stub2.calls.length, 1);
+  t.deepEqual(stub2.calls[0].arguments, [firstMsg, ["first"]]);
   t.is(firstDef.update.calls.length, 1);
-  t.is(firstDef.update.calls[0].arguments[0], firstData);
-  t.is(firstDef.update.calls[0].arguments[1], initMsg);
+  t.deepEqual(firstDef.update.calls[0].arguments, [firstData, initMsg]);
   t.is(first.getData(), firstData);
+  t.is(emit.calls.length, 6);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }, first]);
+  t.deepEqual(emit.calls[1].arguments, ["messageQueued", { tag: "initMsg" }, ["first"], first]);
+  t.deepEqual(emit.calls[2].arguments, ["messageMatched", { tag: "initMsg" }, ["first"], false, first]);
+  t.deepEqual(emit.calls[3].arguments, ["stateNewData", { name: "firstData" }, ["first"], { tag: "initMsg" }, first]);
+  t.deepEqual(emit.calls[4].arguments, ["messageQueued", { tag: "firstMsg" }, [], first]);
+  t.deepEqual(emit.calls[5].arguments, ["messageMatched", { tag: "firstMsg" }, [], false]);
 });
 
-test("Passive subscribers always receive messages from children", t => {
+test.failing("Passive subscribers always receive messages from children", t => {
   const s             = new Storage();
   const emit          = t.context.spy(s, "emit");
   const stub1         = t.context.stub();
   const stub2         = t.context.stub();
-  const stub3         = t.context.stub();
   const firstData     = { name: "firstData" };
   const initMsg       = { tag: "initMsg" };
   const firstMsg      = { tag: "firstMsg" };
@@ -636,27 +629,30 @@ test("Passive subscribers always receive messages from children", t => {
     subscriptions: t.context.stub(() => [subscribe("initMsg")]),
   };
 
-  s.addListener("unhandledMessage", stub1);
-  s.addSubscriber(stub2, [subscribe("initMsg", true)]);
-  s.addSubscriber(stub3, [subscribe("firstMsg", true)]);
+  s.addSubscriber(stub1, [subscribe("initMsg", true)]);
+  s.addSubscriber(stub2, [subscribe("firstMsg", true)]);
 
-  const first  = s.getNestedOrCreate(firstDef);
+  const first = s.getNestedOrCreate(firstDef);
 
   first.sendMessage(initMsg);
 
   t.is(stub1.calls.length, 1);
-  t.is(stub1.calls[0].arguments[0], firstMsg);
-  t.deepEqual(stub1.calls[0].arguments[1], ["first"]);
+  t.deepEqual(stub1.calls[0].arguments, [initMsg, ["first"]]);
   t.is(stub2.calls.length, 1);
-  t.is(stub2.calls[0].arguments[0], initMsg);
-  t.deepEqual(stub2.calls[0].arguments[1], ["first"]);
-  t.is(stub3.calls.length, 1);
-  t.is(stub3.calls[0].arguments[0], firstMsg);
-  t.deepEqual(stub3.calls[0].arguments[1], ["first"]);
+  t.deepEqual(stub2.calls[0].arguments, [firstMsg, ["first"]]);
   t.is(firstDef.update.calls.length, 1);
-  t.is(firstDef.update.calls[0].arguments[0], firstData);
-  t.is(firstDef.update.calls[0].arguments[1], initMsg);
+  t.deepEqual(firstDef.update.calls[0].arguments, [firstData, initMsg]);
   t.is(first.getData(), firstData);
+
+  t.is(emit.calls.length, 8);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }, first]);
+  t.deepEqual(emit.calls[1].arguments, ["messageQueued", { tag: "initMsg" }, ["first"], first]);
+  t.deepEqual(emit.calls[2].arguments, ["messageMatched", { tag: "initMsg" }, ["first"], true, first]);
+  t.deepEqual(emit.calls[3].arguments, ["stateNewData", { name: "firstData" }, ["first"], { tag: "initMsg" }, first]);
+  t.deepEqual(emit.calls[4].arguments, ["messageQueued", { tag: "firstMsg" }, [], first]);
+  t.deepEqual(emit.calls[5].arguments, ["messageMatched", { tag: "firstMsg" }, [], true]);
+  t.deepEqual(emit.calls[6].arguments, ["unhandledMessage", { tag: "initMsg" }, ["first"]]);
+  t.deepEqual(emit.calls[7].arguments, ["unhandledMessage", { tag: "firstMsg" }, []]);
 });
 
 test.todo("Add more event tests");
