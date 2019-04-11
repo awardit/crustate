@@ -14,7 +14,7 @@ import { subscriptionIsPassive
        , subscriptionMatches } from "./message";
 import { EventEmitter } from "./eventemitter";
 
-const STATE_MESSAGE_TAG = "$";
+const ANONYMOUS_SOURCE = "$";
 
 interface AbstractSupervisor {
   _nested: StateInstanceMap;
@@ -178,7 +178,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     return getNestedOrCreate(this, state, params);
   };
 
-  sendMessage(message: Message, sourceName?: string = "$"): void {
+  sendMessage(message: Message, sourceName?: string = ANONYMOUS_SOURCE): void {
     processStorageMessage(this, createInflightMessage(this, [sourceName], message));
   };
 
@@ -291,7 +291,7 @@ export class StateInstance<T, I> extends EventEmitter<StateEvents> implements Ab
     return getNestedOrCreate(this, state, params);
   };
 
-  sendMessage(message: Message, sourceName?: string = STATE_MESSAGE_TAG): void {
+  sendMessage(message: Message, sourceName?: string = ANONYMOUS_SOURCE): void {
     const msgPath = this.getPath().concat([sourceName]);
 
     processInstanceMessages(this.getStorage(), this, [message], msgPath);
