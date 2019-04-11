@@ -279,17 +279,18 @@ test("Sending messages on a store should send them to matching subscribers", t =
   t.is(recv1.calls.length, 1);
   t.deepEqual(recv1.calls[0].arguments, [msg, []]);
   t.is(recv2.calls.length, 0);
-  t.is(emit.calls.length, 1);
+  t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["messageQueued", msg, [], null]);
+  t.deepEqual(emit.calls[1].arguments, ["messageMatched", msg, [], false, null]);
 
   s.sendMessage(msg2);
 
   t.is(recv1.calls.length, 1);
   t.deepEqual(recv1.calls[0].arguments, [msg, []]);
   t.is(recv2.calls.length, 0);
-  t.is(emit.calls.length, 3);
-  t.deepEqual(emit.calls[1].arguments, ["messageQueued", msg2, [], null]);
-  t.deepEqual(emit.calls[2].arguments, ["unhandledMessage", msg2, []]);
+  t.is(emit.calls.length, 4);
+  t.deepEqual(emit.calls[2].arguments, ["messageQueued", msg2, [], null]);
+  t.deepEqual(emit.calls[3].arguments, ["unhandledMessage", msg2, []]);
 });
 
 test("Removing a subscriber should not fire when a matching message is sent", t => {
@@ -305,8 +306,9 @@ test("Removing a subscriber should not fire when a matching message is sent", t 
 
   s.sendMessage(msg);
 
-  t.is(emit.calls.length, 1);
+  t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["messageQueued", msg, [], null]);
+  t.deepEqual(emit.calls[1].arguments, ["messageMatched", msg, [], false, null]);
   t.is(recv1.calls.length, 1);
   t.deepEqual(recv1.calls[0].arguments, [msg, []]);
   t.is(recv2.calls.length, 0);
@@ -324,9 +326,10 @@ test("Sending messages on a store should also trigger unhandledMessage if no act
 
   t.is(recv.calls.length, 1);
   t.deepEqual(recv.calls[0].arguments, [msg, []]);
-  t.is(emit.calls.length, 2);
+  t.is(emit.calls.length, 3);
   t.deepEqual(emit.calls[0].arguments, ["messageQueued", msg, [], null]);
-  t.deepEqual(emit.calls[1].arguments, ["unhandledMessage", msg, []]);
+  t.deepEqual(emit.calls[1].arguments, ["messageMatched", msg, [], true, null]);
+  t.deepEqual(emit.calls[2].arguments, ["unhandledMessage", msg, []]);
 });
 
 test.failing("States with init using updateAndSend should send messages to parent Storage", t => {
@@ -577,7 +580,7 @@ test.failing("Messages generated during processing are handled in order", t => {
   t.deepEqual(emit.calls[6].arguments, ["unhandledMessage", firstMsg, ["first"]]);
 });
 
-test.failing("Active subscribers prevent parents and unhandledMessage from receiving", t => {
+test("Active subscribers prevent parents and unhandledMessage from receiving", t => {
   const s             = new Storage();
   const emit          = t.context.spy(s, "emit");
   const stub1         = t.context.stub();
@@ -611,10 +614,10 @@ test.failing("Active subscribers prevent parents and unhandledMessage from recei
   t.deepEqual(emit.calls[2].arguments, ["messageMatched", { tag: "initMsg" }, ["first"], false, first]);
   t.deepEqual(emit.calls[3].arguments, ["stateNewData", { name: "firstData" }, ["first"], { tag: "initMsg" }, first]);
   t.deepEqual(emit.calls[4].arguments, ["messageQueued", { tag: "firstMsg" }, [], first]);
-  t.deepEqual(emit.calls[5].arguments, ["messageMatched", { tag: "firstMsg" }, [], false]);
+  t.deepEqual(emit.calls[5].arguments, ["messageMatched", { tag: "firstMsg" }, [], false, null]);
 });
 
-test.failing("Passive subscribers always receive messages from children", t => {
+test("Passive subscribers always receive messages from children", t => {
   const s             = new Storage();
   const emit          = t.context.spy(s, "emit");
   const stub1         = t.context.stub();
@@ -647,13 +650,12 @@ test.failing("Passive subscribers always receive messages from children", t => {
   t.is(emit.calls.length, 8);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }, first]);
   t.deepEqual(emit.calls[1].arguments, ["messageQueued", { tag: "initMsg" }, ["first"], first]);
-  t.deepEqual(emit.calls[2].arguments, ["messageMatched", { tag: "initMsg" }, ["first"], true, first]);
+  t.deepEqual(emit.calls[2].arguments, ["messageMatched", { tag: "initMsg" }, ["first"], false, first]);
   t.deepEqual(emit.calls[3].arguments, ["stateNewData", { name: "firstData" }, ["first"], { tag: "initMsg" }, first]);
   t.deepEqual(emit.calls[4].arguments, ["messageQueued", { tag: "firstMsg" }, [], first]);
-  t.deepEqual(emit.calls[5].arguments, ["messageMatched", { tag: "firstMsg" }, [], true]);
-  t.deepEqual(emit.calls[6].arguments, ["unhandledMessage", { tag: "initMsg" }, ["first"]]);
-  t.deepEqual(emit.calls[7].arguments, ["unhandledMessage", { tag: "firstMsg" }, []]);
+  t.deepEqual(emit.calls[5].arguments, ["messageMatched", { tag: "initMsg" }, [], true, null]);
+  t.deepEqual(emit.calls[6].arguments, ["messageMatched", { tag: "firstMsg" }, [], true, null]);
+  t.deepEqual(emit.calls[7].arguments, ["unhandledMessage", { tag: "firstMsg" }, ["first"]]);
 });
 
-test.todo("Add more event tests");
 test.todo("Add nested message tests, internal order of processing, active/passive subscribers");

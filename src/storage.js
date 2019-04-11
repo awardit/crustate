@@ -102,7 +102,7 @@ export type StorageEvents = {
    *  * Path of the matching state-instance
    *  * If the subscription was passive
    */
-  messageMatched: [Message, StatePath, boolean, StateInstance<any, any>];
+  messageMatched: [Message, StatePath, boolean, ?StateInstance<any, any>];
 };
 
 /**
@@ -433,10 +433,14 @@ function processStorageMessage(storage: Storage, inflight: InflightMessage) {
 
     // TODO: Split
     for(let j = 0; j < filter.length; j++) {
-      if(subscriptionMatches(filter[j], _message, Boolean(received))) {
-        if( ! subscriptionIsPassive(filter[j])) {
+      const currentFilter = filter[j];
+
+      if(subscriptionMatches(currentFilter, _message, Boolean(received))) {
+        if( ! subscriptionIsPassive(currentFilter)) {
           received = true;
         }
+
+        storage.emit("messageMatched", _message, [], subscriptionIsPassive(currentFilter), (null: ?StateInstance<any, any>));
 
         listener(_message, _source);
       }
