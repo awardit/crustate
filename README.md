@@ -3,6 +3,7 @@
 ![npm bundle size](https://img.shields.io/bundlephobia/minzip/crustate.svg)
 ![Dependencies](https://img.shields.io/david/m4rw3r/crustate.svg)
 [![Build Status](https://travis-ci.org/m4rw3r/crustate.svg?branch=master)](https://travis-ci.org/m4rw3r/crustate)
+![Codecov](https://img.shields.io/codecov/c/gh/m4rw3r/crustate.svg)
 ![License](https://img.shields.io/npm/l/crustate.svg)
 ![npm](https://img.shields.io/npm/v/crustate.svg)
 
