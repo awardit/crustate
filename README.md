@@ -1,11 +1,11 @@
 # Crustate is a message-based modular state-management library for JavaScript applications
 
-![npm bundle size](https://img.shields.io/bundlephobia/minzip/crustate.svg)
-![Dependencies](https://img.shields.io/david/m4rw3r/crustate.svg)
+[![npm bundle size](https://img.shields.io/bundlephobia/minzip/crustate.svg)](https://bundlephobia.com/result?p=crustate)
+[![Dependencies](https://img.shields.io/david/m4rw3r/crustate.svg)](https://www.npmjs.com/package/crustate)
 [![Build Status](https://travis-ci.org/m4rw3r/crustate.svg?branch=master)](https://travis-ci.org/m4rw3r/crustate)
-![Codecov](https://img.shields.io/codecov/c/gh/m4rw3r/crustate.svg)
+[![Codecov](https://img.shields.io/codecov/c/gh/m4rw3r/crustate.svg)](https://codecov.io/gh/m4rw3r/crustate)
 ![License](https://img.shields.io/npm/l/crustate.svg)
-![npm](https://img.shields.io/npm/v/crustate.svg)
+[![npm](https://img.shields.io/npm/v/crustate.svg)](https://www.npmjs.com/package/crustate)
 
 This library is based on the principles of message passing found in languages
 like Elm and Elixir/Erlang. The purpose is to be able to build modular state
