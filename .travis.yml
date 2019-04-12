@@ -7,4 +7,4 @@ install:
   - npm install -g codecov
 after_success:
   - npm run coverage
-  - ./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/codecov --pipe
+  - ./node_modules/.bin/nyc report --reporter=text-lcov | codecov --pipe
