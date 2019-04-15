@@ -33,6 +33,22 @@ StateData.prototype.Provider;
 StateData.prototype.state;
 
 /**
+ * @public
+ * @constructor
+ * @extends React.Component
+ */
+function DataProvider() {}
+
+DataProvider.prototype.props;
+/**
+ * @type {!boolean}
+ */
+DataProvider.prototype.props.wrapNested;
+DataProvider.prototype.props.chidren;
+DataProvider.prototype.contextType;
+DataProvider.prototype.defaultProps;
+
+/**
  * @type {!Object}
  */
 var exports;
@@ -42,3 +58,10 @@ exports.StorageProvider;
 exports.createStateData;
 exports.useSendMessage;
 exports.useData;
+
+// make sure these are not mangled
+var contextType;
+var defaultProps;
+var displayName;
+var wrapNested;
+

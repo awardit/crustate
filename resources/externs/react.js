@@ -57,7 +57,7 @@ React.Component.prototype.displayName;
  * @type {!React.Context}
  */
 React.Component.prototype.contextType;
-React.Component.contextType;
+React.Component.prototype.defaultProps;
 /**
  * @type {!Object}
  */
