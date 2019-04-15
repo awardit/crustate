@@ -1,7 +1,6 @@
 import babelPlugin     from "rollup-plugin-babel";
 import closureCompiler from '@ampproject/rollup-plugin-closure-compiler';
 import gzip            from "rollup-plugin-gzip";
-import resolve         from "rollup-plugin-node-resolve";
 
 // Rollup configuration compiler does not respect __dirname, so we have to rely
 // on the current working directory:
