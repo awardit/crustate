@@ -2,6 +2,7 @@ import { config }     from "./build/config";
 import crustateReact  from "./react/rollup.config";
 import crustatePreact from "./preact/rollup.config";
 import exampleCounter from "./examples/counter/rollup.config";
+import exampleTodomvc from "./examples/todomvc/rollup.config";
 
 export default [
   config({
@@ -12,4 +13,5 @@ export default [
   crustateReact,
   crustatePreact,
   exampleCounter,
+  exampleTodomvc,
 ];
