@@ -24,6 +24,8 @@ type StateProviderState<T, I> = {
   data:     T,
 };
 
+type DataProviderProps<T> = T & { children: ?React$Node, wrapNested?: boolean };
+
 // FIXME: Redefine this so it throws when undefined
 export type DataFunction<T> = (data: T | void) => ?React$Node;
 
@@ -32,7 +34,7 @@ export type DataFunction<T> = (data: T | void) => ?React$Node;
  * with the given props as its initial data, and supply the state-data to its
  * children.
  */
-export type DataProvider<T, I> = React$ComponentType<I & { children: ?React$Node }>;
+export type DataProvider<T, I> = React$ComponentType<DataProviderProps<I>>;
 export type DataConsumer<T>    = React$ComponentType<{ children: DataFunction<T>}>;
 
 /**
@@ -101,15 +103,16 @@ export function createStateData<T, I: {}>(state: State<T, I>): StateData<T, I> {
    * @constructor
    * @extends {React.Component}
    */
-  class StateProvider extends Component<I & { children: ?React$Node }, StateProviderState<T, I>> {
-    static contextType = StateContext;
-    static displayName = `${state.name}.Provider`;
+  class StateProvider extends Component<DataProviderProps<I>, StateProviderState<T, I>> {
+    static contextType  = StateContext;
+    static displayName  = state.name + `.Provider`;
+    static defaultProps = { wrapNested: false };
 
     onNewData: (data: T) => void;
     context:   ?Supervisor;
     state:     StateProviderState<T, I>;
 
-    constructor(props: I & { children: ?React$Node }, context: ?Supervisor) {
+    constructor(props: DataProviderProps<I>, context: ?Supervisor) {
       super(props, context);
 
       if( ! context) {
@@ -146,7 +149,7 @@ export function createStateData<T, I: {}>(state: State<T, I>): StateData<T, I> {
       this.state.instance.removeListener("stateNewData", (this.onNewData: any));
     }
 
-    componentWillReceiveProps(props: I & { children: ?React$Node }) {
+    componentWillReceiveProps(props: DataProviderProps<I>) {
       const context = this.context;
       if( ! context) {
         throw new Error(`<${state.name}.Provider /> must be used inside a <StorageProvider />`);
@@ -177,9 +180,19 @@ export function createStateData<T, I: {}>(state: State<T, I>): StateData<T, I> {
     }
 
     render() {
-      return createElement(InstanceProvider, { value:this.state.instance },
-        createElement(DataProvider, { value: this.state.data },
-          this.props.children));
+      const dataVdom = createElement(
+        DataProvider,
+        { value: this.state.data },
+        this.props.children);
+
+      if(this.props.wrapNested) {
+        return createElement(
+          InstanceProvider,
+          { value:this.state.instance },
+          dataVdom);
+      }
+
+      return dataVdom;
     }
   }
 
