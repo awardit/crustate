@@ -4,6 +4,8 @@ import { NONE
        , subscribe
        , Storage } from "crustate";
 import { StorageProvider } from "crustate/react";
+import { TodosState } from "./states/todos";
+import { FilterState } from "./states/filter";
 import React    from "react";
 import ReactDOM from "react-dom";
 import "todomvc-app-css/index.css";
@@ -27,5 +29,9 @@ if( ! el) {
 }
 
 ReactDOM.render(<StorageProvider value={storage}>
-  <App />
+  <TodosState.Provider>
+    <FilterState.Provider>
+      <App />
+    </FilterState.Provider>
+  </TodosState.Provider>
 </StorageProvider>, el);
