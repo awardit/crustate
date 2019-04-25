@@ -219,7 +219,7 @@ export function useData<T, I>(context: StateData<T, I>): T {
   const data = useContext(_dataContext);
 
   if(data === undefined) {
-    throw new Error(`useData(${state.name}) must be used inside a <${state.name}.Provider /> or <StorageProvider />`);
+    throw new Error(`useData(${state.name}) must be used inside a <${state.name}.Provider />`);
   }
 
   return data;
