@@ -130,9 +130,9 @@ export const VisibleTodoList = () => {
   </ul>
 };
 
-export const App = () => <div>
+export const App = () => <section className="todoapp">
   <Header />
   <MainSection />
-</div>;
+</section>;
 
 
