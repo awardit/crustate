@@ -1,16 +1,14 @@
 /* @flow */
-import { NONE
-       , updateData
-       , subscribe
-       , Storage } from "crustate";
-import { StorageProvider } from "crustate/react";
-import { TodosState } from "./states/todos";
-import { FilterState } from "./states/filter";
-import React    from "react";
-import ReactDOM from "react-dom";
+
 import "todomvc-app-css/index.css";
 
-import { App } from "./app";
+import React               from "react";
+import ReactDOM            from "react-dom";
+import { Storage }         from "crustate";
+import { StorageProvider } from "crustate/react";
+import { App }             from "./app";
+import { TodosState }      from "./states/todos";
+import { FilterState }     from "./states/filter";
 
 const storage = new Storage();
 

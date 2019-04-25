@@ -1,28 +1,41 @@
 /* @flow */
 
-import React from "react";
-import classnames from "classnames";
-import { clearAll } from "./states/todos";
+import type { Filter } from "./states/filter";
+
+import React              from "react";
+import classnames         from "classnames";
+import { clearAll }       from "./states/todos";
 import { useData
        , useSendMessage } from "crustate/react";
 import { SHOW_ALL
        , SHOW_COMPLETED
        , SHOW_ACTIVE
        , FilterState
-       , setFilter } from "./states/filter";
+       , setFilter }      from "./states/filter";
 
 const FILTER_TITLES = {
-  [SHOW_ALL]: "All",
-  [SHOW_ACTIVE]: "Active",
+  [SHOW_ALL]:       "All",
+  [SHOW_ACTIVE]:    "Active",
   [SHOW_COMPLETED]: "Completed",
 };
 
-export const Link = ({ children, selected, onClick }) => <a
+type LinkProps = {
+  children: React$Node,
+  selected: boolean,
+  onClick:  (event: Event) => mixed,
+};
+
+export const Link = ({ children, selected, onClick }: LinkProps) => <a
   className={classnames({ selected })}
   style={{ cursor: 'pointer' }}
   onClick={onClick}>{children}</a>
 
-export const FilterLink = ({ filter, children }) => {
+type FilterLinkProps = {
+  children: React$Node,
+  filter:   Filter,
+};
+
+export const FilterLink = ({ filter, children }: FilterLinkProps) => {
   const sendMessage = useSendMessage();
   const current     = useData(FilterState);
 
@@ -30,10 +43,14 @@ export const FilterLink = ({ filter, children }) => {
                onClick={() => sendMessage(setFilter(filter))}>{children}</Link>
 }
 
-export const Footer = (props) => {
-  const { activeCount, completedCount } = props;
-  const itemWord                        = activeCount === 1 ? 'item' : 'items';
-  const sendMessage                     = useSendMessage();
+type FooterProps = {
+  activeCount:    number,
+  completedCount: number,
+};
+
+export const Footer = ({ activeCount, completedCount }: FooterProps) => {
+  const itemWord    = activeCount === 1 ? 'item' : 'items';
+  const sendMessage = useSendMessage();
 
   return <footer className="footer">
       <span className="todo-count">
