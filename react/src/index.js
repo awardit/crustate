@@ -24,7 +24,7 @@ type StateProviderState<T, I> = {
   data:     T,
 };
 
-type DataProviderProps<T> = T & { children: ?React$Node, wrapNested?: boolean };
+type DataProviderProps<T> = T & { children: ?React$Node };
 
 // FIXME: Redefine this so it throws when undefined
 export type DataFunction<T> = (data: T | void) => ?React$Node;
@@ -95,7 +95,7 @@ export function useSendMessage(): (message: Message) => void {
  * @suppress {checkTypes}
  * @return {!StateData}
  */
-export function createStateData<T, I: {}>(state: State<T, I>): StateData<T, I> {
+export function createStateData<T, I>(state: State<T, I>): StateData<T, I> {
   const DataContext  = (createContext(undefined): React$Context<T | void>);
   const DataProvider = DataContext.Provider;
 
@@ -106,7 +106,6 @@ export function createStateData<T, I: {}>(state: State<T, I>): StateData<T, I> {
   class StateProvider extends Component<DataProviderProps<I>, StateProviderState<T, I>> {
     static contextType  = StateContext;
     static displayName  = state.name + `.Provider`;
-    static defaultProps = { wrapNested: false };
 
     onNewData: (data: T) => void;
     context:   ?Supervisor;
@@ -180,19 +179,9 @@ export function createStateData<T, I: {}>(state: State<T, I>): StateData<T, I> {
     }
 
     render() {
-      const dataVdom = createElement(
-        DataProvider,
-        { value: this.state.data },
-        this.props.children);
-
-      if(this.props.wrapNested) {
-        return createElement(
-          InstanceProvider,
-          { value:this.state.instance },
-          dataVdom);
-      }
-
-      return dataVdom;
+      return createElement(InstanceProvider, { value:this.state.instance },
+        createElement(DataProvider, { value: this.state.data },
+          this.props.children));
     }
   }
 
