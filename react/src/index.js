@@ -95,7 +95,7 @@ export function useSendMessage(): (message: Message) => void {
  * @suppress {checkTypes}
  * @return {!StateData}
  */
-export function createStateData<T, I>(state: State<T, I>): StateData<T, I> {
+export function createStateData<T, I: {}>(state: State<T, I>): StateData<T, I> {
   const DataContext  = (createContext(undefined): React$Context<T | void>);
   const DataProvider = DataContext.Provider;
 
