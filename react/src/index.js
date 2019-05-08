@@ -19,8 +19,8 @@ const { createContext
       , useContext
       , Component } = React;
 
-type StateProviderState<T, I> = {
-  instance: StateInstance<T, I>,
+type StateProviderState<T, I, M> = {
+  instance: StateInstance<T, I, M>,
   data:     T,
 };
 
@@ -47,7 +47,7 @@ export type TestProvider<T> = React$ComponentType<{ value: T, children: ?React$N
 /**
  * React-wrapper for a crustate-state.
  */
-export type StateData<T, I> = {
+export type StateData<T, I, M> = {
   /**
    * Internal: Reference to the data-context.
    */
@@ -57,7 +57,7 @@ export type StateData<T, I> = {
    *
    * TODO: Rename to something better
    */
-  state: State<T, I>,
+  state: State<T, I, M>,
   TestProvider: TestProvider<T>,
   Provider: DataProvider<T, I>,
   Consumer: DataConsumer<T>,
@@ -95,7 +95,7 @@ export function useSendMessage(): (message: Message) => void {
  * @suppress {checkTypes}
  * @return {!StateData}
  */
-export function createStateData<T, I: {}>(state: State<T, I>): StateData<T, I> {
+export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T, I, M> {
   const DataContext  = (createContext(undefined): React$Context<T | void>);
   const DataProvider = DataContext.Provider;
 
@@ -103,13 +103,13 @@ export function createStateData<T, I: {}>(state: State<T, I>): StateData<T, I> {
    * @constructor
    * @extends {React.Component}
    */
-  class StateProvider extends Component<DataProviderProps<I>, StateProviderState<T, I>> {
+  class StateProvider extends Component<DataProviderProps<I>, StateProviderState<T, I, M>> {
     static contextType  = StateContext;
     static displayName  = state.name + `.Provider`;
 
     onNewData: (data: T) => void;
     context:   ?Supervisor;
-    state:     StateProviderState<T, I>;
+    state:     StateProviderState<T, I, M>;
 
     constructor(props: DataProviderProps<I>, context: ?Supervisor) {
       super(props, context);
@@ -203,7 +203,7 @@ export function createStateData<T, I: {}>(state: State<T, I>): StateData<T, I> {
  *
  * @suppress {checkTypes}
  */
-export function useData<T, I>(context: StateData<T, I>): T {
+export function useData<T, I, M>(context: StateData<T, I, M>): T {
   const { _dataContext, state } = context;
   const data = useContext(_dataContext);
 

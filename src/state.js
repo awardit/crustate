@@ -19,7 +19,7 @@ export type Init<T, I> = (init: I) => DataUpdate<T> | MessageUpdate<T>;
  * Update function, receives messages for a state and produces a state-update
  * which can include messages sent to supervisors.
  */
-export type StateUpdate<T> = (state: T, msg: Message) => Update<T>;
+export type StateUpdate<T, M> = (state: T, msg: M) => Update<T>;
 /**
  * A list of subscriptions
  */
@@ -29,9 +29,9 @@ export type Subscriptions<T> = (state: T) => Array<Subscription>;
  * Definition of a state containing the data `T` which can be instantiated given
  * the initial data `I`.
  */
-export type State<T, I> = {
+export type State<T, I, M> = {
   name:          string,
   init:          Init<T, I>,
-  update:        StateUpdate<T>,
+  update:        StateUpdate<T, M>,
   subscriptions: Subscriptions<T>,
 };

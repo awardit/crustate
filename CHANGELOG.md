@@ -15,7 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Changed all events which had a `StateInstance` as the last parameter now no
   longer have that parameter.
-- React DataProvider no longer wrap nested state-instances by default
+- React `DataProvider` no longer wrap nested state-instances by default
+- `State` type-signature has been modified to also carry the `Message` type,
+  this also propagates to `StateInstance`, `StateUpdate`, `Storage`,
+  `StateData` and `useData`.
 
 ### Fixed
 - Messages queued by an instance creation are no longer processed by the same

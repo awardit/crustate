@@ -23,8 +23,8 @@ interface AbstractSupervisor {
   // TODO: Possibility to specify a name which does not match the state-name
   //       for the instance storage, would enable multiple instances on the
   //       same level
-  getNested<T, I>(state: State<T, I>): ?StateInstance<T, I>;
-  getNestedOrCreate<U, J>(state: State<U, J>, params: J): StateInstance<U, J>;
+  getNested<T, I, M>(state: State<T, I, M>): ?StateInstance<T, I, M>;
+  getNestedOrCreate<T, I, M>(state: State<T, I, M>, params: I): StateInstance<T, I, M>;
   // TODO: Implement
   // removeNested<T, I>(state: State<T, I>): void;
 }
@@ -49,12 +49,12 @@ export type StateSnapshot = {
  * closed to make it possible to differentiate between the two types while
  * traversing the tree.
  */
-export type Supervisor = Storage | StateInstance<any, any>;
+export type Supervisor = Storage | StateInstance<any, any, any>;
 
 export type Sink = (message: Message, sourcePath: StatePath) => mixed;
 export type Subscribers = Array<{ listener: Sink, filter: Array<Subscription> }>;
 
-export type StateInstanceMap = { [name:string]: StateInstance<any, any> };
+export type StateInstanceMap = { [name:string]: StateInstance<any, any, any> };
 
 export type StorageEvents = {
   /**
@@ -116,7 +116,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   /**
    * State-definitions, used for subscribers and messages.
    */
-  _defs: { [key:string]: State<any, any> } = {};
+  _defs: { [key:string]: State<any, any, any> } = {};
 
   constructor(): void {
     // TODO: Restore state
@@ -134,7 +134,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   /**
    * Test
    */
-  registerState<T, I>(state: State<T, I>) {
+  registerState<T, I, M>(state: State<T, I, M>) {
     if( ! this.tryRegisterState(state)) {
       // FIXME: Proper exception type
       throw new Error(`Duplicate state name ${state.name}`);
@@ -146,7 +146,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
    * state with the same name if it is already loaded. `true` returned if it
    * was new, `false` otherwise.
    */
-  tryRegisterState<T, I>(state: State<T, I>): boolean {
+  tryRegisterState<T, I, M>(state: State<T, I, M>): boolean {
     const { name } = state;
 
     if( ! this._defs[name]) {
@@ -160,11 +160,11 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     return false;
   };
 
-  stateDefinition<T, I>(instanceName: string): ?State<T, I> {
+  stateDefinition<T, I, M>(instanceName: string): ?State<T, I, M> {
     return this._defs[instanceName];
   };
 
-  getNested<T, I>(state: State<T, I>): ?StateInstance<T, I> {
+  getNested<T, I, M>(state: State<T, I, M>): ?StateInstance<T, I, M> {
     const { _nested } = this;
 
     if(process.env.NODE_ENV !== "production") {
@@ -174,7 +174,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     return _nested[state.name];
   };
 
-  getNestedOrCreate<U, J>(state: State<U, J>, params: J): StateInstance<U, J> {
+  getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J): StateInstance<U, J, N> {
     return getNestedOrCreate(this, state, params);
   };
 
@@ -206,7 +206,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   // TODO: replyMessage(message: Message, targetState: StatePath)
 }
 
-export function ensureState<T, I>(storage: Storage, state: State<T, I>): void {
+export function ensureState<T, I, M>(storage: Storage, state: State<T, I, M>): void {
   const { name } = state;
 
   if(storage._defs[name] && storage._defs[name] !== state) {
@@ -228,7 +228,7 @@ export type StateEvents = {
   stateNewData: [mixed, StatePath, Message],
 };
 
-export class StateInstance<T, I> extends EventEmitter<StateEvents> implements AbstractSupervisor {
+export class StateInstance<T, I, M> extends EventEmitter<StateEvents> implements AbstractSupervisor {
   /**
    * Matches the key used in the supervisor's `_nested` collection.
    */
@@ -278,7 +278,7 @@ export class StateInstance<T, I> extends EventEmitter<StateEvents> implements Ab
     return path;
   };
 
-  getNested<U, J>(state: State<U, J>): ?StateInstance<U, J> {
+  getNested<U, J, N>(state: State<U, J, N>): ?StateInstance<U, J, N> {
     const { _nested } = this;
 
     if(process.env.NODE_ENV !== "production") {
@@ -288,7 +288,7 @@ export class StateInstance<T, I> extends EventEmitter<StateEvents> implements Ab
     return _nested[state.name];
   };
 
-  getNestedOrCreate<U, J>(state: State<U, J>, params: J): StateInstance<U, J> {
+  getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J): StateInstance<U, J, N> {
     return getNestedOrCreate(this, state, params);
   };
 
@@ -299,7 +299,7 @@ export class StateInstance<T, I> extends EventEmitter<StateEvents> implements Ab
   };
 };
 
-export function getNestedOrCreate<T, I>(supervisor: Supervisor, state: State<T, I>, params: I): StateInstance<T, I> {
+export function getNestedOrCreate<T, I, M>(supervisor: Supervisor, state: State<T, I, M>, params: I): StateInstance<T, I, M> {
   const child = supervisor.getNested(state);
 
   if(child) {
@@ -311,7 +311,7 @@ export function getNestedOrCreate<T, I>(supervisor: Supervisor, state: State<T, 
   return createState(supervisor, state, params);
 }
 
-export function createState<T, I>(supervisor: Supervisor, state: State<T, I>, initialData: I): StateInstance<T, I> {
+export function createState<T, I, M>(supervisor: Supervisor, state: State<T, I, M>, initialData: I): StateInstance<T, I, M> {
   const { _nested }    = supervisor;
   const storage        = supervisor.getStorage();
   const { name, init } = state;
@@ -450,7 +450,7 @@ function processStorageMessage(storage: Storage, inflight: InflightMessage) {
   }
 }
 
-export function createStateSnapshot(node: StateInstance<any, any>): StateSnapshot {
+export function createStateSnapshot(node: StateInstance<any, any, any>): StateSnapshot {
   return {
     defName: node.getName(),
     // We assume it is immutably updated
