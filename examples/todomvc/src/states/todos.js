@@ -18,6 +18,14 @@ const CLEAR_ALL    = "todosClearAll";
 const COMPLETE     = "todosComplete";
 const COMPLETE_ALL = "todosCompleteAll";
 
+type TodoMsg =
+  | { tag: typeof ADD, text: string }
+  | { tag: typeof EDIT, id: number, text: string }
+  | { tag: typeof REMOVE, id: number }
+  | { tag: typeof CLEAR_ALL }
+  | { tag: typeof COMPLETE, id: number }
+  | { tag: typeof COMPLETE_ALL };
+
 export const add         = (text: string)             => ({ tag: ADD, text });
 export const edit        = (id: number, text: string) => ({ tag: EDIT, id, text });
 export const remove      = (id: number)               => ({ tag: REMOVE, id });
@@ -27,7 +35,7 @@ export const completeAll = ()                         => ({ tag: COMPLETE_ALL })
 
 const maxId = (todos: Array<Todo>) => todos.reduce((a, t) => Math.max(a, t.id), 1);
 
-export const TodosState = createStateData<Array<Todo>, {}>({
+export const TodosState = createStateData<Array<Todo>, {}, TodoMsg>({
   name:   "todos",
   init:   () => updateData([]),
   update: (todos, msg) => {
