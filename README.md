@@ -14,10 +14,10 @@ with controlled side-effects through messaging.
 ## State
 
 ```javascript
-type State<T, I> = {
+type State<T, I, M: Message> = {
   name: string,
   init: (init: I) => DataUpdate<T> | MessageUpdate<T>,
-  update: (state: T, msg: Message) => Update<T>,
+  update: (state: T, msg: M) => Update<T>,
   subscriptions: (state: T) => Array<Subscription>,
 };
 ```
@@ -51,7 +51,7 @@ let msg = {
 ### Update
 
 ```javascript
-type StateUpdate = <T>(state: T, msg: Message) => Update<T>;
+type StateUpdate = <T, M: Message>(state: T, msg: M) => Update<T>;
 ```
 
 Conceptually `update` is responsible for receiving messages, interpreting
@@ -59,12 +59,12 @@ them, updating the state, and send new messages in case other components need
 to be informed or additional data requested.
 
 This is very similar to Redux's Reducer concept with the main difference
-being that the Update-function can send new messages.
+being that the `update`-function can send new messages.
 
 ```javascript
 import { NONE, updateData } from "crustate";
 
-function update(state, message, send) {
+function update(state, message) {
   switch(message.tag) {
   case ADD:
     return updateData(state + message.value);
@@ -83,17 +83,3 @@ For a state to actually receive messages it first needs to subscribe to
 messages; which tags it is interested in, if they have any specific
 requirements, and if it is supposed to be the primary handler for messages
 of that type.
-
-#### TODO
-
-* Message scoping? We want to be able to see which messages go where, and throw
-  if we receive messages we cannot process.
-
-  Solved by using subscribers with a passive flag for observers.
-
-* Let receivers subscribe on events? This still poses the problem of code reuse
-  and so on between different states. And also if you nest receivers where you
-  have one receiver being the actual receiver with the data-logic, and another
-  auxillary receiver which manages some related UI-state then that receiver
-  might still have the event subscribed to despite the actual data-receiver
-  not accepting the mesasge at that time.
