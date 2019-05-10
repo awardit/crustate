@@ -797,8 +797,6 @@ test("Storage.replyMessage", t => {
   s.replyMessage(msgB, ["a", "b"]);
   s.replyMessage(msgB, ["a", "b"], "outside");
 
-  emit.calls.forEach(c => console.log(c.arguments));
-
   t.is(emit.calls.length, 8);
   t.deepEqual(emit.calls[0].arguments, ["messageQueued", { tag: "A" }, ["<"]]);
   t.deepEqual(emit.calls[1].arguments, ["unhandledMessage", { tag: "A" }, ["<"]]);
