@@ -3,7 +3,8 @@
 import ninos            from "ninos";
 import ava              from "ava";
 import { Storage
-       , StateInstance } from "../src/storage";
+       , StateInstance
+       , findSupervisor } from "../src/storage";
 import { NONE
        , updateData
        , updateAndSend } from "../src/update";
@@ -733,6 +734,80 @@ test("Passive subscribers always receive messages from children", t => {
   t.deepEqual(emit.calls[5].arguments, ["messageMatched", { tag: "initMsg" }, [], true]);
   t.deepEqual(emit.calls[6].arguments, ["messageMatched", { tag: "firstMsg" }, [], true]);
   t.deepEqual(emit.calls[7].arguments, ["unhandledMessage", { tag: "firstMsg" }, ["first"]]);
+});
+
+test("findSupervisor", t => {
+  const defA = {
+    name: "a",
+    init: t.context.stub(() => updateData({})),
+    update: t.context.stub(() => NONE),
+    subscriptions: t.context.stub(() => []),
+  };
+  const defB = {
+    name: "b",
+    init: t.context.stub(() => updateData({})),
+    update: t.context.stub(() => NONE),
+    subscriptions: t.context.stub(() => []),
+  };
+  const s = new Storage();
+
+  const sA  = s.getNestedOrCreate(defA);
+  const sAB = s.getNestedOrCreate(defA).getNestedOrCreate(defB);
+  const sAA = s.getNestedOrCreate(defA).getNestedOrCreate(defA);
+  const sB  = s.getNestedOrCreate(defB);
+  const sBA = s.getNestedOrCreate(defB).getNestedOrCreate(defA);
+  const sBB = s.getNestedOrCreate(defB).getNestedOrCreate(defB);
+
+  t.is(findSupervisor(s, []), s);
+  t.is(findSupervisor(s, ["a"]), sA);
+  t.is(findSupervisor(s, ["a", "b"]), sAB);
+  t.is(findSupervisor(s, ["a", "a"]), sAA);
+  t.is(findSupervisor(s, ["b"]), sB);
+  t.is(findSupervisor(s, ["b", "a"]), sBA);
+  t.is(findSupervisor(s, ["b", "b"]), sBB);
+  t.is(findSupervisor(s, ["c"]), null);
+  t.is(findSupervisor(s, ["c", "d"]), null);
+});
+
+test("Storage.replyMessage", t => {
+  const defA = {
+    name: "a",
+    init: t.context.stub(() => updateData({})),
+    update: t.context.stub(() => NONE),
+    subscriptions: t.context.stub(() => []),
+  };
+  const defB = {
+    name: "b",
+    init: t.context.stub(() => updateData({})),
+    update: t.context.stub(() => NONE),
+    subscriptions: t.context.stub(() => []),
+  };
+  const s    = new Storage();
+  const msgA = { tag: "A" };
+  const msgB = { tag: "B" };
+
+  s.getNestedOrCreate(defA).getNestedOrCreate(defB);
+
+  const emit = t.context.spy(s, "emit");
+
+  t.throws(() => s.replyMessage(msgA, ["foo", "bar"]), { instanceOf: Error, message: "Could not find state instance at [foo, bar]."});
+
+  s.replyMessage(msgA, []);
+  s.replyMessage(msgA, ["a"]);
+  s.replyMessage(msgB, ["a", "b"]);
+  s.replyMessage(msgB, ["a", "b"], "outside");
+
+  emit.calls.forEach(c => console.log(c.arguments));
+
+  t.is(emit.calls.length, 8);
+  t.deepEqual(emit.calls[0].arguments, ["messageQueued", { tag: "A" }, ["<"]]);
+  t.deepEqual(emit.calls[1].arguments, ["unhandledMessage", { tag: "A" }, ["<"]]);
+  t.deepEqual(emit.calls[2].arguments, ["messageQueued", { tag: "A" }, ["a", "<"]]);
+  t.deepEqual(emit.calls[3].arguments, ["unhandledMessage", { tag: "A" }, ["a", "<"]]);
+  t.deepEqual(emit.calls[4].arguments, ["messageQueued", { tag: "B" }, ["a", "b", "<"]]);
+  t.deepEqual(emit.calls[5].arguments, ["unhandledMessage", { tag: "B" }, ["a", "b", "<"]]);
+  t.deepEqual(emit.calls[6].arguments, ["messageQueued", { tag: "B" }, ["a", "b", "outside"]]);
+  t.deepEqual(emit.calls[7].arguments, ["unhandledMessage", { tag: "B" }, ["a", "b", "outside"]]);
 });
 
 test.todo("Add nested message tests, internal order of processing, active/passive subscribers");

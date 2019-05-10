@@ -205,7 +205,13 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   };
 
   replyMessage(msg: Message, targetState: StatePath, sourceName?: string = REPLY_SOURCE) {
-    findSupervisor(this, targetState).sendMessage(msg, sourceName);
+    const inst = findSupervisor(this, targetState);
+
+    if( ! inst) {
+      throw new Error(`Could not find state instance at [${targetState.join(", ")}].`);
+    }
+
+    inst.sendMessage(msg, sourceName);
   }
 
   // TODO: restoreSnapshot(snapshot: Snapshot): void
@@ -350,9 +356,13 @@ export function createInflightMessage(storage: Storage, source: StatePath, messa
   };
 }
 
-export function findSupervisor<A, B, C>(supervisor: Supervisor, path: StatePath): Supervisor {
+export function findSupervisor<A, B, C>(supervisor: Supervisor, path: StatePath): ?Supervisor {
   for(let i = 0; i < path.length; i++) {
     supervisor = supervisor._nested[path[i]];
+
+    if( ! supervisor) {
+      return null;
+    }
   }
 
   return supervisor;
