@@ -39,7 +39,7 @@
     "ava": "ava --verbose",
     "build": "npm-run-all build:*",
     "build:rollup": "rollup -c rollup.config.js",
-    "build:flowstub": "cp resources/flowstub.js dist/index.js.flow && cp resources/flowstub.js dist/index.mjs.flow && cp resources/flowstub.js react/dist/index.js.flow && cp resources/flowstub.js react/dist/index.mjs.flow && cp resources/flowstub.js preact/dist/index.js.flow && cp resources/flowstub.js preact/dist/index.mjs.flow",
+    "build:flowstub": "cp build/flowstub.js dist/index.js.flow && cp build/flowstub.js dist/index.mjs.flow && cp build/flowstub.js react/dist/index.js.flow && cp build/flowstub.js react/dist/index.mjs.flow && cp build/flowstub.js preact/dist/index.js.flow && cp build/flowstub.js preact/dist/index.mjs.flow",
     "clean": "rm -rf dist react/dist preact/dist examples/counter/dist",
     "coverage": "nyc --reporter=html ava --verbose",
     "dist": "cross-env NODE_ENV=production npm run build",

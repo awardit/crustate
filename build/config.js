@@ -20,7 +20,7 @@ const compiler = externs => closureCompiler({
   // Custom environment since we do not always run in browser
   env:                     "CUSTOM",
   // We must have externs to be able to build using CUSTOM
-  externs:                 ["resources/externs/env.js"].concat(externs),
+  externs:                 ["build/externs/env.js"].concat(externs),
   use_types_for_optimization: true,
 });
 
