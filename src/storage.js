@@ -15,6 +15,7 @@ import { subscriptionIsPassive
 import { EventEmitter } from "./eventemitter";
 
 const ANONYMOUS_SOURCE = "$";
+const REPLY_SOURCE = "<";
 
 interface AbstractSupervisor {
   _nested: StateInstanceMap;
@@ -25,6 +26,7 @@ interface AbstractSupervisor {
   //       same level
   getNested<T, I, M>(state: State<T, I, M>): ?StateInstance<T, I, M>;
   getNestedOrCreate<T, I, M>(state: State<T, I, M>, params: I): StateInstance<T, I, M>;
+  sendMessage(message: Message, sourceName?: string): void;
   // TODO: Implement
   // removeNested<T, I>(state: State<T, I>): void;
 }
@@ -202,8 +204,17 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     return createSnapshot(this);
   };
 
+  replyMessage(msg: Message, targetState: StatePath, sourceName?: string = REPLY_SOURCE) {
+    const inst = findSupervisor(this, targetState);
+
+    if( ! inst) {
+      throw new Error(`Could not find state instance at [${targetState.join(", ")}].`);
+    }
+
+    inst.sendMessage(msg, sourceName);
+  }
+
   // TODO: restoreSnapshot(snapshot: Snapshot): void
-  // TODO: replyMessage(message: Message, targetState: StatePath)
 }
 
 export function ensureState<T, I, M>(storage: Storage, state: State<T, I, M>): void {
@@ -343,6 +354,18 @@ export function createInflightMessage(storage: Storage, source: StatePath, messa
     _source:   source,
     _received: null,
   };
+}
+
+export function findSupervisor<A, B, C>(supervisor: Supervisor, path: StatePath): ?Supervisor {
+  for(let i = 0; i < path.length; i++) {
+    supervisor = supervisor._nested[path[i]];
+
+    if( ! supervisor) {
+      return null;
+    }
+  }
+
+  return supervisor;
 }
 
 export function enqueueMessages(storage: Storage, source: StatePath, inflight: Array<InflightMessage>, messages: Array<Message>): void {
