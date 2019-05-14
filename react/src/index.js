@@ -81,14 +81,15 @@ const InstanceProvider = StateContext.Provider;
  *
  * @suppress {checkTypes}
  */
-export function useSendMessage(): (message: Message) => void {
+export function useSendMessage(): (message: Message, sourceName?: string) => void {
   const supervisor = useContext(StateContext);
 
   if( ! supervisor) {
     throw new Error(`useSendMessage() must be used inside of a <State.Provider />.`);
   }
 
-  return (message: Message) => supervisor.sendMessage(message);
+  return (message: Message, sourceName?: string) =>
+    supervisor.sendMessage(message, sourceName);
 }
 
 /**
