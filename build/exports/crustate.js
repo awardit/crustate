@@ -36,6 +36,7 @@ var registerState;
 var removeAllListeners;
 var removeListener;
 var removeSubscriber;
+var replyMessage;
 var sendMessage;
 var stateDefinition;
 var subscribers;
