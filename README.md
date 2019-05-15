@@ -1,4 +1,6 @@
-# Crustate is a message-based modular state-management library for JavaScript applications
+![Crustate](https://gist.githubusercontent.com/Poggen/1070c7fd85addacdd928ddcadd095270/raw/63d803896d36e3e2dd3081ccd8ce1d8a94c75038/crustate.svg?sanitize=true "Crustate")
+<p align="center">A message-based modular state-management library for JavaScript applications</p>
+
 
 [![npm bundle size](https://img.shields.io/bundlephobia/minzip/crustate.svg)](https://bundlephobia.com/result?p=crustate)
 [![Dependencies](https://img.shields.io/david/m4rw3r/crustate.svg)](https://www.npmjs.com/package/crustate)
@@ -22,7 +24,7 @@ type State<T, I, M: Message> = {
 };
 ```
 
-Sates use messages to communicate with other state-instances and the runtime.
+States use messages to communicate with other state-instances and the runtime.
 
 ### Message
 
