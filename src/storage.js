@@ -27,8 +27,7 @@ interface AbstractSupervisor {
   getNested<T, I, M>(state: State<T, I, M>): ?StateInstance<T, I, M>;
   getNestedOrCreate<T, I, M>(state: State<T, I, M>, params: I): StateInstance<T, I, M>;
   sendMessage(message: Message, sourceName?: string): void;
-  // TODO: Implement
-  // removeNested<T, I>(state: State<T, I>): void;
+  removeNested<T, I, M>(state: State<T, I, M>): void;
 }
 
 /**
@@ -78,6 +77,15 @@ export type StorageEvents = {
    *  * State data
    */
   stateCreated: [StatePath, mixed, mixed],
+  /**
+   * Emitted when a state is removed.
+   *
+   * Parameters:
+   *
+   * * Path to removed state
+   * * State data
+   */
+  stateRemoved: [StatePath, mixed],
   /**
    * Emitted when a state-instance updates its data.
    *
@@ -178,6 +186,17 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
 
   getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J): StateInstance<U, J, N> {
     return getNestedOrCreate(this, state, params);
+  };
+
+  removeNested<U, J, N>(state: State<U, J, N>) {
+    const inst        = this.getNested(state);
+    const { _nested } = this;
+
+    if(inst) {
+      this.emit("stateRemoved", inst.getPath(), inst.getData());
+
+      delete _nested[inst.getName()];
+    }
   };
 
   sendMessage(message: Message, sourceName?: string = ANONYMOUS_SOURCE): void {
@@ -301,6 +320,17 @@ export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> impleme
 
   getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J): StateInstance<U, J, N> {
     return getNestedOrCreate(this, state, params);
+  };
+
+  removeNested<U, J, N>(state: State<U, J, N>) {
+    const inst        = this.getNested(state);
+    const { _nested } = this;
+
+    if(inst) {
+      this.getStorage().emit("stateRemoved", inst.getPath(), inst.getData());
+
+      delete _nested[inst.getName()];
+    }
   };
 
   sendMessage(message: Message, sourceName?: string = ANONYMOUS_SOURCE): void {

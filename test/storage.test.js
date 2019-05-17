@@ -808,4 +808,82 @@ test("Storage.replyMessage", t => {
   t.deepEqual(emit.calls[7].arguments, ["unhandledMessage", { tag: "B" }, ["a", "b", "outside"]]);
 });
 
+test("Storage.removeNested", t => {
+  const s = new Storage();
+  const defA = {
+    name: "a",
+    init: t.context.stub(() => updateData({})),
+    update: t.context.stub(() => NONE),
+    subscriptions: t.context.stub(() => []),
+  };
+  const defB = {
+    name: "b",
+    init: t.context.stub(() => updateData({})),
+    update: t.context.stub(() => NONE),
+    subscriptions: t.context.stub(() => []),
+  };
+  const emit = t.context.spy(s, "emit");
+
+  t.is(s.getNested(defA), undefined);
+  t.is(s.removeNested(defA), undefined);
+  t.is(emit.calls.length, 0);
+  t.is(s.removeNested(defB), undefined);
+  t.is(emit.calls.length, 0);
+  t.is(s.getNested(defA), undefined);
+
+  const a = s.getNestedOrCreate(defA);
+
+  t.is(a instanceof StateInstance, true);
+  t.is(s.getNested(defA), a);
+  t.is(s.removeNested(defB), undefined);
+  t.is(s.getNested(defA), a);
+  t.is(s.removeNested(defA), undefined);
+  t.is(s.getNested(defA), undefined);
+  t.is(emit.calls.length, 2);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["a"], undefined, {}]);
+  t.deepEqual(emit.calls[1].arguments, ["stateRemoved", ["a"], {}]);
+});
+
+test("StateInstance.removeNested", t => {
+  const s = new Storage();
+  const defA = {
+    name: "a",
+    init: t.context.stub(() => updateData({})),
+    update: t.context.stub(() => NONE),
+    subscriptions: t.context.stub(() => []),
+  };
+  const defB = {
+    name: "b",
+    init: t.context.stub(() => updateData({})),
+    update: t.context.stub(() => NONE),
+    subscriptions: t.context.stub(() => []),
+  };
+  const emit  = t.context.spy(s, "emit");
+  const a     = s.getNestedOrCreate(defA);
+  const emitA = t.context.spy(a, "emit");
+
+  t.is(emit.calls.length, 1);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["a"], undefined, {}]);
+  t.is(a.getNested(defA), undefined);
+  t.is(a.removeNested(defA), undefined);
+  t.is(emit.calls.length, 1);
+  t.is(a.removeNested(defB), undefined);
+  t.is(emit.calls.length, 1);
+  t.is(a.getNested(defA), undefined);
+
+  const i = a.getNestedOrCreate(defA);
+
+  t.is(i instanceof StateInstance, true);
+  t.is(a.getNested(defA), i);
+  t.is(a.removeNested(defB), undefined);
+  t.is(a.getNested(defA), i);
+  t.is(a.removeNested(defA), undefined);
+  t.is(i.getNested(defA), undefined);
+  t.is(emit.calls.length, 3);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["a"], undefined, {}]);
+  t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["a", "a"], undefined, {}]);
+  t.deepEqual(emit.calls[2].arguments, ["stateRemoved", ["a", "a"], {}]);
+  t.is(emitA.calls.length, 0);
+});
+
 test.todo("Add nested message tests, internal order of processing, active/passive subscribers");

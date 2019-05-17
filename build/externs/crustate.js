@@ -78,22 +78,24 @@ crustate.Storage.prototype.sendMessage;
    * @export
    */
 crustate.Storage.prototype.addSubscriber;
-crustate.Storage.prototype.removeSubscriber;
-crustate.Storage.prototype.stateDefinition;
 crustate.Storage.prototype.getNested;
 crustate.Storage.prototype.getNestedOrCreate = function(state, params) {};
-crustate.Storage.prototype.getStorage;
 crustate.Storage.prototype.getPath;
+crustate.Storage.prototype.getStorage;
+crustate.Storage.prototype.removeNested;
+crustate.Storage.prototype.removeSubscriber;
+crustate.Storage.prototype.stateDefinition;
 
 /**
  * @constructor
  * @extends {crustate.EventEmitter}
  */
 crustate.StateInstance = function() {};
-crustate.StateInstance.prototype.getName;
 crustate.StateInstance.prototype.getData;
-crustate.StateInstance.prototype.getPath;
+crustate.StateInstance.prototype.getName;
 crustate.StateInstance.prototype.getNested;
 crustate.StateInstance.prototype.getNestedOrCreate = function(state, params) {};
+crustate.StateInstance.prototype.getPath;
 crustate.StateInstance.prototype.getStorage;
+crustate.StateInstance.prototype.removeNested;
 crustate.StateInstance.prototype.sendMessage;

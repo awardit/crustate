@@ -35,6 +35,7 @@ var passive;
 var registerState;
 var removeAllListeners;
 var removeListener;
+var removeNested;
 var removeSubscriber;
 var replyMessage;
 var sendMessage;

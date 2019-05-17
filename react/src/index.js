@@ -149,6 +149,11 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
 
     removeListener() {
       this.state.instance.removeListener("stateNewData", this.onNewData);
+
+      // Drop the state instance if we were the last listener
+      if(this.state.instance.listeners("stateNewData").length === 0 && this.context) {
+        this.context.removeNested(state);
+      }
     }
 
     componentWillReceiveProps(props: DataProviderProps<I>) {
