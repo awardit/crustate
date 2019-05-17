@@ -58,6 +58,10 @@ export type StateData<T, I, M> = {
    * TODO: Rename to something better
    */
   state: State<T, I, M>,
+  /**
+   * A context provider allowing the state-data to be set to a constant value,
+   * useful for testing.
+   */
   TestProvider: TestProvider<T>,
   Provider: DataProvider<T, I>,
   Consumer: DataConsumer<T>,
@@ -132,8 +136,7 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
     }
 
     addListener() {
-      // TODO: Fix types for event listeners
-      this.state.instance.addListener("stateNewData", (this.onNewData: any));
+      this.state.instance.addListener("stateNewData", this.onNewData);
 
       // Data can be new since we are runnning componentDidMount() after render()
       const newData = this.state.instance.getData();
@@ -145,8 +148,7 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
     }
 
     removeListener() {
-      // TODO: Do we remove the state from the supervisor here?
-      this.state.instance.removeListener("stateNewData", (this.onNewData: any));
+      this.state.instance.removeListener("stateNewData", this.onNewData);
     }
 
     componentWillReceiveProps(props: DataProviderProps<I>) {

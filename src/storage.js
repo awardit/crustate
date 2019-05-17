@@ -226,7 +226,7 @@ export function ensureState<T, I, M>(storage: Storage, state: State<T, I, M>): v
   }
 }
 
-export type StateEvents = {
+export type StateEvents<T> = {
   /**
    * Emitted when a state-instance updates its data.
    *
@@ -236,10 +236,10 @@ export type StateEvents = {
    *  * Path to the new state
    *  * Message which caused the update
    */
-  stateNewData: [mixed, StatePath, Message],
+  stateNewData: [T, StatePath, Message],
 };
 
-export class StateInstance<T, I, M> extends EventEmitter<StateEvents> implements AbstractSupervisor {
+export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> implements AbstractSupervisor {
   /**
    * Matches the key used in the supervisor's `_nested` collection.
    */

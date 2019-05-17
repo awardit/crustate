@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added missing second `sourceName` parameter to `useSendMessage` closure.
 
+## Changed
+- The `stateNewData` event on `StateInstance` will now use `T` as the type
+  for the state-data.
+
 ## [0.0.4] - 2019-05-14
 ### Fixed
 - Added `replyMessage` to list of public symbols for build-script.
