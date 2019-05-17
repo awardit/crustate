@@ -592,6 +592,26 @@ test("StateInstance init is sent to parent instances", t => {
   t.deepEqual(emit.calls[4].arguments, ["unhandledMessage", secondInit, ["first", "second"]]);
 });
 
+test("no message matches on nested states", t => {
+  const s             = new Storage();
+  const emit          = t.context.spy(s, "emit");
+  const firstDef      = {
+    name: "first",
+    init: t.context.stub(() => updateData({})),
+    update: t.context.stub(() => NONE),
+    // Passive, so we should get it but also passthrough
+    subscriptions: t.context.stub(() => [subscribe("never")]),
+  };
+
+  const f = s.getNestedOrCreate(firstDef);
+
+  f.sendMessage({ tag: "nomatch" });
+  t.is(emit.calls.length, 3);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, {}]);
+  t.deepEqual(emit.calls[1].arguments, ["messageQueued", { tag: "nomatch" }, ["first", "$"]]);
+  t.deepEqual(emit.calls[2].arguments, ["unhandledMessage", { tag: "nomatch" }, ["first", "$"]]);
+});
+
 test("StateInstance init is sent to parent instances, but not siblings", t => {
   const s             = new Storage();
   const emit          = t.context.spy(s, "emit");
