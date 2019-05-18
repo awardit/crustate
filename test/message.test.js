@@ -1,5 +1,7 @@
 /* @flow */
 
+import type { Message } from "../src/message";
+
 import ninos            from "ninos";
 import ava              from "ava";
 import { subscribe
@@ -7,6 +9,13 @@ import { subscribe
        , subscriptionIsPassive } from "../src/message";
 
 const test = ninos(ava);
+
+// Type tests
+type AMessage = { tag: "a" };
+type BMessage = { tag: string, foo: boolean };
+
+(({ tag: "a" }: AMessage): Message);
+(({ tag: "b", foo: true }: BMessage): Message);
 
 test("subscribe() creates a subscription", t => {
   t.deepEqual(subscribe("a"), subscribe("a"));
