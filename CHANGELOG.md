@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to listen to the state `stateNewData` event.
 
 ## Changed
+- `Message`'s `tag` property is now contravariant to allow subtypes (ie. exact
+  string-constants).
 - The `stateNewData` event on `StateInstance` will now use `T` as the type
   for the state-data.
 

@@ -15,7 +15,7 @@ export type MessageTag = string;
  * differentiate between different messages.
  */
 export type Message = {
-  tag: MessageTag,
+  +tag: MessageTag,
 };
 
 /**
