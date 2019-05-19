@@ -23,6 +23,7 @@ export type {
   StateUpdate,
   Subscriptions,
   State,
+  StatePath,
 } from "./state";
 export type {
   Supervisor,

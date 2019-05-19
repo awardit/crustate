@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `removeNested` to `Storage` and `StateInstance`.
 - React `StateProvider` will now call `removeNested` if it is the last provider
   to listen to the state `stateNewData` event.
+- Added `StatePath` type to exports.
 
 ## Changed
 - `Message`'s `tag` property is now contravariant to allow subtypes (ie. exact
