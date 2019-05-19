@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   string-constants).
 - The `stateNewData` event on `StateInstance` will now use `T` as the type
   for the state-data.
+- `crustate/react` now uses named imports from `react`.
 
 ## [0.0.4] - 2019-05-14
 ### Fixed

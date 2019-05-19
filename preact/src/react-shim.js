@@ -1,13 +1,6 @@
 /* @flow */
 
-import { useContext } from "preact/hooks";
-import { createContext
+export { useContext } from "preact/hooks";
+export { createContext
        , h as createElement
        , Component } from "preact";
-
-export default {
-  useContext,
-  createContext,
-  createElement,
-  Component,
-}

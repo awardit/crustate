@@ -48,7 +48,19 @@ export const config = path => ({
     }),
     babel(babelOpts),
     postcss(postcssOpts),
-    commonjs(),
+    commonjs({
+      namedExports: {
+        "react": [
+          "Component",
+          "Children",
+          "Fragment",
+          "PureComponent",
+          "createContext",
+          "createElement",
+          "useContext",
+        ],
+      },
+    }),
     resolve({ mainFields: ["browser", "module", "main"] }),
     replace({
       "process.env.NODE_ENV": JSON.stringify("production"),

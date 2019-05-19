@@ -12,12 +12,10 @@ import type { Message
             , StateInstance
             , Supervisor } from "crustate";
 
-import React from "react";
-
-const { createContext
-      , createElement
-      , useContext
-      , Component } = React;
+import { createContext
+       , createElement
+       , useContext
+       , Component } from "react";
 
 type StateProviderState<T, I, M> = {
   instance: StateInstance<T, I, M>,
