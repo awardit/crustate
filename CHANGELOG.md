@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added missing second `sourceName` parameter to `useSendMessage` closure.
 - Added `removeNested` to `Storage` and `StateInstance`.
-- React `StateProvider` will now call `removeNested` if it is the last provider
-  to listen to the state `stateNewData` event.
+- React `StateProvider` will now call `removeNested` if it is the last listener
+  to the state `stateNewData` event.
 - Added `StatePath` type to exports.
 
 ## Changed
