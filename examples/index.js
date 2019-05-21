@@ -6,6 +6,7 @@ const port = process.env.PORT || 8080;
 const app  = express();
 
 try {
+  // $ExpectError since we might not have this file available
   app.use("/blog", require("./blog/dist/server.js"));
 }
 catch(e) {
