@@ -37,17 +37,22 @@ export type InflightMessage = {
 // TODO: Can we filter messages better?
 export type MessageFilter = (msg: Message) => boolean;
 
+/**
+ * A restricted map of message-key -> subscription-options for a given
+ * message-type.
+ */
 export type SubscriberMap<M: Message> = {
   [tag: $PropertyType<M, "tag">]: Subscription,
 };
 
 /**
- * A filter identifying messages a State can respond to.
+ * Options for a given subcription, the value true means default values for all
+ * options.
  */
 export type Subscription = true | {
   /**
    * If the Subscription is passive it will not consume the message and it will
-   * also not count towards the message being handled.
+   * also not count towards the message being handled, default is false.
    *
    * Suitable for things which are to observe the state-changes for of other
    * states.
@@ -56,7 +61,7 @@ export type Subscription = true | {
   /**
    * Extra, user-supplied, filtering logic.
    */
-  filter?: MessageFilter | null,
+  filter?: MessageFilter,
 };
 
 /**
