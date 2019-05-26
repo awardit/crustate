@@ -912,7 +912,7 @@ test("Storage updates subscriptions during processing when state data is updated
     name: "a",
     init: t.context.stub(() => updateData(false)),
     update: t.context.stub(() => updateData(true)),
-    subscriptions: t.context.stub(s => s ? [subscribe("b")] : [subscribe("a")]),
+    subscriptions: t.context.stub(s => s ? { b: true } : { a: true }),
   };
 
   const emit  = t.context.spy(s, "emit");
