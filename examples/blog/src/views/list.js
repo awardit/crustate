@@ -4,7 +4,7 @@ import React        from "react";
 import { useData }  from "crustate/react";
 import { PostList } from "../state";
 
-const PostItem = ({ title }) => <article>
+const PostItem = ({ id, title }) => <article key={id}>
   <h2>{title}</h2>
 </article>;
 

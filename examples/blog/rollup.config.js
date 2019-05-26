@@ -41,6 +41,8 @@ export default [
       "path",
       "fs",
       "react",
+      "react-router",
+      "react-is",
       "react-dom",
       "react-dom/server",
     ],

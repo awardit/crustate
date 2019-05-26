@@ -49,6 +49,18 @@ export const commonjs = commonjsPlugin({
       "useEffect",
       "useState",
     ],
+    "react-dom": [
+      "render"
+    ],
+    "react-is": [
+      "isValidElementType",
+    ],
+    "react-router-dom": [
+      "BrowserRouter",
+    ],
+    "react-router": [
+      "Route",
+    ],
   },
 });
 
