@@ -33,34 +33,3 @@ export const requestList = (): DataRequest =>
   ({ tag: "effects/request", resource: "list" });
 export const requestPost = (id: number): DataRequest =>
   ({ tag: "effects/request", resource: "post", id });
-
-export function createRequestHandler(storage: Storage) {
-  // Simple and naive way of keeping track of inflight requests, used by the
-  // server. Do not use this in production unless you can guarantee that
-  // resolving promises will not result in more requests.
-  const promises   = [];
-  const subscriber = (msg: DataRequest, source: StatePath) => {
-    switch(msg.resource) {
-    case "list":
-      // TODO: Generalize this:
-      promises.push(fetch("/posts").then(
-        // TODO: How can we type this to ensure we reply with the correct message type?
-        data => storage.replyMessage({ tag: "effects/response/list", data }, source),
-        error => storage.replyMessage({ tag: "effects/response/list", error }, source)));
-      break;
-    case "post":
-      promises.push(fetch(`/posts/${msg.id}`).then(
-        data => storage.replyMessage({ tag: "effects/response/post", data }, source),
-        error => storage.replyMessage({ tag: "effects/response/post", error }, source)));
-      break;
-    }
-  };
-
-  // TODO: How to properly type this? Can we come up with a solution which
-  //       also works for the problem with State.subscribers?
-  storage.addSubscriber((subscriber: any), [subscribe("effects/request")]);
-
-  return {
-    waitForAll: () => Promise.all(promises),
-  };
-}
