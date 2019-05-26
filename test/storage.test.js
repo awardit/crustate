@@ -4,7 +4,8 @@ import ninos            from "ninos";
 import ava              from "ava";
 import { Storage
        , StateInstance
-       , findSupervisor } from "../src/storage";
+       , findSupervisor
+       , processInstanceMessages } from "../src/storage";
 import { NONE
        , updateData
        , updateAndSend } from "../src/update";
@@ -904,6 +905,39 @@ test("StateInstance.removeNested", t => {
   t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["a", "a"], undefined, {}]);
   t.deepEqual(emit.calls[2].arguments, ["stateRemoved", ["a", "a"], {}]);
   t.is(emitA.calls.length, 0);
+});
+
+test("Storage updates subscriptions during processing when state data is updated", t => {
+  const s = new Storage();
+  const def = {
+    name: "a",
+    init: t.context.stub(() => updateData(false)),
+    update: t.context.stub(() => updateData(true)),
+    subscriptions: t.context.stub(s => s ? [subscribe("b")] : [subscribe("a")]),
+  };
+
+  const emit  = t.context.spy(s, "emit");
+  const i = s.getNestedOrCreate(def);
+
+  processInstanceMessages(s, i, [
+    { tag: "b", __no: true },
+    { tag: "a", __yes: true },
+    { tag: "b", __yes: true },
+    { tag: "a", __no: true }
+  ], ["a", "test"])
+
+  t.is(emit.calls.length, 11);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["a"], undefined, false]);
+  t.deepEqual(emit.calls[1].arguments, ["messageQueued", { tag: "b", __no: true }, ["a", "test"]]);
+  t.deepEqual(emit.calls[2].arguments, ["messageQueued", { tag: "a", __yes: true }, ["a", "test"]]);
+  t.deepEqual(emit.calls[3].arguments, ["messageQueued", { tag: "b", __yes: true }, ["a", "test"]]);
+  t.deepEqual(emit.calls[4].arguments, ["messageQueued", { tag: "a", __no: true }, ["a", "test"]]);
+  t.deepEqual(emit.calls[5].arguments, ["messageMatched", { tag: "a", __yes: true }, ["a"], false]);
+  t.deepEqual(emit.calls[6].arguments, ["stateNewData", true, ["a"], { tag: "a", __yes: true }]);
+  t.deepEqual(emit.calls[7].arguments, ["messageMatched", { tag: "b", __yes: true }, ["a"], false]);
+  t.deepEqual(emit.calls[8].arguments, ["stateNewData", true, ["a"], { tag: "b", __yes: true }]);
+  t.deepEqual(emit.calls[9].arguments, ["unhandledMessage", { tag: "b", __no: true }, ["a", "test"]]);
+  t.deepEqual(emit.calls[10].arguments, ["unhandledMessage", { tag: "a", __no: true }, ["a", "test"]]);
 });
 
 test.todo("Add nested message tests, internal order of processing, active/passive subscribers");
