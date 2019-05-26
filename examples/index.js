@@ -9,7 +9,6 @@ const app  = express();
 app.use(express.static(__dirname));
 
 try {
-  // $ExpectError since we might not have this file available
   app.use("/blog", require("./blog/dist/server.js"));
 }
 catch(e) {
