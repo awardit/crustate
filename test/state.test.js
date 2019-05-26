@@ -11,7 +11,6 @@ import test             from "ava";
 import { NONE
        , updateData
        , updateAndSend } from "../src/update";
-import { subscribe } from "../src/message";
 
 // Type tests
 type MyMessage = { tag: "a" } | { tag: "b" };
@@ -19,7 +18,7 @@ type MyMessage = { tag: "a" } | { tag: "b" };
   name: "test",
   init: () => updateData("init"),
   update: (data, msg) => NONE,
-  subscriptions: () => [],
+  subscriptions: () => ({}),
 }: State<string, void, MyMessage>);
 
 
@@ -28,11 +27,11 @@ test("State can be instantiated", t => {
     name: "test",
     init: () => updateData("init"),
     update: (data, msg) => updateData(msg.tag),
-    subscriptions: () => [subscribe("any")],
+    subscriptions: () => ({ any: true }),
   };
 
   t.deepEqual(definition.init(), updateData("init"));
   t.deepEqual(definition.update("init", { tag: "foo" }), updateData("foo"));
-  t.deepEqual(definition.subscriptions("init"), [subscribe("any")]);
-  t.deepEqual(definition.subscriptions("foo"), [subscribe("any")]);
+  t.deepEqual(definition.subscriptions("init"), { any: true });
+  t.deepEqual(definition.subscriptions("foo"), { any: true });
 });

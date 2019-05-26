@@ -10,6 +10,7 @@ export type {
   Message,
   MessageTag,
   MessageFilter,
+  SubscriberMap,
   Subscription,
 } from "./message";
 export type {
@@ -31,9 +32,6 @@ export type {
   StateSnapshot,
 } from "./storage";
 
-export {
-  subscribe,
-} from "./message";
 export {
   NONE,
   updateData,

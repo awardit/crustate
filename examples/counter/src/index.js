@@ -1,7 +1,6 @@
 /* @flow */
 import { NONE
        , updateData
-       , subscribe
        , Storage } from "crustate";
 import { StorageProvider
        , useData
@@ -26,10 +25,10 @@ const CounterData = createStateData({
 
     return NONE;
   },
-  subscriptions: (state) => state < 0 ? [] : [
-    subscribe(INCREMENT),
-    subscribe(DECREMENT),
-  ],
+  subscriptions: (state) => state < 0 ? {} : {
+    [INCREMENT]: true,
+    [DECREMENT]: true,
+  },
 });
 
 function TheCounter() {

@@ -1,12 +1,11 @@
 /* @flow */
 
-import type { Message } from "../src/message";
+import type { Message
+            , SubscriberMap } from "../src/message";
 
 import ninos            from "ninos";
 import ava              from "ava";
-import { subscribe
-       , subscriptionMatches
-       , subscriptionIsPassive } from "../src/message";
+import { findMatchingSubscription } from "../src/message";
 
 const test = ninos(ava);
 
@@ -17,6 +16,23 @@ type BMessage = { tag: string, foo: boolean };
 (({ tag: "a" }: AMessage): Message);
 (({ tag: "b", foo: true }: BMessage): Message);
 
+(({ a: true }): SubscriberMap<AMessage>);
+(({ b: true }): SubscriberMap<AMessage | BMessage>);
+// $ExpectError
+(({ c: true }): SubscriberMap<AMessage>);
+
+test("findMatchingSubscription() ", t => {
+  t.deepEqual(findMatchingSubscription({}, { tag: "a" }, false), null);
+  t.deepEqual(findMatchingSubscription({ b: true }, { tag: "a" }, false), null);
+  t.deepEqual(findMatchingSubscription({ a: true }, { tag: "a" }, false), { isPassive: false });
+  t.deepEqual(findMatchingSubscription({}, { tag: "a" }, true), null);
+  t.deepEqual(findMatchingSubscription({ b: true }, { tag: "a" }, true), null);
+  t.deepEqual(findMatchingSubscription({ a: true }, { tag: "a" }, true), null);
+});
+
+test.todo("More tests for findMatchingSubscription");
+
+/*
 test("subscribe() creates a subscription", t => {
   t.deepEqual(subscribe("a"), subscribe("a"));
   t.notDeepEqual(subscribe("a"), subscribe("b"));
@@ -67,3 +83,4 @@ test("subscribe() with condition matches only when condition is true", t => {
   t.is(subscriptionMatches(subscribe("a", true, cond),  { tag: "b", a: true},  true),  false);
   t.is(subscriptionMatches(subscribe("a", true, cond),  { tag: "b", a: false}, true),  false);
 })
+*/

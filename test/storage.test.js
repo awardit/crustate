@@ -9,7 +9,6 @@ import { Storage
 import { NONE
        , updateData
        , updateAndSend } from "../src/update";
-import { subscribe } from "../src/message";
 
 // We redefine this here so we can test it
 const MESSAGE_NEW_PARAMS = "crustate/stateNewParams";
@@ -148,7 +147,7 @@ test.failing("Storage getNestedOrCreate sends an update message and returns the 
   const initData      = { name: "initData" };
   const init          = t.context.stub(() => updateData(initData));
   const update        = t.context.stub((state, msg) => updateData(msg.params));
-  const subscriptions = t.context.stub(() => [subscribe(MESSAGE_NEW_PARAMS)]);
+  const subscriptions = t.context.stub(() => ({ [MESSAGE_NEW_PARAMS]: true }));
   const state         = { name: "test", init, update, subscriptions };
   const instance      = s.getNestedOrCreate(state, 1);
   const instanceEmit  = t.context.spy(instance, "emit");
@@ -285,8 +284,8 @@ test("Sending messages on a Storage should send them to matching subscribers", t
   const msg   = { tag: "testMessage" };
   const msg2  = { tag: "uncaught" };
 
-  s.addSubscriber(recv1, [subscribe("testMessage")]);
-  s.addSubscriber(recv2, [subscribe("fooMessage")]);
+  s.addSubscriber(recv1, { "testMessage": true });
+  s.addSubscriber(recv2, { "fooMessage": true });
 
   s.sendMessage(msg);
 
@@ -314,7 +313,7 @@ test("Sending messages with a name on a Storage should propagate the name", t =>
   const msg   = { tag: "testMessage" };
   const msg2  = { tag: "uncaught" };
 
-  s.addSubscriber(recv1, [subscribe("testMessage")]);
+  s.addSubscriber(recv1, { testMessage: true });
 
   s.sendMessage(msg, "themessage");
 
@@ -332,8 +331,8 @@ test("Removing a subscriber should not fire when a matching message is sent", t 
   const recv2 = t.context.stub();
   const msg   = { tag: "testMessage" };
 
-  s.addSubscriber(recv1, [subscribe("testMessage")]);
-  s.addSubscriber(recv2, [subscribe("testMessage")]);
+  s.addSubscriber(recv1, { testMessage: true });
+  s.addSubscriber(recv2, { "testMessage": true });
   s.removeSubscriber(recv2);
 
   s.sendMessage(msg);
@@ -352,7 +351,7 @@ test("Sending messages on a Storage should also trigger unhandledMessage if no a
   const recv = t.context.stub();
   const msg  = { tag: "testMessage" };
 
-  s.addSubscriber(recv, [subscribe("testMessage", true)]);
+  s.addSubscriber(recv, { "testMessage": { passive: true } });
 
   s.sendMessage(msg);
 
@@ -372,7 +371,7 @@ test("States with init using updateAndSend should send messages to parent Storag
   const init          = t.context.stub(() => updateAndSend(initData, initMsg));
   const update        = t.context.stub(() => NONE);
   // Should never receive this since messages are not self-referencing
-  const subscriptions = t.context.stub(() => [subscribe("initMsg")]);
+  const subscriptions = t.context.stub(() => ({ "initMsg": true }));
   const state         = { name: "test", init, update, subscriptions };
 
   const instance = s.getNestedOrCreate(state);
@@ -563,7 +562,7 @@ test("StateInstance init is sent to parent instances", t => {
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => NONE),
     // Passive, so we should get it but also passthrough
-    subscriptions: t.context.stub(() => [subscribe("secondInit", true)]),
+    subscriptions: t.context.stub(() => ({ "secondInit": { passive: true } })),
   };
   const secondData    = { name: "secondData" };
   const secondInit    = { tag: "secondInit" };
@@ -601,7 +600,7 @@ test("no message matches on nested states", t => {
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => NONE),
     // Passive, so we should get it but also passthrough
-    subscriptions: t.context.stub(() => [subscribe("never")]),
+    subscriptions: t.context.stub(() => ({ "never": true })),
   };
 
   const f = s.getNestedOrCreate(firstDef);
@@ -622,7 +621,7 @@ test("StateInstance init is sent to parent instances, but not siblings", t => {
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => NONE),
     // Passive, so we should get it but also passthrough
-    subscriptions: t.context.stub(() => [subscribe("secondInit", true)]),
+    subscriptions: t.context.stub(() => ({ "secondInit": { passive: true } })),
   };
   const secondData    = { name: "secondData" };
   const secondInit    = { tag: "secondInit" };
@@ -659,7 +658,7 @@ test("Messages generated during processing are handled in order", t => {
     name: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => updateAndSend(secondData, firstMsg)),
-    subscriptions: t.context.stub(() => [subscribe("initMsg", true)]),
+    subscriptions: t.context.stub(() => ({ "initMsg": { passive: true } })),
   };
 
   const first  = s.getNestedOrCreate(firstDef);
@@ -691,11 +690,11 @@ test("Active subscribers prevent parents and unhandledMessage from receiving", t
     name: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => updateAndSend(firstData, firstMsg)),
-    subscriptions: t.context.stub(() => [subscribe("initMsg")]),
+    subscriptions: t.context.stub(() => ({ "initMsg": true })),
   };
 
-  s.addSubscriber(stub1, [subscribe("initMsg")]);
-  s.addSubscriber(stub2, [subscribe("firstMsg")]);
+  s.addSubscriber(stub1, { "initMsg": true });
+  s.addSubscriber(stub2, { "firstMsg": true });
 
   const first = s.getNestedOrCreate(firstDef);
 
@@ -728,11 +727,11 @@ test("Passive subscribers always receive messages from children", t => {
     name: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => updateAndSend(firstData, firstMsg)),
-    subscriptions: t.context.stub(() => [subscribe("initMsg")]),
+    subscriptions: t.context.stub(() => ({ "initMsg": true })),
   };
 
-  s.addSubscriber(stub1, [subscribe("initMsg", true)]);
-  s.addSubscriber(stub2, [subscribe("firstMsg", true)]);
+  s.addSubscriber(stub1, { "initMsg": { passive: true } });
+  s.addSubscriber(stub2, { "firstMsg": { passive: true } });
 
   const first = s.getNestedOrCreate(firstDef);
 

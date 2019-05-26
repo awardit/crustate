@@ -4,14 +4,13 @@ import type { State
             , StatePath } from "./state";
 import type { InflightMessage
             , Message
-            , Subscription } from "./message";
+            , SubscriberMap } from "./message";
 
 import { updateHasData
        , updateStateData
        , updateStateDataNoNone
        , updateOutgoingMessages } from "./update";
-import { subscriptionIsPassive
-       , subscriptionMatches } from "./message";
+import { findMatchingSubscription } from "./message";
 import { EventEmitter } from "./eventemitter";
 
 const ANONYMOUS_SOURCE = "$";
@@ -52,8 +51,8 @@ export type StateSnapshot = {
  */
 export type Supervisor = Storage | StateInstance<any, any, any>;
 
-export type Sink = (message: Message, sourcePath: StatePath) => mixed;
-export type Subscribers = Array<{ listener: Sink, filter: Array<Subscription> }>;
+export type Sink<M: Message> = (message: M, sourcePath: StatePath) => mixed;
+export type Subscriber<M: Message> = { listener: Sink<M>, filter: SubscriberMap<M> };
 
 export type StateInstanceMap = { [name:string]: StateInstance<any, any, any> };
 
@@ -121,7 +120,7 @@ export type StorageEvents = {
  * Base node in a state-tree, anchors all states and carries all data.
  */
 export class Storage extends EventEmitter<StorageEvents> implements AbstractSupervisor {
-  _subscribers: Subscribers = [];
+  _subscribers: Array<Subscriber<any>> = [];
   _nested: StateInstanceMap = {};
   /**
    * State-definitions, used for subscribers and messages.
@@ -203,11 +202,11 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     processStorageMessage(this, createInflightMessage(this, [sourceName], message));
   };
 
-  addSubscriber(listener: Sink, filter: Array<Subscription>) {
+  addSubscriber<M: Message>(listener: Sink<M>, filter: SubscriberMap<M>) {
     this._subscribers.push({ listener, filter });
   };
 
-  removeSubscriber(listener: Sink) {
+  removeSubscriber(listener: Sink<any>) {
     const { _subscribers } = this;
 
     for(let i = 0; i < _subscribers.length; i++) {
@@ -434,36 +433,33 @@ export function processInstanceMessages(storage: Storage, instance: Supervisor, 
     for(let i = 0; i < currentLimit; i++) {
       const currentInflight = inflight[i];
       const { _message: m } = currentInflight;
+      const match           = findMatchingSubscription(messageFilter, m, Boolean(currentInflight._received))
 
-      for(let j = 0; j < messageFilter.length; j++) {
-        const currentFilter: Subscription = messageFilter[j];
-
-        if(subscriptionMatches(currentFilter, m, Boolean(currentInflight._received))) {
-          if( ! subscriptionIsPassive(currentFilter)) {
-            currentInflight._received = sourcePath;
-          }
-
-          storage.emit("messageMatched", m, sourcePath, subscriptionIsPassive(currentFilter));
-
-          const updateRequest = update(instance._data, m);
-
-          if(updateHasData(updateRequest)) {
-            const data     = updateStateData(updateRequest);
-            const outgoing = updateOutgoingMessages(updateRequest);
-
-            instance._data = data;
-
-            storage.emit("stateNewData", data, sourcePath, m);
-            instance.emit("stateNewData", data, sourcePath, m);
-
-            enqueueMessages(storage, sourcePath, inflight, outgoing);
-
-            messageFilter = subscriptions(instance._data);
-          }
+      if(match) {
+        if( ! match.isPassive) {
+          currentInflight._received = sourcePath;
         }
 
-        // No Match
+        storage.emit("messageMatched", m, sourcePath, match.isPassive);
+
+        const updateRequest = update(instance._data, m);
+
+        if(updateHasData(updateRequest)) {
+          const data     = updateStateData(updateRequest);
+          const outgoing = updateOutgoingMessages(updateRequest);
+
+          instance._data = data;
+
+          storage.emit("stateNewData", data, sourcePath, m);
+          instance.emit("stateNewData", data, sourcePath, m);
+
+          enqueueMessages(storage, sourcePath, inflight, outgoing);
+
+          messageFilter = subscriptions(instance._data);
+        }
       }
+
+        // No Match
     }
 
     instance = instance._supervisor;
@@ -481,20 +477,16 @@ function processStorageMessage(storage: Storage, inflight: InflightMessage) {
 
   for(let i = 0; i < s.length; i++) {
     const { listener, filter } = s[i];
+    const match                = findMatchingSubscription(filter, _message, Boolean(received));
 
-    // TODO: Split
-    for(let j = 0; j < filter.length; j++) {
-      const currentFilter = filter[j];
-
-      if(subscriptionMatches(currentFilter, _message, Boolean(received))) {
-        if( ! subscriptionIsPassive(currentFilter)) {
-          received = true;
-        }
-
-        storage.emit("messageMatched", _message, [], subscriptionIsPassive(currentFilter));
-
-        listener(_message, _source);
+    if(match) {
+      if( ! match.isPassive) {
+        received = true;
       }
+
+      storage.emit("messageMatched", _message, [], match.isPassive);
+
+      listener(_message, _source);
     }
   }
 

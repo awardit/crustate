@@ -7,7 +7,7 @@ import type { InflightMessage
             , Message
             , MessageFilter
             , MessageTag } from "./message";
-import type { Subscription } from "./message";
+import type { SubscriberMap } from "./message";
 
 export type StatePath = Array<string>;
 
@@ -23,7 +23,7 @@ export type StateUpdate<T, M> = (state: T, msg: M) => Update<T>;
 /**
  * A list of subscriptions
  */
-export type Subscriptions<T> = (state: T) => Array<Subscription>;
+export type Subscriptions<T, M> = (state: T) => SubscriberMap<M>;
 
 /**
  * Definition of a state containing the data `T` which can be instantiated given
@@ -33,5 +33,5 @@ export type State<T, I, M> = {
   name:          string,
   init:          Init<T, I>,
   update:        StateUpdate<T, M>,
-  subscriptions: Subscriptions<T>,
+  subscriptions: Subscriptions<T, M>,
 };

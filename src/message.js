@@ -37,15 +37,14 @@ export type InflightMessage = {
 // TODO: Can we filter messages better?
 export type MessageFilter = (msg: Message) => boolean;
 
+export type SubscriberMap<M: Message> = {
+  [tag: $PropertyType<M, "tag">]: Subscription,
+};
+
 /**
  * A filter identifying messages a State can respond to.
  */
-export opaque type Subscription = {
-  /**
-   * The message tag to subscribe to.
-   */
-  // TODO: Can we (or should we) merge this with the `matcher` in a subscribe constructor?
-  tag:     MessageTag,
+export type Subscription = true | {
   /**
    * If the Subscription is passive it will not consume the message and it will
    * also not count towards the message being handled.
@@ -53,38 +52,34 @@ export opaque type Subscription = {
    * Suitable for things which are to observe the state-changes for of other
    * states.
    */
-  passive: boolean,
+  passive?: boolean,
   /**
    * Extra, user-supplied, filtering logic.
    */
-  filter: MessageFilter | null,
+  filter?: MessageFilter | null,
 };
 
-// TODO: Avoid the boolean parameter
-export function subscribe(tag: MessageTag, passive: boolean = false, filter: MessageFilter | null = null): Subscription {
-  return {
-    tag,
-    passive,
-    filter,
-  };
-}
-
 /**
- * @param {!Object} subscription
+ * @param {!Object} subscribers
  * @param {!crustate.Message} message
  * @param {!boolean} received
  */
-export function subscriptionMatches(subscription: Subscription, message: Message, received: bool): boolean {
-  const { tag, passive, filter } = subscription;
+export function findMatchingSubscription<M: Message>(subscribers: SubscriberMap<M>, message: Message, received: bool): ?{ isPassive: boolean } {
+  const { tag } = message;
 
-  return (passive || ! received)
-      && tag === message.tag
-      && ( ! filter || filter(message));
-}
+  if( ! subscribers[tag]) {
+    return null;
+  }
 
-/**
- * Internal
- */
-export function subscriptionIsPassive({ passive }: Subscription): boolean {
-  return passive;
+  const subscriber = subscribers[tag];
+  const passive    = subscriber === true ? false : !!subscriber.passive;
+  const filter     = subscriber === true ? null  : subscriber.filter;
+
+  // const { passive = false, filter } = typeof subscribers[tag] === "object" ? subscribers[tag] : { passive: false, filter: null };
+
+  if((passive || ! received) && tag === message.tag && ( ! filter || filter(message))) {
+    return { isPassive: passive };
+  }
+
+  return null;
 }

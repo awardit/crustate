@@ -2,8 +2,7 @@
 
 import { createStateData } from "crustate/react";
 import { NONE
-       , updateData
-       , subscribe } from "crustate";
+       , updateData } from "crustate";
 
 export type Todo = {
   id:        number,
@@ -58,12 +57,12 @@ export const TodosState = createStateData<Array<Todo>, {}, TodoMsg>({
 
     return NONE;
   },
-  subscriptions: () => [
-    subscribe(ADD),
-    subscribe(EDIT),
-    subscribe(REMOVE),
-    subscribe(CLEAR_ALL),
-    subscribe(COMPLETE),
-    subscribe(COMPLETE_ALL),
-  ],
+  subscriptions: () => ({
+    [ADD]: true,
+    [EDIT]: true,
+    [REMOVE]: true,
+    [CLEAR_ALL]: true,
+    [COMPLETE]: true,
+    [COMPLETE_ALL]: true,
+  }),
 });
