@@ -41,7 +41,7 @@ export type MessageFilter = (msg: Message) => boolean;
  * A restricted map of message-key -> subscription-options for a given
  * message-type.
  */
-export type SubscriberMap<M: Message> = {
+export type SubscriptionMap<M: Message> = {
   [tag: $PropertyType<M, "tag">]: Subscription,
 };
 
@@ -69,7 +69,7 @@ export type Subscription = true | {
  * @param {!crustate.Message} message
  * @param {!boolean} received
  */
-export function findMatchingSubscription<M: Message>(subscribers: SubscriberMap<M>, message: Message, received: bool): ?{ isPassive: boolean } {
+export function findMatchingSubscription<M: Message>(subscribers: SubscriptionMap<M>, message: Message, received: bool): ?{ isPassive: boolean } {
   const { tag } = message;
 
   if( ! subscribers[tag]) {
@@ -77,10 +77,10 @@ export function findMatchingSubscription<M: Message>(subscribers: SubscriberMap<
   }
 
   const subscriber = subscribers[tag];
-  const passive    = subscriber === true ? false : !!subscriber.passive;
-  const filter     = subscriber === true ? null  : subscriber.filter;
+  // const passive    = subscriber === true ? false : !!subscriber.passive;
+  // const filter     = subscriber === true ? null  : subscriber.filter;
 
-  // const { passive = false, filter } = typeof subscribers[tag] === "object" ? subscribers[tag] : { passive: false, filter: null };
+  const { passive = false, filter } = typeof subscriber === "object" ? subscriber : { passive: false, filter: null };
 
   if((passive || ! received) && tag === message.tag && ( ! filter || filter(message))) {
     return { isPassive: passive };

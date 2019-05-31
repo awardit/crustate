@@ -51,7 +51,7 @@ test("Storage can register state definitons", t => {
   const stub1 = t.context.stub();
   const stub2 = t.context.stub();
   const stub3 = t.context.stub();
-  const state = { name: "test", init: stub1, update: stub2, subscriptions: stub3 };
+  const state = { name: "test", init: stub1, update: stub2, subscribe: stub3 };
 
   t.is(s.registerState(state), undefined);
   t.is(s.stateDefinition("test"), state);
@@ -73,7 +73,7 @@ test("Storage rejects duplicate state definitions", t => {
   const stub1 = t.context.stub();
   const stub2 = t.context.stub();
   const stub3 = t.context.stub();
-  const state = { name: "test", init: stub1, update: stub2, subscriptions: stub3 };
+  const state = { name: "test", init: stub1, update: stub2, subscribe: stub3 };
 
   t.is(s.registerState(state), undefined);
   t.throws(() => s.registerState(state), { instanceOf: Error, message: "Duplicate state name test"});
@@ -92,14 +92,14 @@ test("Storage rejects duplicate state definitions", t => {
 });
 
 test("Storage getNestedOrCreate creates a new state instance", t => {
-  const s             = new Storage();
-  const emit          = t.context.spy(s, "emit");
-  const initData      = { name: "initData" };
-  const init          = t.context.stub(() => updateData(initData));
-  const update        = t.context.stub();
-  const subscriptions = t.context.stub(() => []);
-  const state         = { name: "test", init, update, subscriptions };
-  const instance      = s.getNestedOrCreate(state);
+  const s         = new Storage();
+  const emit      = t.context.spy(s, "emit");
+  const initData  = { name: "initData" };
+  const init      = t.context.stub(() => updateData(initData));
+  const update    = t.context.stub();
+  const subscribe = t.context.stub(() => []);
+  const state     = { name: "test", init, update, subscribe };
+  const instance  = s.getNestedOrCreate(state);
 
   t.is(instance instanceof StateInstance, true);
   t.is(s.stateDefinition("test"), state);
@@ -118,48 +118,48 @@ test("Storage getNestedOrCreate creates a new state instance", t => {
   t.is(init.calls.length, 1)
   t.deepEqual(init.calls[0].arguments, [undefined]);
   t.is(update.calls.length, 0);
-  t.is(subscriptions.calls.length, 0);
+  t.is(subscribe.calls.length, 0);
 });
 
 test("Storage getNestedOrCreate returns the same instance given the same params", t => {
-  const s             = new Storage();
-  const emit          = t.context.spy(s, "emit");
-  const initData      = { name: "initData" };
-  const init          = t.context.stub(() => updateData(initData));
-  const update        = t.context.stub();
-  const subscriptions = t.context.stub(() => []);
-  const state         = { name: "test", init, update, subscriptions };
-  const instance      = s.getNestedOrCreate(state);
-  const instance2     = s.getNestedOrCreate(state);
+  const s         = new Storage();
+  const emit      = t.context.spy(s, "emit");
+  const initData  = { name: "initData" };
+  const init      = t.context.stub(() => updateData(initData));
+  const update    = t.context.stub();
+  const subscribe = t.context.stub(() => []);
+  const state     = { name: "test", init, update, subscribe };
+  const instance  = s.getNestedOrCreate(state);
+  const instance2 = s.getNestedOrCreate(state);
 
   t.is(instance, instance2);
   t.is(init.calls.length, 1)
   t.deepEqual(init.calls[0].arguments, [undefined]);
   t.is(update.calls.length, 0);
-  t.is(subscriptions.calls.length, 0);
+  t.is(subscribe.calls.length, 0);
   t.deepEqual(emit.calls.length, 1);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, initData]);
 });
 
 test.failing("Storage getNestedOrCreate sends an update message and returns the same instance when new params are supplied", t => {
-  const s             = new Storage();
-  const emit          = t.context.spy(s, "emit");
-  const initData      = { name: "initData" };
-  const init          = t.context.stub(() => updateData(initData));
-  const update        = t.context.stub((state, msg) => updateData(msg.params));
-  const subscriptions = t.context.stub(() => ({ [MESSAGE_NEW_PARAMS]: true }));
-  const state         = { name: "test", init, update, subscriptions };
-  const instance      = s.getNestedOrCreate(state, 1);
-  const instanceEmit  = t.context.spy(instance, "emit");
-  const instance2     = s.getNestedOrCreate(state, 2);
+  const s            = new Storage();
+  const emit         = t.context.spy(s, "emit");
+  const initData     = { name: "initData" };
+  const init         = t.context.stub(() => updateData(initData));
+  const update       = t.context.stub((state, msg) => updateData(msg.params));
+  const subscribe    = t.context.stub(() => ({ [MESSAGE_NEW_PARAMS]: true }));
+  const state        = { name: "test", init, update, subscribe };
+  const instance     = s.getNestedOrCreate(state, 1);
+  const instanceEmit = t.context.spy(instance, "emit");
+  const instance2    = s.getNestedOrCreate(state, 2);
 
   t.is(instance, instance2);
   t.is(init.calls.length, 1)
   t.deepEqual(init.calls[0].arguments, [undefined]);
   t.is(update.calls.length, 1);
   t.deepEqual(init.calls[0].arguments, [initData, { tag: MESSAGE_NEW_PARAMS, params: 2 }]);
-  t.is(subscriptions.calls.length, 1);
-  t.deepEqual(subscriptions.calls[0].arguments, initData);
+  t.is(subscribe.calls.length, 1);
+  t.deepEqual(subscribe.calls[0].arguments, initData);
   t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, initData]);
   t.deepEqual(emit.calls[1].arguments, ["stateNewData", 2, ["test"], { tag: MESSAGE_NEW_PARAMS, params: 2 }]);
@@ -169,14 +169,14 @@ test.failing("Storage getNestedOrCreate sends an update message and returns the 
 });
 
 test("Storage getNestedOrCreate throws when trying to use a new state definition with the same identifier", t => {
-  const s             = new Storage();
-  const emit          = t.context.spy(s, "emit");
-  const initData      = { name: "initData" };
-  const init          = t.context.stub(() => updateData(initData));
-  const update        = t.context.stub();
-  const subscriptions = t.context.stub(() => []);
-  const state         = { name: "test", init, update, subscriptions };
-  const state2        = { name: "test", init, update, subscriptions };
+  const s         = new Storage();
+  const emit      = t.context.spy(s, "emit");
+  const initData  = { name: "initData" };
+  const init      = t.context.stub(() => updateData(initData));
+  const update    = t.context.stub();
+  const subscribe = t.context.stub(() => []);
+  const state     = { name: "test", init, update, subscribe };
+  const state2    = { name: "test", init, update, subscribe };
   s.registerState(state);
   t.throws(() => s.getNestedOrCreate(state2), { instanceOf: Error, message: "State object mismatch for state test" });
 
@@ -190,18 +190,18 @@ test("Storage getNestedOrCreate throws when trying to use a new state definition
   t.deepEqual(s._subscribers, []);
   t.is(init.calls.length, 0)
   t.is(update.calls.length, 0);
-  t.is(subscriptions.calls.length, 0);
+  t.is(subscribe.calls.length, 0);
 });
 
 test("Storage getNested on non-existing state instance should throw when using a mismatched state-definition of same name in dev-mode", t => {
-  const s             = new Storage();
-  const emit          = t.context.spy(s, "emit");
-  const initData      = { name: "initData" };
-  const init          = t.context.stub(() => updateData(initData));
-  const update        = t.context.stub();
-  const subscriptions = t.context.stub(() => []);
-  const state         = { name: "test", init, update, subscriptions };
-  const state2        = { name: "test", init, update, subscriptions };
+  const s         = new Storage();
+  const emit      = t.context.spy(s, "emit");
+  const initData  = { name: "initData" };
+  const init      = t.context.stub(() => updateData(initData));
+  const update    = t.context.stub();
+  const subscribe = t.context.stub(() => []);
+  const state     = { name: "test", init, update, subscribe };
+  const state2    = { name: "test", init, update, subscribe };
   s.registerState(state);
   t.throws(() => s.getNested(state2), { instanceOf: Error, message: "State object mismatch for state test" });
 
@@ -215,7 +215,7 @@ test("Storage getNested on non-existing state instance should throw when using a
   t.deepEqual(s._subscribers, []);
   t.is(init.calls.length, 0)
   t.is(update.calls.length, 0);
-  t.is(subscriptions.calls.length, 0);
+  t.is(subscribe.calls.length, 0);
 });
 
 test("Storage getNested on non-existing state instance should return undefined when using a mismatched state-definition of same name in dev-mode", t => {
@@ -223,14 +223,14 @@ test("Storage getNested on non-existing state instance should return undefined w
   process.env.NODE_ENV = "production";
 
   try {
-    const s             = new Storage();
-    const emit          = t.context.spy(s, "emit");
-    const initData      = { name: "initData" };
-    const init          = t.context.stub(() => updateData(initData));
-    const update        = t.context.stub();
-    const subscriptions = t.context.stub(() => []);
-    const state         = { name: "test", init, update, subscriptions };
-    const state2        = { name: "test", init, update, subscriptions };
+    const s         = new Storage();
+    const emit      = t.context.spy(s, "emit");
+    const initData  = { name: "initData" };
+    const init      = t.context.stub(() => updateData(initData));
+    const update    = t.context.stub();
+    const subscribe = t.context.stub(() => []);
+    const state     = { name: "test", init, update, subscribe };
+    const state2    = { name: "test", init, update, subscribe };
 
     s.registerState(state);
     t.is(s.getNested(state2), undefined);
@@ -245,7 +245,7 @@ test("Storage getNested on non-existing state instance should return undefined w
     t.deepEqual(s._subscribers, []);
     t.is(init.calls.length, 0)
     t.is(update.calls.length, 0);
-    t.is(subscriptions.calls.length, 0);
+    t.is(subscribe.calls.length, 0);
   }
   finally {
     process.env.NODE_ENV = nodeEnv;
@@ -364,20 +364,20 @@ test("Sending messages on a Storage should also trigger unhandledMessage if no a
 });
 
 test("States with init using updateAndSend should send messages to parent Storage", t => {
-  const s             = new Storage();
-  const emit          = t.context.spy(s, "emit");
-  const initData      = { name: "initData" };
-  const initMsg       = { tag: "initMsg" };
-  const init          = t.context.stub(() => updateAndSend(initData, initMsg));
-  const update        = t.context.stub(() => NONE);
+  const s         = new Storage();
+  const emit      = t.context.spy(s, "emit");
+  const initData  = { name: "initData" };
+  const initMsg   = { tag: "initMsg" };
+  const init      = t.context.stub(() => updateAndSend(initData, initMsg));
+  const update    = t.context.stub(() => NONE);
   // Should never receive this since messages are not self-referencing
-  const subscriptions = t.context.stub(() => ({ "initMsg": true }));
-  const state         = { name: "test", init, update, subscriptions };
+  const subscribe = t.context.stub(() => ({ "initMsg": true }));
+  const state     = { name: "test", init, update, subscribe };
 
   const instance = s.getNestedOrCreate(state);
 
   t.is(init.calls.length, 1);
-  t.is(subscriptions.calls.length, 0);
+  t.is(subscribe.calls.length, 0);
   t.is(update.calls.length, 0);
   t.is(emit.calls.length, 3);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, initData]);
@@ -393,14 +393,14 @@ test("States can be nested", t => {
     name: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(),
-    subscriptions: t.context.stub(() => []),
+    subscribe: t.context.stub(() => ({})),
   };
   const secondData    = { name: "secondData" };
   const secondDef     = {
     name: "second",
     init: t.context.stub(() => updateData(secondData)),
     update: t.context.stub(),
-    subscriptions: t.context.stub(() => []),
+    subscribe: t.context.stub(() => ({})),
   };
 
   const first  = s.getNestedOrCreate(firstDef);
@@ -420,14 +420,14 @@ test("States can be nested", t => {
 });
 
 test("States of the same definition can be nested", t => {
-  const s             = new Storage();
-  const emit          = t.context.spy(s, "emit");
-  const initData      = { name: "initData" };
-  const init          = t.context.stub(() => updateData(initData));
-  const update        = t.context.stub(() => NONE);
-  const subscriptions = t.context.stub(() => []);
-  const state         = { name: "test", init, update, subscriptions };
-  const first         = s.getNestedOrCreate(state);
+  const s         = new Storage();
+  const emit      = t.context.spy(s, "emit");
+  const initData  = { name: "initData" };
+  const init      = t.context.stub(() => updateData(initData));
+  const update    = t.context.stub(() => NONE);
+  const subscribe = t.context.stub(() => ({}));
+  const state     = { name: "test", init, update, subscribe };
+  const first     = s.getNestedOrCreate(state);
 
   t.is(first.getNested(state), undefined);
 
@@ -445,14 +445,14 @@ test("States of the same definition can be nested", t => {
 });
 
 test("StateInstance getNested throws when trying to use a new state definition with the same identifier", t => {
-  const s             = new Storage();
-  const emit          = t.context.spy(s, "emit");
-  const initData      = { name: "initData" };
-  const init          = t.context.stub(() => updateData(initData));
-  const update        = t.context.stub();
-  const subscriptions = t.context.stub(() => []);
-  const state         = { name: "test", init, update, subscriptions };
-  const state2        = { name: "test", init, update, subscriptions };
+  const s         = new Storage();
+  const emit      = t.context.spy(s, "emit");
+  const initData  = { name: "initData" };
+  const init      = t.context.stub(() => updateData(initData));
+  const update    = t.context.stub();
+  const subscribe = t.context.stub(() => ({}));
+  const state     = { name: "test", init, update, subscribe };
+  const state2    = { name: "test", init, update, subscribe };
   s.registerState(state);
   const inst = s.getNestedOrCreate(state);
 
@@ -466,7 +466,7 @@ test("StateInstance getNested throws when trying to use a new state definition w
   t.deepEqual(s._defs, { test: state });
   t.is(init.calls.length, 1)
   t.is(update.calls.length, 0);
-  t.is(subscriptions.calls.length, 0);
+  t.is(subscribe.calls.length, 0);
 });
 
 test("StateInstance getNested on non-existing state instance should return undefined when using a mismatched state-definition of same name in dev-mode", t => {
@@ -474,14 +474,14 @@ test("StateInstance getNested on non-existing state instance should return undef
   process.env.NODE_ENV = "production";
 
   try {
-    const s             = new Storage();
-    const emit          = t.context.spy(s, "emit");
-    const initData      = { name: "initData" };
-    const init          = t.context.stub(() => updateData(initData));
-    const update        = t.context.stub();
-    const subscriptions = t.context.stub(() => []);
-    const state         = { name: "test", init, update, subscriptions };
-    const state2        = { name: "test", init, update, subscriptions };
+    const s         = new Storage();
+    const emit      = t.context.spy(s, "emit");
+    const initData  = { name: "initData" };
+    const init      = t.context.stub(() => updateData(initData));
+    const update    = t.context.stub();
+    const subscribe = t.context.stub(() => ({}));
+    const state     = { name: "test", init, update, subscribe };
+    const state2    = { name: "test", init, update, subscribe };
 
     s.registerState(state);
 
@@ -496,7 +496,7 @@ test("StateInstance getNested on non-existing state instance should return undef
     t.deepEqual(s.getSnapshot(), { test: { defName: "test", data: { name: "initData" }, params: undefined, nested: {} } });
     t.is(init.calls.length, 1)
     t.is(update.calls.length, 0);
-    t.is(subscriptions.calls.length, 0);
+    t.is(subscribe.calls.length, 0);
     t.is(emit.calls.length, 1);
     t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, { name: "initData" }]);
   }
@@ -506,15 +506,15 @@ test("StateInstance getNested on non-existing state instance should return undef
 });
 
 test("Messages sent on StateInstance should propagate upwards", t => {
-  const s             = new Storage();
-  const emit          = t.context.spy(s, "emit");
-  const firstData     = { name: "firstData" };
-  const initMsg       = { tag: "initMsg" };
-  const firstDef      = {
+  const s         = new Storage();
+  const emit      = t.context.spy(s, "emit");
+  const firstData = { name: "firstData" };
+  const initMsg   = { tag: "initMsg" };
+  const firstDef  = {
     name: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => NONE),
-    subscriptions: t.context.stub(() => []),
+    subscribe: t.context.stub(() => ({})),
   };
 
   const first = s.getNestedOrCreate(firstDef);
@@ -530,15 +530,15 @@ test("Messages sent on StateInstance should propagate upwards", t => {
 });
 
 test("Messages with a sourceName sent on StateInstance should propagate upwards with that name", t => {
-  const s             = new Storage();
-  const emit          = t.context.spy(s, "emit");
-  const firstData     = { name: "firstData" };
-  const initMsg       = { tag: "initMsg" };
-  const firstDef      = {
+  const s         = new Storage();
+  const emit      = t.context.spy(s, "emit");
+  const firstData = { name: "firstData" };
+  const initMsg   = { tag: "initMsg" };
+  const firstDef  = {
     name: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => NONE),
-    subscriptions: t.context.stub(() => []),
+    subscribe: t.context.stub(() => ({})),
   };
 
   const first = s.getNestedOrCreate(firstDef);
@@ -554,23 +554,23 @@ test("Messages with a sourceName sent on StateInstance should propagate upwards 
 });
 
 test("StateInstance init is sent to parent instances", t => {
-  const s             = new Storage();
-  const emit          = t.context.spy(s, "emit");
-  const firstData     = { name: "firstData" };
-  const firstDef      = {
+  const s         = new Storage();
+  const emit      = t.context.spy(s, "emit");
+  const firstData = { name: "firstData" };
+  const firstDef  = {
     name: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => NONE),
     // Passive, so we should get it but also passthrough
-    subscriptions: t.context.stub(() => ({ "secondInit": { passive: true } })),
+    subscribe: t.context.stub(() => ({ "secondInit": { passive: true } })),
   };
-  const secondData    = { name: "secondData" };
-  const secondInit    = { tag: "secondInit" };
-  const secondDef     = {
+  const secondData = { name: "secondData" };
+  const secondInit = { tag: "secondInit" };
+  const secondDef  = {
     name: "second",
     init: t.context.stub(() => updateAndSend(secondData, secondInit)),
     update: t.context.stub(() => NONE),
-    subscriptions: t.context.stub(() => []),
+    subscribe: t.context.stub(() => ({})),
   };
 
   const first  = s.getNestedOrCreate(firstDef);
@@ -593,14 +593,14 @@ test("StateInstance init is sent to parent instances", t => {
 });
 
 test("no message matches on nested states", t => {
-  const s             = new Storage();
-  const emit          = t.context.spy(s, "emit");
-  const firstDef      = {
+  const s        = new Storage();
+  const emit     = t.context.spy(s, "emit");
+  const firstDef = {
     name: "first",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => NONE),
     // Passive, so we should get it but also passthrough
-    subscriptions: t.context.stub(() => ({ "never": true })),
+    subscribe: t.context.stub(() => ({ "never": true })),
   };
 
   const f = s.getNestedOrCreate(firstDef);
@@ -613,15 +613,15 @@ test("no message matches on nested states", t => {
 });
 
 test("StateInstance init is sent to parent instances, but not siblings", t => {
-  const s             = new Storage();
-  const emit          = t.context.spy(s, "emit");
-  const firstData     = { name: "firstData" };
-  const firstDef      = {
+  const s         = new Storage();
+  const emit      = t.context.spy(s, "emit");
+  const firstData = { name: "firstData" };
+  const firstDef  = {
     name: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => NONE),
     // Passive, so we should get it but also passthrough
-    subscriptions: t.context.stub(() => ({ "secondInit": { passive: true } })),
+    subscribe: t.context.stub(() => ({ "secondInit": { passive: true } })),
   };
   const secondData    = { name: "secondData" };
   const secondInit    = { tag: "secondInit" };
@@ -629,7 +629,7 @@ test("StateInstance init is sent to parent instances, but not siblings", t => {
     name: "second",
     init: t.context.stub(() => updateAndSend(secondData, secondInit)),
     update: t.context.stub(() => NONE),
-    subscriptions: t.context.stub(() => []),
+    subscribe: t.context.stub(() => ({})),
   };
 
   const first  = s.getNestedOrCreate(firstDef);
@@ -648,17 +648,17 @@ test("StateInstance init is sent to parent instances, but not siblings", t => {
 });
 
 test("Messages generated during processing are handled in order", t => {
-  const s             = new Storage();
-  const emit          = t.context.spy(s, "emit");
-  const firstData     = { name: "firstData" };
-  const secondData    = { name: "secondData" };
-  const initMsg       = { tag: "initMsg" };
-  const firstMsg      = { tag: "firstMsg" };
-  const firstDef      = {
+  const s          = new Storage();
+  const emit       = t.context.spy(s, "emit");
+  const firstData  = { name: "firstData" };
+  const secondData = { name: "secondData" };
+  const initMsg    = { tag: "initMsg" };
+  const firstMsg   = { tag: "firstMsg" };
+  const firstDef   = {
     name: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => updateAndSend(secondData, firstMsg)),
-    subscriptions: t.context.stub(() => ({ "initMsg": { passive: true } })),
+    subscribe: t.context.stub(() => ({ "initMsg": { passive: true } })),
   };
 
   const first  = s.getNestedOrCreate(firstDef);
@@ -679,18 +679,18 @@ test("Messages generated during processing are handled in order", t => {
 });
 
 test("Active subscribers prevent parents and unhandledMessage from receiving", t => {
-  const s             = new Storage();
-  const emit          = t.context.spy(s, "emit");
-  const stub1         = t.context.stub();
-  const stub2         = t.context.stub();
-  const firstData     = { name: "firstData" };
-  const initMsg       = { tag: "initMsg" };
-  const firstMsg      = { tag: "firstMsg" };
-  const firstDef      = {
+  const s         = new Storage();
+  const emit      = t.context.spy(s, "emit");
+  const stub1     = t.context.stub();
+  const stub2     = t.context.stub();
+  const firstData = { name: "firstData" };
+  const initMsg   = { tag: "initMsg" };
+  const firstMsg  = { tag: "firstMsg" };
+  const firstDef  = {
     name: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => updateAndSend(firstData, firstMsg)),
-    subscriptions: t.context.stub(() => ({ "initMsg": true })),
+    subscribe: t.context.stub(() => ({ "initMsg": true })),
   };
 
   s.addSubscriber(stub1, { "initMsg": true });
@@ -716,18 +716,18 @@ test("Active subscribers prevent parents and unhandledMessage from receiving", t
 });
 
 test("Passive subscribers always receive messages from children", t => {
-  const s             = new Storage();
-  const emit          = t.context.spy(s, "emit");
-  const stub1         = t.context.stub();
-  const stub2         = t.context.stub();
-  const firstData     = { name: "firstData" };
-  const initMsg       = { tag: "initMsg" };
-  const firstMsg      = { tag: "firstMsg" };
-  const firstDef      = {
+  const s         = new Storage();
+  const emit      = t.context.spy(s, "emit");
+  const stub1     = t.context.stub();
+  const stub2     = t.context.stub();
+  const firstData = { name: "firstData" };
+  const initMsg   = { tag: "initMsg" };
+  const firstMsg  = { tag: "firstMsg" };
+  const firstDef  = {
     name: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => updateAndSend(firstData, firstMsg)),
-    subscriptions: t.context.stub(() => ({ "initMsg": true })),
+    subscribe: t.context.stub(() => ({ "initMsg": true })),
   };
 
   s.addSubscriber(stub1, { "initMsg": { passive: true } });
@@ -761,13 +761,13 @@ test("findSupervisor", t => {
     name: "a",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => NONE),
-    subscriptions: t.context.stub(() => []),
+    subscribe: t.context.stub(() => ({})),
   };
   const defB = {
     name: "b",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => NONE),
-    subscriptions: t.context.stub(() => []),
+    subscribe: t.context.stub(() => ({})),
   };
   const s = new Storage();
 
@@ -794,13 +794,13 @@ test("Storage.replyMessage", t => {
     name: "a",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => NONE),
-    subscriptions: t.context.stub(() => []),
+    subscribe: t.context.stub(() => ({})),
   };
   const defB = {
     name: "b",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => NONE),
-    subscriptions: t.context.stub(() => []),
+    subscribe: t.context.stub(() => ({})),
   };
   const s    = new Storage();
   const msgA = { tag: "A" };
@@ -834,13 +834,13 @@ test("Storage.removeNested", t => {
     name: "a",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => NONE),
-    subscriptions: t.context.stub(() => []),
+    subscribe: t.context.stub(() => ({})),
   };
   const defB = {
     name: "b",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => NONE),
-    subscriptions: t.context.stub(() => []),
+    subscribe: t.context.stub(() => ({})),
   };
   const emit = t.context.spy(s, "emit");
 
@@ -870,13 +870,13 @@ test("StateInstance.removeNested", t => {
     name: "a",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => NONE),
-    subscriptions: t.context.stub(() => []),
+    subscribe: t.context.stub(() => ({})),
   };
   const defB = {
     name: "b",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => NONE),
-    subscriptions: t.context.stub(() => []),
+    subscribe: t.context.stub(() => ({})),
   };
   const emit  = t.context.spy(s, "emit");
   const a     = s.getNestedOrCreate(defA);
@@ -906,13 +906,13 @@ test("StateInstance.removeNested", t => {
   t.is(emitA.calls.length, 0);
 });
 
-test("Storage updates subscriptions during processing when state data is updated", t => {
+test("Storage updates subscribe during processing when state data is updated", t => {
   const s = new Storage();
   const def = {
     name: "a",
     init: t.context.stub(() => updateData(false)),
     update: t.context.stub(() => updateData(true)),
-    subscriptions: t.context.stub(s => s ? { b: true } : { a: true }),
+    subscribe: t.context.stub(s => s ? { b: true } : { a: true }),
   };
 
   const emit  = t.context.spy(s, "emit");

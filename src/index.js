@@ -10,7 +10,7 @@ export type {
   Message,
   MessageTag,
   MessageFilter,
-  SubscriberMap,
+  SubscriptionMap,
   Subscription,
 } from "./message";
 export type {
@@ -22,7 +22,7 @@ export type {
 export type {
   Init,
   StateUpdate,
-  Subscriptions,
+  Subscribe,
   State,
   StatePath,
 } from "./state";

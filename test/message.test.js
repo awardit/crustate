@@ -1,7 +1,7 @@
 /* @flow */
 
 import type { Message
-            , SubscriberMap } from "../src/message";
+            , SubscriptionMap } from "../src/message";
 
 import ninos            from "ninos";
 import ava              from "ava";
@@ -16,10 +16,10 @@ type BMessage = { tag: string, foo: boolean };
 (({ tag: "a" }: AMessage): Message);
 (({ tag: "b", foo: true }: BMessage): Message);
 
-(({ a: true }): SubscriberMap<AMessage>);
-(({ b: true }): SubscriberMap<AMessage | BMessage>);
+(({ a: true }): SubscriptionMap<AMessage>);
+(({ b: true }): SubscriptionMap<AMessage | BMessage>);
 // $ExpectError
-(({ c: true }): SubscriberMap<AMessage>);
+(({ c: true }): SubscriptionMap<AMessage>);
 
 test("findMatchingSubscription() ", t => {
   t.deepEqual(findMatchingSubscription({}, { tag: "a" }, false), null);

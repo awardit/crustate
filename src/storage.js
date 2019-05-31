@@ -4,7 +4,7 @@ import type { State
             , StatePath } from "./state";
 import type { InflightMessage
             , Message
-            , SubscriberMap } from "./message";
+            , SubscriptionMap } from "./message";
 
 import { updateHasData
        , updateStateData
@@ -52,7 +52,7 @@ export type StateSnapshot = {
 export type Supervisor = Storage | StateInstance<any, any, any>;
 
 export type Sink<M: Message> = (message: M, sourcePath: StatePath) => mixed;
-export type Subscriber<M: Message> = { listener: Sink<M>, filter: SubscriberMap<M> };
+export type Subscriber<M: Message> = { listener: Sink<M>, subscription: SubscriptionMap<M> };
 
 export type StateInstanceMap = { [name:string]: StateInstance<any, any, any> };
 
@@ -202,8 +202,8 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     processStorageMessage(this, createInflightMessage(this, [sourceName], message));
   };
 
-  addSubscriber<M: Message>(listener: Sink<M>, filter: SubscriberMap<M>) {
-    this._subscribers.push({ listener, filter });
+  addSubscriber<M: Message>(listener: Sink<M>, subscription: SubscriptionMap<M>) {
+    this._subscribers.push({ listener, subscription });
   };
 
   removeSubscriber(listener: Sink<any>) {
@@ -424,9 +424,9 @@ export function processInstanceMessages(storage: Storage, instance: Supervisor, 
     // We are going to add to messages if any new messages are generated, save
     // length here
     const currentLimit  = inflight.length;
-    const { update, subscriptions } = definition;
+    const { update, subscribe } = definition;
     // We need to be able to update the filters if the data changes
-    let   messageFilter = subscriptions(instance._data);
+    let   messageFilter = subscribe(instance._data);
 
     // TODO: Emit event? that we are considering messags for state?
 
@@ -455,7 +455,7 @@ export function processInstanceMessages(storage: Storage, instance: Supervisor, 
 
           enqueueMessages(storage, sourcePath, inflight, outgoing);
 
-          messageFilter = subscriptions(instance._data);
+          messageFilter = subscribe(instance._data);
         }
       }
 
@@ -476,8 +476,8 @@ function processStorageMessage(storage: Storage, inflight: InflightMessage) {
   let   received              = Boolean(inflight._received);
 
   for(let i = 0; i < s.length; i++) {
-    const { listener, filter } = s[i];
-    const match                = findMatchingSubscription(filter, _message, Boolean(received));
+    const { listener, subscription } = s[i];
+    const match                      = findMatchingSubscription(subscription, _message, Boolean(received));
 
     if(match) {
       if( ! match.isPassive) {

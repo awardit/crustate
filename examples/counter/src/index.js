@@ -25,7 +25,7 @@ const CounterData = createStateData({
 
     return NONE;
   },
-  subscriptions: (state) => state < 0 ? {} : {
+  subscribe: (state) => state < 0 ? {} : {
     [INCREMENT]: true,
     [DECREMENT]: true,
   },
