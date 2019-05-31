@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and subscription settings as the value.
 - `Storage` `addSubscriber` takes a `SubscriptionMap` as the second parameter
   instead of an array of the old `Subscription` type.
+- `Sink` is now typed by the message-type it accepts.
 
 ## [0.0.4] - 2019-05-14
 ### Fixed
