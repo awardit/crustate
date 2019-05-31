@@ -20,7 +20,7 @@ type State<T, I, M: Message> = {
   name:      string,
   init:      (init: I)          => DataUpdate<T> | MessageUpdate<T>,
   update:    (state: T, msg: M) => Update<T>,
-  subscribe: (state: T)         => SubscriberMap<M>,
+  subscribe: (state: T)         => SubscriptionMap<M>,
 };
 ```
 
@@ -98,7 +98,7 @@ state-hierarchy and can be subscribed to in supervising states.
 ### Subscriber
 
 ```javascript
-type Subscribe<T, M: Message>    = (state: T) => SubscriberMap<M>;
+type Subscribe<T, M: Message>    = (state: T) => SubscriptionMap<M>;
 type SubscriptionMap<M: Message> = { [tag: $PropertyType<M, "tag">]: Subscription };
 type Subscription                = true | { passive?: boolean, filter?: () => bool };
 ```
