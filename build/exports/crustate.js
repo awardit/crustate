@@ -40,6 +40,6 @@ var removeSubscriber;
 var replyMessage;
 var sendMessage;
 var stateDefinition;
-var subscribers;
+var subscribe;
 var subscriptions;
 var tryRegisterState;

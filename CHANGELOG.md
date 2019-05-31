@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `stateNewData` event on `StateInstance` will now use `T` as the type
   for the state-data.
 - `crustate/react` now uses named imports from `react`.
+- `State` `subscriptions` is renamed to `subscribe`
+- `State` now subscribes using a dictionary with message key-names as the key
+  and subscription settings as the value.
+- `Storage` `addSubscriber` takes a `SubscriptionMap` as the second parameter
+  instead of an array of the old `Subscription` type.
+- `Sink` is now typed by the message-type it accepts.
 
 ## [0.0.4] - 2019-05-14
 ### Fixed
@@ -32,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.0.2] - 2019-05-10
 ### Added
 - Added license file, MIT, same as `package.json` already specifies.
-- Added `messageMatched` events when subscribers on `Storage` match messages.
+- Added `messageMatched` events when subscriptions on `Storage` match messages.
 - Added an optional parameter of `sourceName` to `sendMessage` which is appended
   to the source-path, this parameter defaults to the anonymous source "`$`".
 - Added TodoMVC Example

@@ -42,7 +42,7 @@ crustate.StateDefinition.prototype.update = function(state, message) {};
 /**
  * @public
  */
-crustate.StateDefinition.prototype.subscriptions = function(state) {};
+crustate.StateDefinition.prototype.subscribe = function(state) {};
 
 crustate.NONE = 0;
 crustate.updateData = function(data) {};
@@ -77,7 +77,7 @@ crustate.Storage.prototype.sendMessage;
   /**
    * @export
    */
-crustate.Storage.prototype.addSubscriber;
+crustate.Storage.prototype.addSubscriber = function(listener, subscription) {};
 crustate.Storage.prototype.getNested;
 crustate.Storage.prototype.getNestedOrCreate = function(state, params) {};
 crustate.Storage.prototype.getPath;

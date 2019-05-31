@@ -8,6 +8,7 @@ export type {
   Message,
   MessageTag,
   MessageFilter,
+  SubscriptionMap,
   Subscription,
 } from "./message";
 export type {
@@ -19,7 +20,7 @@ export type {
 export type {
   Init,
   StateUpdate,
-  Subscriptions,
+  Subscribe,
   State,
   StatePath,
 } from "./state";
@@ -29,9 +30,6 @@ export type {
   StateSnapshot,
 } from "./storage";
 
-export {
-  subscribe,
-} from "./message";
 export {
   NONE,
   updateData,

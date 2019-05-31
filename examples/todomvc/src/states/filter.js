@@ -4,10 +4,9 @@ import type { Todo } from "./todos";
 
 import { createStateData } from "crustate/react";
 import { NONE
-       , updateData
-       , subscribe } from "crustate";
+       , updateData } from "crustate";
 
-const SET = "filterSet";
+const SET: "filterSet" = "filterSet";
 
 export const SHOW_ACTIVE    = "ACTIVE";
 export const SHOW_ALL       = "ALL";
@@ -34,8 +33,8 @@ export const todoFilterPredicate = (filter: Filter) => (todo: Todo) => {
 export const setFilter = (value: Filter) => ({ tag: SET, value});
 
 export const FilterState = createStateData<Filter, {}, FilterMsg>({
-  name: "filter",
-  init: () => updateData(SHOW_ALL),
-  update: (_, msg) => updateData(msg.value),
-  subscriptions: () => [ subscribe(SET) ],
+  name:      "filter",
+  init:      ()       => updateData(SHOW_ALL),
+  update:    (_, msg) => updateData(msg.value),
+  subscribe: ()       => ({ [SET]: true })
 });

@@ -1,12 +1,11 @@
 /* @flow */
 
-import type { Message } from "../src/message";
+import type { Message
+            , SubscriptionMap } from "../src/message";
 
 import ninos            from "ninos";
 import ava              from "ava";
-import { subscribe
-       , subscriptionMatches
-       , subscriptionIsPassive } from "../src/message";
+import { findMatchingSubscription } from "../src/message";
 
 const test = ninos(ava);
 
@@ -17,53 +16,57 @@ type BMessage = { tag: string, foo: boolean };
 (({ tag: "a" }: AMessage): Message);
 (({ tag: "b", foo: true }: BMessage): Message);
 
-test("subscribe() creates a subscription", t => {
-  t.deepEqual(subscribe("a"), subscribe("a"));
-  t.notDeepEqual(subscribe("a"), subscribe("b"));
-})
+(({ a: true }): SubscriptionMap<AMessage>);
+(({ b: true }): SubscriptionMap<AMessage | BMessage>);
+// $ExpectError
+(({ c: true }): SubscriptionMap<AMessage>);
 
-test("subscribe() is active by default", t => {
-  t.is(subscriptionIsPassive(subscribe("a")), false);
-  t.is(subscriptionIsPassive(subscribe("a", true)), true);
-})
+test("findMatchingSubscription() ", t => {
+  t.deepEqual(findMatchingSubscription({}, { tag: "a" }, false), null);
+  t.deepEqual(findMatchingSubscription({ b: true }, { tag: "a" }, false), null);
+  t.deepEqual(findMatchingSubscription({}, { tag: "a" }, true), null);
+  t.deepEqual(findMatchingSubscription({ b: true }, { tag: "a" }, true), null);
+  t.deepEqual(findMatchingSubscription({ a: true }, { tag: "a" }, true), null);
+});
 
-test("subscribe() matches exact message name", t => {
-  t.is(subscriptionMatches(subscribe("a"), { tag: "a"}, false), true);
-  t.is(subscriptionMatches(subscribe("a"), { tag: "b"}, false), false);
-})
+test("findMatchingSubscription() is active by default", t => {
+  t.deepEqual(findMatchingSubscription({ a: true }, { tag: "a" }, false), { isPassive: false });
+  t.deepEqual(findMatchingSubscription({ a: true }, { tag: "a" }, true), null);
+});
 
-test("subscribe() with active matches only when not yet received", t => {
-  t.is(subscriptionMatches(subscribe("a"), { tag: "a"}, false), true);
-  t.is(subscriptionMatches(subscribe("a"), { tag: "b"}, false), false);
-  t.is(subscriptionMatches(subscribe("a"), { tag: "a"}, true), false);
-  t.is(subscriptionMatches(subscribe("a"), { tag: "b"}, true), false);
-})
+test("findMatchingSubscription() matches exact message name", t => {
+  t.deepEqual(findMatchingSubscription({ a: true }, { tag: "a" }, false), { isPassive: false });
+  t.deepEqual(findMatchingSubscription({ a: true }, { tag: "b" }, false), null);
+});
 
-test("subscribe() with passive matches only when not yet received", t => {
-  t.is(subscriptionMatches(subscribe("a", true), { tag: "a"}, false), true);
-  t.is(subscriptionMatches(subscribe("a", true), { tag: "b"}, false), false);
-  t.is(subscriptionMatches(subscribe("a", true), { tag: "a"}, true), true);
-  t.is(subscriptionMatches(subscribe("a", true), { tag: "b"}, true), false);
-})
+test("findMatchingSubscription() matches received messages if they are passive", t => {
+  t.deepEqual(findMatchingSubscription({ a: { passive: true } }, { tag: "a" }, false), { isPassive: true });
+  t.deepEqual(findMatchingSubscription({ a: { passive: true } }, { tag: "a" }, true), { isPassive: true });
+  t.deepEqual(findMatchingSubscription({ a: { passive: true } }, { tag: "b" }, false), null);
+  t.deepEqual(findMatchingSubscription({ a: { passive: true } }, { tag: "b" }, false), null);
+  t.deepEqual(findMatchingSubscription({ a: { passive: false } }, { tag: "a" }, true), null);
+  t.deepEqual(findMatchingSubscription({ a: { passive: false } }, { tag: "b" }, false), null);
+  t.deepEqual(findMatchingSubscription({ a: { passive: false } }, { tag: "b" }, false), null);
+});
 
-test("subscribe() with condition matches only when condition is true", t => {
+test("findMatchingSubscription() with a filter", t => {
   // $ExpectError
-  const cond = msg => msg.a;
+  const filter = msg => msg.a;
 
-  t.is(subscriptionMatches(subscribe("a", false, cond), { tag: "a", a: true},  false), true);
-  t.is(subscriptionMatches(subscribe("a", false, cond), { tag: "a", a: false}, false), false);
-  t.is(subscriptionMatches(subscribe("a", false, cond), { tag: "b", a: true},  false), false);
-  t.is(subscriptionMatches(subscribe("a", false, cond), { tag: "b", a: false}, false), false);
-  t.is(subscriptionMatches(subscribe("a", false, cond), { tag: "a", a: true},  true),  false);
-  t.is(subscriptionMatches(subscribe("a", false, cond), { tag: "a", a: false}, true),  false);
-  t.is(subscriptionMatches(subscribe("a", false, cond), { tag: "b", a: true},  true),  false);
-  t.is(subscriptionMatches(subscribe("a", false, cond), { tag: "b", a: false}, true),  false);
-  t.is(subscriptionMatches(subscribe("a", true, cond),  { tag: "a", a: true},  false), true);
-  t.is(subscriptionMatches(subscribe("a", true, cond),  { tag: "a", a: false}, false), false);
-  t.is(subscriptionMatches(subscribe("a", true, cond),  { tag: "b", a: true},  false), false);
-  t.is(subscriptionMatches(subscribe("a", true, cond),  { tag: "b", a: false}, false), false);
-  t.is(subscriptionMatches(subscribe("a", true, cond),  { tag: "a", a: true},  true),  true);
-  t.is(subscriptionMatches(subscribe("a", true, cond),  { tag: "a", a: false}, true),  false);
-  t.is(subscriptionMatches(subscribe("a", true, cond),  { tag: "b", a: true},  true),  false);
-  t.is(subscriptionMatches(subscribe("a", true, cond),  { tag: "b", a: false}, true),  false);
-})
+  t.deepEqual(findMatchingSubscription({ a: { filter } }, { tag: "a", a: false}, false), null);
+  t.deepEqual(findMatchingSubscription({ a: { filter } }, { tag: "a", a: true }, false), { isPassive: false });
+  t.deepEqual(findMatchingSubscription({ a: { filter } }, { tag: "a", a: false}, true), null);
+  t.deepEqual(findMatchingSubscription({ a: { filter } }, { tag: "a", a: true }, true), null);
+  t.deepEqual(findMatchingSubscription({ a: { filter, passive: true } }, { tag: "a", a: false}, false), null);
+  t.deepEqual(findMatchingSubscription({ a: { filter, passive: true } }, { tag: "a", a: true }, false), { isPassive: true });
+  t.deepEqual(findMatchingSubscription({ a: { filter, passive: true } }, { tag: "a", a: false}, true), null);
+  t.deepEqual(findMatchingSubscription({ a: { filter, passive: true } }, { tag: "a", a: true }, true), { isPassive: true });
+  t.deepEqual(findMatchingSubscription({ a: { filter } }, { tag: "b", a: false}, false), null);
+  t.deepEqual(findMatchingSubscription({ a: { filter } }, { tag: "b", a: true }, false), null);
+  t.deepEqual(findMatchingSubscription({ a: { filter } }, { tag: "b", a: false}, true), null);
+  t.deepEqual(findMatchingSubscription({ a: { filter } }, { tag: "b", a: true }, true), null);
+  t.deepEqual(findMatchingSubscription({ a: { filter, passive: true } }, { tag: "b", a: false}, false), null);
+  t.deepEqual(findMatchingSubscription({ a: { filter, passive: true } }, { tag: "b", a: true }, false), null);
+  t.deepEqual(findMatchingSubscription({ a: { filter, passive: true } }, { tag: "b", a: false}, true), null);
+  t.deepEqual(findMatchingSubscription({ a: { filter, passive: true } }, { tag: "b", a: true }, true), null);
+});

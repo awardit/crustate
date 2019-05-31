@@ -17,10 +17,10 @@ with controlled side-effects through messaging.
 
 ```javascript
 type State<T, I, M: Message> = {
-  name: string,
-  init: (init: I) => DataUpdate<T> | MessageUpdate<T>,
-  update: (state: T, msg: M) => Update<T>,
-  subscriptions: (state: T) => Array<Subscription>,
+  name:      string,
+  init:      (init: I)          => DataUpdate<T> | MessageUpdate<T>,
+  update:    (state: T, msg: M) => Update<T>,
+  subscribe: (state: T)         => SubscriptionMap<M>,
 };
 ```
 
@@ -50,10 +50,26 @@ let msg = {
 };
 ```
 
+### Init
+
+```javascript
+type StateInit<T, I> = (init: I) => DataUpdate<T> | MessageUpdate<T>;
+```
+
+The initial state of the state-instance, accepts an optional init-parameter.
+
+```javascript
+import { updateData } from "crustate";
+
+function init() {
+  return updateData(0);
+}
+```
+
 ### Update
 
 ```javascript
-type StateUpdate = <T, M: Message>(state: T, msg: M) => Update<T>;
+type StateUpdate<T, M: Message> = (state: T, msg: M) => Update<T>;
 ```
 
 Conceptually `update` is responsible for receiving messages, interpreting
@@ -64,7 +80,7 @@ This is very similar to Redux's Reducer concept with the main difference
 being that the `update`-function can send new messages.
 
 ```javascript
-import { NONE, updateData } from "crustate";
+import { NONE } from "crustate";
 
 function update(state, message) {
   switch(message.tag) {
@@ -81,7 +97,24 @@ state-hierarchy and can be subscribed to in supervising states.
 
 ### Subscriber
 
+```javascript
+type Subscribe<T, M: Message>    = (state: T) => SubscriptionMap<M>;
+type SubscriptionMap<M: Message> = { [tag: $PropertyType<M, "tag">]: Subscription };
+type Subscription                = true | { passive?: boolean, filter?: () => bool };
+```
+
 For a state to actually receive messages it first needs to subscribe to
 messages; which tags it is interested in, if they have any specific
-requirements, and if it is supposed to be the primary handler for messages
-of that type.
+requirements, and if it is supposed to be the primary (active) handler for
+messages of that type.
+
+```javascript
+function subscribe(state) {
+  return {
+    [ADD]: true,
+  };
+}
+```
+
+By default subscriptions are active but can be turned into passive subscriptions
+by specifying the `passive` flag.
