@@ -7,8 +7,7 @@ import type { DataRequest
 
 import { StaticRouter }         from "react-router";
 import express                  from "express";
-import { Storage
-       , subscribe }            from "crustate";
+import { Storage }              from "crustate";
 import React                    from "react";
 import ReactDomServer           from "react-dom/server";
 import App                      from "./app";
@@ -83,9 +82,7 @@ function createRequestHandler(storage: Storage) {
     }
   };
 
-  // TODO: How to properly type this? Can we come up with a solution which
-  //       also works for the problem with State.subscribers?
-  storage.addSubscriber((subscriber: any), [subscribe("effects/request")]);
+  storage.addSubscriber(subscriber, { "effects/request": true });
 
   return {
     waitForAll: () => new Promise(resolve => waiting ? resolvers.push(resolve) : resolve()),

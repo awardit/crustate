@@ -3,8 +3,7 @@
 import type { StatePath }   from "crustate";
 import type { DataRequest } from "./effects";
 
-import { Storage
-       , subscribe }     from "crustate";
+import { Storage }       from "crustate";
 import React             from "react";
 import { render }        from "react-dom";
 import { BrowserRouter } from "react-router-dom";
@@ -30,9 +29,7 @@ const subscriber = (msg: DataRequest, source: StatePath) => {
   }
 };
 
-// TODO: How to properly type this? Can we come up with a solution which
-//       also works for the problem with State.subscribers?
-storage.addSubscriber((subscriber: any), [subscribe("effects/request")]);
+storage.addSubscriber(subscriber, { "effects/request": true });
 
 // Register the possible states we might restore when we call restoreSnapshot();
 storage.registerState(PostList.state);

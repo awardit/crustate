@@ -2,8 +2,6 @@
 import type { StatePath
             , Storage } from "crustate";
 
-import { subscribe } from "crustate";
-
 export const LIST_RESPONSE: "effects/response/list" = "effects/response/list";
 export const POST_RESPONSE: "effects/response/post" = "effects/response/post";
 
