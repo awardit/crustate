@@ -43,7 +43,7 @@ function TheCounter() {
 }
 
 function App() {
-  return <StorageProvider value={storage}>
+  return <StorageProvider storage={storage}>
     <CounterData.Provider>
       <TheCounter />
     </CounterData.Provider>

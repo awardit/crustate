@@ -10,6 +10,7 @@ import type { Context } from "react";
 import type { Message
             , State
             , StateInstance
+            , Storage
             , Supervisor } from "crustate";
 
 import { createContext
@@ -72,12 +73,22 @@ export type StateData<T, I, M> = {
 /**
  * The basic state context where we will carry either a Storage, or a state
  * instance for the current nesting.
+ *
  * @suppress {checkTypes}
  */
 export const StateContext: Context<?Supervisor> = createContext(null);
 
+type StorageProviderProps = { storage: Storage, children: ?React$Node };
+
 // TODO: better handling of this, should probably have more stuff?
-export const StorageProvider = StateContext.Provider;
+/**
+ * Provider for the Storage-instance to be used in all child-components.
+ *
+ * @suppress {checkTypes}
+ */
+export function StorageProvider({ storage, children }: StorageProviderProps) {
+  return createElement(StateContext.Provider, { value: storage }, children);
+}
 
 const InstanceProvider = StateContext.Provider;
 
