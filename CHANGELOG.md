@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - React `StorageProvider` is now its own function-component, with the `value`
   property being replaced with `storage` for the storage instance.
+- React `StateProvider` will now exclude the `children` prop when propagating
+  props as initial data to the state instance.
 
 ## [0.0.5] - 2019-06-01
 ### Added

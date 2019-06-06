@@ -136,7 +136,11 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
         throw new Error(`<${state.name}.Provider /> must be used inside a <StorageProvider />`);
       }
 
-      const instance = context.getNestedOrCreate(state, this.props);
+      // Exclude children when using getNestedOrCreate, they are always new
+      // objects and are most likely not of interest to the state.
+      const { children: _, ...remainingProps } = props;
+
+      const instance = context.getNestedOrCreate(state, remainingProps);
       const data     = instance.getData();
 
       // We use setState to prevent issues with re-rendering
