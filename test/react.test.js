@@ -1,11 +1,14 @@
 /* @flow */
 
 import test from "ava";
-import { render, cleanup } from "@testing-library/react";
+import { cleanup
+       , fireEvent
+       , render } from "@testing-library/react";
 import { JSDOM } from "jsdom";
 import React, { Component, createContext } from "react";
-import { updateData } from "../src/index.js";
-import { StateContext
+import { Storage
+       , updateData } from "../src/index.js";
+import { StorageProvider
        , useSendMessage
        , createStateData
        , useData } from "../react/src/index.js"
@@ -39,6 +42,10 @@ const MyData = createStateData<string, { test?: boolean, data: string }, UpdateM
 
 // Type tests
 // $ExpectError
+(<StorageProvider></StorageProvider>);
+// $ExpectError
+(<StorageProvider storage={null} />);
+// $ExpectError
 (<MyData.TestProvider />);
 // $ExpectError
 (<MyData.TestProvider>testing</MyData.TestProvider>);
@@ -49,6 +56,10 @@ const MyData = createStateData<string, { test?: boolean, data: string }, UpdateM
   // Testing some stuff which we cannot run
   // $ExpectError
   const data: number = useData(MyData);
+
+  // $ExpectError
+  (<StorageProvider storage={new Storage()} />);
+  (<StorageProvider storage={new Storage()}>test</StorageProvider>);
 });
 
 const MyDataUseDataComponent = () => {
@@ -59,12 +70,12 @@ const MyDataUseDataComponent = () => {
 const UseSendMessageComponent = ({ msg }: { msg: UpdateMsg }) => {
   const send = useSendMessage();
 
-  return <p onClick={() => send(msg)}>Foo</p>;
+  return <a onClick={() => send(msg)}>Foo</a>;
 };
-const UseSendMessagePathComponent = ({ msg, path}: { msg: UpdateMsg, path: string }) => {
+const UseSendMessagePathComponent = ({ msg, path }: { msg: UpdateMsg, path: string }) => {
   const send = useSendMessage();
 
-  return <p onClick={() => send(msg, path)}>Foo</p>;
+  return <a onClick={() => send(msg, path)}>Foo</a>;
 };
 
 test("useData() must be used inside a Component", t => {
@@ -85,4 +96,28 @@ test("useSendMessage() should still throw inside State.TestProvider", t => {
   t.throws(() => render(<MyData.TestProvider value={"this is a test"}><UseSendMessageComponent msg={{ tag: "data", data: "test" }} /></MyData.TestProvider>), { message: "useSendMessage() must be used inside a <State.Provider />." });
 });
 
-test.todo("basic state")
+test("State renders correctly and updates when modified", t => {
+  const s = new Storage();
+
+  const { container, getByText } = render(<StorageProvider storage={s}>
+    <MyData.Provider data="initial">
+      <MyDataUseDataComponent />
+      <UseSendMessageComponent msg={{ tag: "data", data: "the new one" }} />
+    </MyData.Provider>
+  </StorageProvider>);
+
+  t.is(container.outerHTML, "<div><p>initial</p><a>Foo</a></div>")
+  t.deepEqual(s.getSnapshot(), { state: { data: "initial", defName: "state", nested: {}, params: { data: "initial" } }})
+
+  const link = getByText("Foo");
+  t.not(link, undefined);
+
+  fireEvent.click(link);
+
+  t.is(container.outerHTML, "<div><p>the new one</p><a>Foo</a></div>")
+  t.is(link.outerHTML, "<a>Foo</a>");
+  t.deepEqual(s.getSnapshot(), { state: { data: "the new one", defName: "state", nested: {}, params: { data: "initial" } }})
+});
+
+test.todo("more advanced state")
+test.todo("Edge case when state-data is updated as we are rendering")
