@@ -1,14 +1,13 @@
 ![Crustate](https://gist.githubusercontent.com/Poggen/1070c7fd85addacdd928ddcadd095270/raw/63d803896d36e3e2dd3081ccd8ce1d8a94c75038/crustate.svg?sanitize=true "Crustate")
 <p align="center">A message-based modular state-management library for JavaScript applications</p>
 
-<p align="center">
+
 [![npm bundle size](https://img.shields.io/bundlephobia/minzip/crustate.svg)](https://bundlephobia.com/result?p=crustate)
 [![Dependencies](https://img.shields.io/david/crossroads-loyalty-solutions/crustate.svg)](https://www.npmjs.com/package/crustate)
 [![Build Status](https://travis-ci.org/crossroads-loyalty-solutions/crustate.svg?branch=master)](https://travis-ci.org/crossroads-loyalty-solutions/crustate)
 [![Codecov](https://img.shields.io/codecov/c/gh/crossroads-loyalty-solutions/crustate.svg)](https://codecov.io/gh/crossroads-loyalty-solutions/crustate)
 ![License](https://img.shields.io/npm/l/crustate.svg)
 [![npm](https://img.shields.io/npm/v/crustate.svg)](https://www.npmjs.com/package/crustate)
-</p>
 
 This library is based on the principles of message passing found in languages
 like Elm and Elixir/Erlang. The purpose is to be able to build modular state
