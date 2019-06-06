@@ -56,24 +56,33 @@ const MyDataUseDataComponent = () => {
 
   return <p>{data}</p>;
 };
+const UseSendMessageComponent = ({ msg }: { msg: UpdateMsg }) => {
+  const send = useSendMessage();
+
+  return <p onClick={() => send(msg)}>Foo</p>;
+};
+const UseSendMessagePathComponent = ({ msg, path}: { msg: UpdateMsg, path: string }) => {
+  const send = useSendMessage();
+
+  return <p onClick={() => send(msg, path)}>Foo</p>;
+};
 
 test("useData() must be used inside a Component", t => {
   t.throws(() => render(<MyDataUseDataComponent />), { message: "useData(state) must be used inside a <state.Provider />" });
 });
 
 test("useSendMessage() must be used inside a Component", t => {
-  const C = () => {
-    const data = useSendMessage();
-
-    return <p>Foo</p>;
-  };
-  t.throws(() => render(<C />), { message: "useSendMessage() must be used inside a <State.Provider />." });
+  t.throws(() => render(<UseSendMessageComponent msg={{ tag: "data", data: "test" }} />), { message: "useSendMessage() must be used inside a <State.Provider />." });
 });
 
 test("State.TestProvider should set the value", t => {
   const { container } = render(<MyData.TestProvider value={"this is a test"}><MyDataUseDataComponent /></MyData.TestProvider>);
 
   t.is(container.outerHTML, "<div><p>this is a test</p></div>");
+});
+
+test("useSendMessage() should still throw inside State.TestProvider", t => {
+  t.throws(() => render(<MyData.TestProvider value={"this is a test"}><UseSendMessageComponent msg={{ tag: "data", data: "test" }} /></MyData.TestProvider>), { message: "useSendMessage() must be used inside a <State.Provider />." });
 });
 
 test.todo("basic state")

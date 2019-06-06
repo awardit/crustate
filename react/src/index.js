@@ -33,6 +33,10 @@ export type DataFunction<T> = (data: T | void) => ?React$Node;
  * children.
  */
 export type DataProvider<T, I> = React$ComponentType<DataProviderProps<I>>;
+/**
+ * DataConsumer is a component which takes a function as children and will call
+ * this function with the state instance data.
+ */
 export type DataConsumer<T>    = React$ComponentType<{ children: DataFunction<T>}>;
 
 /**
