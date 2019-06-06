@@ -43,7 +43,7 @@
     "clean": "rm -rf dist react/dist preact/dist examples/counter/dist",
     "coverage": "nyc --reporter=html ava --verbose",
     "dist": "cross-env NODE_ENV=production npm run build",
-    "distclean": "rm -rf package-lock.json node_modules dist react/dist preact/dist examples/counter/dist",
+    "distclean": "rm -rf package-lock.json node_modules dist react/dist preact/dist coverage .nyc_output examples/counter/dist",
     "examples": "node examples",
     "flow": "flow check",
     "prepare": "npm run clean && npm run test && npm run dist",
