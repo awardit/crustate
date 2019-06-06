@@ -3,9 +3,9 @@
 
 
 [![npm bundle size](https://img.shields.io/bundlephobia/minzip/crustate.svg)](https://bundlephobia.com/result?p=crustate)
-[![Dependencies](https://img.shields.io/david/m4rw3r/crustate.svg)](https://www.npmjs.com/package/crustate)
-[![Build Status](https://travis-ci.org/m4rw3r/crustate.svg?branch=master)](https://travis-ci.org/m4rw3r/crustate)
-[![Codecov](https://img.shields.io/codecov/c/gh/m4rw3r/crustate.svg)](https://codecov.io/gh/m4rw3r/crustate)
+[![Dependencies](https://img.shields.io/david/crossroads-loyalty-solutions/crustate.svg)](https://www.npmjs.com/package/crustate)
+[![Build Status](https://travis-ci.org/crossroads-loyalty-solutions/crustate.svg?branch=master)](https://travis-ci.org/crossroads-loyalty-solutions/crustate)
+[![Codecov](https://img.shields.io/codecov/c/gh/crossroads-loyalty-solutions/crustate.svg)](https://codecov.io/gh/crossroads-loyalty-solutions/crustate)
 ![License](https://img.shields.io/npm/l/crustate.svg)
 [![npm](https://img.shields.io/npm/v/crustate.svg)](https://www.npmjs.com/package/crustate)
 
