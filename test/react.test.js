@@ -65,7 +65,6 @@ const MyData = createStateData<string, { test?: boolean, data: string }, UpdateM
   // $ExpectError
   const data: number = useData(MyData);
 
-  // $ExpectError
   (<StorageProvider storage={new Storage()} />);
   (<StorageProvider storage={new Storage()}>test</StorageProvider>);
 });
