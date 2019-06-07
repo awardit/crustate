@@ -109,6 +109,17 @@ export function useSendMessage(): (message: Message, sourceName?: string) => voi
     supervisor.sendMessage(message, sourceName);
 }
 
+
+/**
+ * Exclude children when using getNestedOrCreate, they are always new objects
+ * and are most likely not of interest to the state.
+ */
+function excludeChildren<T: { children?: ?React$Node }>(props: T): $Rest<T, {| children: ?React$Node |}> {
+  const { children: _, ...rest } = props;
+
+  return rest;
+}
+
 /**
  * @suppress {checkTypes}
  * @return {!StateData}
@@ -136,19 +147,13 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
         throw new Error(`<${state.name}.Provider /> must be used inside a <StorageProvider />`);
       }
 
-      // Exclude children when using getNestedOrCreate, they are always new
-      // objects and are most likely not of interest to the state.
-      const { children: _, ...remainingProps } = props;
-
-      const instance = context.getNestedOrCreate(state, remainingProps);
-      const data     = instance.getData();
-
       // We use setState to prevent issues with re-rendering
       this.onNewData = (data: T) => this.setState({ data });
+      const instance = context.getNestedOrCreate(state, excludeChildren(props));
 
       this.state = {
         instance,
-        data,
+        data: instance.getData(),
       };
     }
 
@@ -180,7 +185,7 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
 
       // Check if we got a new context instance
       // TODO: Send message if we have new props to the instance, move this into core
-      const instance = context.getNestedOrCreate(state, props);
+      const instance = context.getNestedOrCreate(state, excludeChildren(props));
 
       if(this.state.instance !== instance) {
         this.removeListener();
