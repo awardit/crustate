@@ -86,25 +86,37 @@ const UseSendMessagePathComponent = ({ msg, path }: { msg: UpdateMsg, path: stri
 };
 
 test("useData() must be used inside a Component", t => {
-  t.throws(() => render(<MyDataUseDataComponent />), { message: "useData(state) must be used inside a <state.Provider />" });
+  t.throws(
+    () => render(<MyDataUseDataComponent />),
+    { message: "useData(state) must be used inside a <state.Provider />" });
 });
 
 test("useSendMessage() must be used inside a Component", t => {
-  t.throws(() => render(<UseSendMessageComponent msg={{ tag: "data", data: "test" }} />), { message: "useSendMessage() must be used inside a <State.Provider />." });
+  t.throws(
+    () => render(<UseSendMessageComponent msg={{ tag: "data", data: "test" }} />),
+    { message: "useSendMessage() must be used inside a <State.Provider />." });
 });
 
 test("State.TestProvider should set the value", t => {
-  const { container } = render(<MyData.TestProvider value={"this is a test"}><MyDataUseDataComponent /></MyData.TestProvider>);
+  const { container } = render(<MyData.TestProvider value={"this is a test"}>
+    <MyDataUseDataComponent />
+  </MyData.TestProvider>);
 
   t.is(container.outerHTML, "<div><p>this is a test</p></div>");
 });
 
 test("useSendMessage() should still throw inside State.TestProvider", t => {
-  t.throws(() => render(<MyData.TestProvider value={"this is a test"}><UseSendMessageComponent msg={{ tag: "data", data: "test" }} /></MyData.TestProvider>), { message: "useSendMessage() must be used inside a <State.Provider />." });
+  t.throws(
+    () => render(<MyData.TestProvider value={"this is a test"}>
+      <UseSendMessageComponent msg={{ tag: "data", data: "test" }} />
+    </MyData.TestProvider>),
+    { message: "useSendMessage() must be used inside a <State.Provider />." });
 });
 
 test("StateProvider throws when rendered outside of StorageProvider", t => {
-  t.throws(() => render(<MyData.Provider data="foo"></MyData.Provider>), { message: "<state.Provider /> must be used inside a <StorageProvider />" });
+  t.throws(
+    () => render(<MyData.Provider data="foo"></MyData.Provider>),
+    { message: "<state.Provider /> must be used inside a <StorageProvider />" });
 });
 
 test("State renders correctly and updates when modified", t => {
@@ -119,7 +131,7 @@ test("State renders correctly and updates when modified", t => {
   </StorageProvider>);
 
   t.is(container.outerHTML, "<div><p>initial</p><a>Foo</a></div>");
-  t.deepEqual(s.getSnapshot(), { state: { data: "initial", defName: "state", nested: {}, params: { data: "initial" } }})
+  t.deepEqual(s.getSnapshot(), { state: { data: "initial", defName: "state", nested: {}, params: { data: "initial" }}});
 
   const link = getByText("Foo");
   t.not(link, undefined);
@@ -129,7 +141,7 @@ test("State renders correctly and updates when modified", t => {
 
   t.is(container.outerHTML, "<div><p>the new one</p><a>Foo</a></div>");
   t.is(link.outerHTML, "<a>Foo</a>");
-  t.deepEqual(s.getSnapshot(), { state: { data: "the new one", defName: "state", nested: {}, params: { data: "initial" } }})
+  t.deepEqual(s.getSnapshot(), { state: { data: "the new one", defName: "state", nested: {}, params: { data: "initial" }}});
   t.is(emit.calls.length, 4);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "initial" }, "initial"]);
   t.deepEqual(emit.calls[1].arguments, ["messageQueued", { tag: "data", data: "the new one" }, ["state", "$"]]);
@@ -157,7 +169,7 @@ test("State is removed when the Provider is unmounted", t => {
   </StorageProvider>);
 
   t.is(container.outerHTML, `<div><button type="button">Toggle</button></div>`);
-  t.deepEqual(s.getSnapshot(), { state: { data: "my initial", defName: "state", nested: {}, params: { data: "my initial" } }})
+  t.deepEqual(s.getSnapshot(), { state: { data: "my initial", defName: "state", nested: {}, params: { data: "my initial" }}});
 
   const btn = getByText("Toggle");
   t.not(btn, undefined);
@@ -237,8 +249,10 @@ test("State is removed when the Provider is the last to be unmounted", t => {
     </DoUnmount>
   </StorageProvider>);
 
-  t.is(container.outerHTML, `<div><button type="button">first</button><button type="button">second</button></div>`);
-  t.deepEqual(s.getSnapshot(), { state: { data: "my initial", defName: "state", nested: {}, params: { data: "my initial" } }})
+  t.is(container.outerHTML,
+    `<div><button type="button">first</button><button type="button">second</button></div>`);
+  t.deepEqual(s.getSnapshot(),
+    { state: { data: "my initial", defName: "state", nested: {}, params: { data: "my initial" } }});
 
   const btnFirst = getByText("first");
   t.not(btnFirst, undefined);
@@ -247,12 +261,15 @@ test("State is removed when the Provider is the last to be unmounted", t => {
 
   fireEvent.click(btnFirst);
 
-  t.is(container.outerHTML, `<div><button type="button">first</button><p>No render</p><button type="button">second</button></div>`);
-  t.deepEqual(s.getSnapshot(), { state: { data: "my initial", defName: "state", nested: {}, params: { data: "my initial" } }});
+  t.is(container.outerHTML,
+    `<div><button type="button">first</button><p>No render</p><button type="button">second</button></div>`);
+  t.deepEqual(s.getSnapshot(),
+    { state: { data: "my initial", defName: "state", nested: {}, params: { data: "my initial" } }});
 
   fireEvent.click(btnSecond);
 
-  t.is(container.outerHTML, `<div><button type="button">first</button><p>No render</p><button type="button">second</button><p>No render</p></div>`);
+  t.is(container.outerHTML,
+    `<div><button type="button">first</button><p>No render</p><button type="button">second</button><p>No render</p></div>`);
   t.deepEqual(s.getSnapshot(), {});
   t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "my initial" }, "my initial"]);
