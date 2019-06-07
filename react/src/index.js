@@ -173,8 +173,7 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
       }
     }
 
-    componentWillReceiveProps(props: DataProviderProps<I>) {
-      const context = this.context;
+    componentWillReceiveProps(props: DataProviderProps<I>, context: ?Supervisor) {
       if( ! context) {
         throw new Error(`<${state.name}.Provider /> must be used inside a <StorageProvider />`);
       }
