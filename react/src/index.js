@@ -78,6 +78,8 @@ export type StateData<T, I, M> = {
  */
 export const StateContext: Context<?Supervisor> = createContext(null);
 
+const InstanceProvider = StateContext.Provider;
+
 type StorageProviderProps = { storage: Storage, children?: ?React$Node };
 
 // TODO: better handling of this, should probably have more stuff?
@@ -87,10 +89,8 @@ type StorageProviderProps = { storage: Storage, children?: ?React$Node };
  * @suppress {checkTypes}
  */
 export function StorageProvider({ storage, children }: StorageProviderProps) {
-  return createElement(StateContext.Provider, { value: storage }, children);
+  return createElement(InstanceProvider, { value: storage }, children);
 }
-
-const InstanceProvider = StateContext.Provider;
 
 /**
  * Returns a function for passing messages into the state-tree at the current
@@ -108,7 +108,6 @@ export function useSendMessage(): (message: Message, sourceName?: string) => voi
   return (message: Message, sourceName?: string) =>
     supervisor.sendMessage(message, sourceName);
 }
-
 
 /**
  * Exclude children when using getNestedOrCreate, they are always new objects
@@ -220,7 +219,7 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
     // We have to cheat here since the value must be possible to use as
     // undefined internally, but when testing it should not be possible to use
     // without a fully defined `T`:
-    TestProvider: (DataContext.Provider: React$ComponentType<{ children: ?React$Node, value: any }>),
+    TestProvider: (DataProvider: React$ComponentType<{ children: ?React$Node, value: any }>),
     Provider: StateProvider,
     Consumer: DataContext.Consumer,
   };
