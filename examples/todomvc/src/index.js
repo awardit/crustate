@@ -26,7 +26,7 @@ if( ! el) {
   throw new Error(`Missing <div id="app />`);
 }
 
-ReactDOM.render(<StorageProvider value={storage}>
+ReactDOM.render(<StorageProvider storage={storage}>
   <TodosState.Provider>
     <FilterState.Provider>
       <App />

@@ -10,6 +10,7 @@ import type { Context } from "react";
 import type { Message
             , State
             , StateInstance
+            , Storage
             , Supervisor } from "crustate";
 
 import { createContext
@@ -22,7 +23,7 @@ type StateProviderState<T, I, M> = {
   data:     T,
 };
 
-type DataProviderProps<T> = T & { children: ?React$Node };
+type DataProviderProps<T> = T & { children?: ?React$Node };
 
 // FIXME: Redefine this so it throws when undefined
 export type DataFunction<T> = (data: T | void) => ?React$Node;
@@ -33,14 +34,18 @@ export type DataFunction<T> = (data: T | void) => ?React$Node;
  * children.
  */
 export type DataProvider<T, I> = React$ComponentType<DataProviderProps<I>>;
-export type DataConsumer<T>    = React$ComponentType<{ children: DataFunction<T>}>;
+/**
+ * DataConsumer is a component which takes a function as children and will call
+ * this function with the state instance data.
+ */
+export type DataConsumer<T> = React$ComponentType<{ children: DataFunction<T>}>;
 
 /**
  * TestProvider is a component which exposes a property for setting the
  * state-data value used in children, useful for testing components by
  * supplying the state-data without having to instantiate a state.
  */
-export type TestProvider<T> = React$ComponentType<{ value: T, children: ?React$Node }>;
+export type TestProvider<T> = React$ComponentType<{ value: T, children?: ?React$Node }>;
 
 /**
  * React-wrapper for a crustate-state.
@@ -68,14 +73,24 @@ export type StateData<T, I, M> = {
 /**
  * The basic state context where we will carry either a Storage, or a state
  * instance for the current nesting.
+ *
  * @suppress {checkTypes}
  */
 export const StateContext: Context<?Supervisor> = createContext(null);
 
-// TODO: better handling of this, should probably have more stuff?
-export const StorageProvider = StateContext.Provider;
-
 const InstanceProvider = StateContext.Provider;
+
+type StorageProviderProps = { storage: Storage, children?: ?React$Node };
+
+// TODO: better handling of this, should probably have more stuff?
+/**
+ * Provider for the Storage-instance to be used in all child-components.
+ *
+ * @suppress {checkTypes}
+ */
+export function StorageProvider({ storage, children }: StorageProviderProps) {
+  return createElement(InstanceProvider, { value: storage }, children);
+}
 
 /**
  * Returns a function for passing messages into the state-tree at the current
@@ -87,11 +102,21 @@ export function useSendMessage(): (message: Message, sourceName?: string) => voi
   const supervisor = useContext(StateContext);
 
   if( ! supervisor) {
-    throw new Error(`useSendMessage() must be used inside of a <State.Provider />.`);
+    throw new Error(`useSendMessage() must be used inside a <State.Provider />.`);
   }
 
   return (message: Message, sourceName?: string) =>
     supervisor.sendMessage(message, sourceName);
+}
+
+/**
+ * Exclude children when using getNestedOrCreate, they are always new objects
+ * and are most likely not of interest to the state.
+ */
+function excludeChildren<T: { children?: ?React$Node }>(props: T): $Rest<T, {| children: ?React$Node |}> {
+  const { children: _, ...rest } = props;
+
+  return rest;
 }
 
 /**
@@ -121,15 +146,13 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
         throw new Error(`<${state.name}.Provider /> must be used inside a <StorageProvider />`);
       }
 
-      const instance = context.getNestedOrCreate(state, this.props);
-      const data     = instance.getData();
-
       // We use setState to prevent issues with re-rendering
       this.onNewData = (data: T) => this.setState({ data });
+      const instance = context.getNestedOrCreate(state, excludeChildren(props));
 
       this.state = {
         instance,
-        data,
+        data: instance.getData(),
       };
     }
 
@@ -154,15 +177,14 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
       }
     }
 
-    componentWillReceiveProps(props: DataProviderProps<I>) {
-      const context = this.context;
+    componentWillReceiveProps(props: DataProviderProps<I>, context: ?Supervisor) {
       if( ! context) {
         throw new Error(`<${state.name}.Provider /> must be used inside a <StorageProvider />`);
       }
 
       // Check if we got a new context instance
       // TODO: Send message if we have new props to the instance, move this into core
-      const instance = context.getNestedOrCreate(state, props);
+      const instance = context.getNestedOrCreate(state, excludeChildren(props));
 
       if(this.state.instance !== instance) {
         this.removeListener();
@@ -197,7 +219,7 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
     // We have to cheat here since the value must be possible to use as
     // undefined internally, but when testing it should not be possible to use
     // without a fully defined `T`:
-    TestProvider: (DataContext.Provider: React$ComponentType<{ children: ?React$Node, value: any }>),
+    TestProvider: (DataProvider: React$ComponentType<{ children: ?React$Node, value: any }>),
     Provider: StateProvider,
     Consumer: DataContext.Consumer,
   };

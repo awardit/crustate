@@ -43,7 +43,7 @@ React.Context.prototype.Consumer = function() {};
  */
 React.Component = function(props, context) {};
 
-React.Component.prototype.componentWillReceiveProps = function(nextProps) {};
+React.Component.prototype.componentWillReceiveProps = function(nextProps, nextContext) {};
 React.Component.prototype.componentDidMount = function() {};
 React.Component.prototype.componentWillUnmount = function() {};
 React.Component.prototype.setState = function(data) {};
