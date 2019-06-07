@@ -63,5 +63,6 @@ exports.useData;
 var contextType;
 var defaultProps;
 var displayName;
+var storage;
 var wrapNested;
 
