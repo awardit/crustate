@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   property being replaced with `storage` for the storage instance.
 - React `StateProvider` will now exclude the `children` prop when propagating
   props as initial data to the state instance.
+- React components wrapping children now no longer require the `children` prop
+  to be defined at all times.
 
 ## [0.0.5] - 2019-06-01
 ### Added

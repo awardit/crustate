@@ -23,7 +23,7 @@ type StateProviderState<T, I, M> = {
   data:     T,
 };
 
-type DataProviderProps<T> = T & { children: ?React$Node };
+type DataProviderProps<T> = T & { children?: ?React$Node };
 
 // FIXME: Redefine this so it throws when undefined
 export type DataFunction<T> = (data: T | void) => ?React$Node;
@@ -38,14 +38,14 @@ export type DataProvider<T, I> = React$ComponentType<DataProviderProps<I>>;
  * DataConsumer is a component which takes a function as children and will call
  * this function with the state instance data.
  */
-export type DataConsumer<T>    = React$ComponentType<{ children: DataFunction<T>}>;
+export type DataConsumer<T> = React$ComponentType<{ children: DataFunction<T>}>;
 
 /**
  * TestProvider is a component which exposes a property for setting the
  * state-data value used in children, useful for testing components by
  * supplying the state-data without having to instantiate a state.
  */
-export type TestProvider<T> = React$ComponentType<{ value: T, children: ?React$Node }>;
+export type TestProvider<T> = React$ComponentType<{ value: T, children?: ?React$Node }>;
 
 /**
  * React-wrapper for a crustate-state.
@@ -78,7 +78,7 @@ export type StateData<T, I, M> = {
  */
 export const StateContext: Context<?Supervisor> = createContext(null);
 
-type StorageProviderProps = { storage: Storage, children: ?React$Node };
+type StorageProviderProps = { storage: Storage, children?: ?React$Node };
 
 // TODO: better handling of this, should probably have more stuff?
 /**
