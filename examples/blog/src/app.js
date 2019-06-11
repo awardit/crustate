@@ -13,7 +13,7 @@ type Props = {
 };
 
 export default function App({ storage }: Props) {
-  return <StorageProvider value={storage}>
+  return <StorageProvider storage={storage}>
     <Route exact path="/" render={() => <PostList.Provider>
       <ListPosts />
     </PostList.Provider>} />
