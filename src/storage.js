@@ -6,6 +6,7 @@ import type { InflightMessage
             , Message
             , SubscriptionMap } from "./message";
 
+import { debugAssert } from "./assert";
 import { updateHasData
        , updateStateData
        , updateStateDataNoNone
@@ -187,7 +188,13 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
       ensureState(this, state);
     }
 
-    return this._nested[name || state.name];
+    const inst = this._nested[name || state.name];
+
+    if(inst) {
+      debugAssert(inst._name === (name || state.name), `State instance name '${inst._name}' does not match key name '${name || state.name}`);
+    }
+
+    return inst;
   };
 
   getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J, name?: string): StateInstance<U, J, N> {
@@ -351,7 +358,13 @@ export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> impleme
       ensureState(this.getStorage(), state);
     }
 
-    return this._nested[name || state.name];
+    const inst = this._nested[name || state.name];
+
+    if(inst) {
+      debugAssert(inst._name === (name || state.name), `State instance name '${inst._name}' does not match key name '${name || state.name}`);
+    }
+
+    return inst;
   };
 
   getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J, name?: string): StateInstance<U, J, N> {

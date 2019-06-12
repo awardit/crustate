@@ -1060,3 +1060,5 @@ test("restoreSnapshot restores nested snapshots", t => {
   t.is(update.calls.length, 0);
   t.is(subscribe.calls.length, 0);
 });
+
+test.todo("Tests with different names");
