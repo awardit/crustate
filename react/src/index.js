@@ -125,10 +125,10 @@ function excludeChildren<T: { children?: ?React$Node, name?: string }>(props: T)
  * @return {!StateData}
  */
 export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T, I, M> {
-  const DataContext  = (createContext(undefined): React$Context<T | void>);
-  const DataProvider = DataContext.Provider;
+  const Ctx      = (createContext(undefined): React$Context<T | void>);
+  const Provider = Ctx.Provider;
 
-  function StateProvider(props: DataProviderProps<I>) {
+  function DataProvider(props: DataProviderProps<I>) {
     const context = useContext(StateContext);
 
     if( ! context) {
@@ -160,19 +160,19 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
     }, [context, instance]);
 
     return createElement(InstanceProvider, { value: instance },
-      createElement(DataProvider, { value: data },
+      createElement(Provider, { value: data },
         props.children));
   }
 
   return {
-    _dataContext: DataContext,
+    _dataContext: Ctx,
     state: state,
     // We have to cheat here since the value must be possible to use as
     // undefined internally, but when testing it should not be possible to use
     // without a fully defined `T`:
-    TestProvider: (DataProvider: React$ComponentType<{ children: ?React$Node, value: any }>),
-    Provider: StateProvider,
-    Consumer: DataContext.Consumer,
+    TestProvider: (Provider: React$ComponentType<{ children: ?React$Node, value: any }>),
+    Provider: DataProvider,
+    Consumer: Ctx.Consumer,
   };
 }
 
