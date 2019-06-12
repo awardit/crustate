@@ -16,7 +16,8 @@ import type { Message
 import { createContext
        , createElement
        , useContext
-       , Component } from "react";
+       , useEffect
+       , useState } from "react";
 
 type StateProviderState<T, I, M> = {
   instance: StateInstance<T, I, M>,
@@ -127,90 +128,40 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
   const DataContext  = (createContext(undefined): React$Context<T | void>);
   const DataProvider = DataContext.Provider;
 
-  /**
-   * @constructor
-   * @extends {React.Component}
-   */
-  class StateProvider extends Component<DataProviderProps<I>, StateProviderState<T, I, M>> {
-    static contextType  = StateContext;
-    static displayName  = state.name + `.Provider`;
+  function StateProvider(props) {
+    const context = useContext(StateContext);
 
-    onNewData: (data: T) => void;
-    context:   ?Supervisor;
-    state:     StateProviderState<T, I, M>;
-
-    constructor(props: DataProviderProps<I>, context: ?Supervisor) {
-      super(props, context);
-
-      if( ! context) {
-        throw new Error(`<${state.name}.Provider /> must be used inside a <StorageProvider />`);
-      }
-
-      // We use setState to prevent issues with re-rendering
-      this.onNewData = (data: T) => this.setState({ data });
-      const instance = context.getNestedOrCreate(state, excludeChildren(props));
-
-      this.state = {
-        instance,
-        data: instance.getData(),
-      };
+    if( ! context) {
+      throw new Error(`<${state.name}.Provider /> must be used inside a <StorageProvider />`);
     }
 
-    addListener() {
-      this.state.instance.addListener("stateNewData", this.onNewData);
+    const instance        = context.getNestedOrCreate(state, excludeChildren(props));
+    const [data, setData] = useState(() => instance.getData());
+
+    useEffect(() => {
+      instance.addListener("stateNewData", setData);
 
       // Data can be new since we are runnning componentDidMount() after render()
-      const newData = this.state.instance.getData();
+      const newData = instance.getData();
 
-      if(this.state.data !== newData) {
+      if(data !== newData) {
         // Force re-render immediately
-        this.onNewData(newData);
-      }
-    }
-
-    removeListener() {
-      this.state.instance.removeListener("stateNewData", this.onNewData);
-
-      // Drop the state instance if we were the last listener
-      if(this.state.instance.listeners("stateNewData").length === 0 && this.context) {
-        this.context.removeNested(state);
-      }
-    }
-
-    componentWillReceiveProps(props: DataProviderProps<I>, context: ?Supervisor) {
-      if( ! context) {
-        throw new Error(`<${state.name}.Provider /> must be used inside a <StorageProvider />`);
+        setData(newData);
       }
 
-      // Check if we got a new context instance
-      // TODO: Send message if we have new props to the instance, move this into core
-      const instance = context.getNestedOrCreate(state, excludeChildren(props));
+      return () => {
+        instance.removeListener("stateNewData", setData);
 
-      if(this.state.instance !== instance) {
-        this.removeListener();
+        // Drop the state instance if we were the last listener
+        if(instance.listeners("stateNewData").length === 0) {
+          context.removeNested(state);
+        }
+      };
+    }, [context, instance]);
 
-        this.state = {
-          instance,
-          data: instance.getData(),
-        };
-
-        this.addListener();
-      }
-    }
-
-    componentDidMount() {
-      this.addListener();
-    }
-
-    componentWillUnmount() {
-      this.removeListener();
-    }
-
-    render() {
-      return createElement(InstanceProvider, { value:this.state.instance },
-        createElement(DataProvider, { value: this.state.data },
-          this.props.children));
-    }
+    return createElement(InstanceProvider, { value: instance },
+      createElement(DataProvider, { value: data },
+        props.children));
   }
 
   return {

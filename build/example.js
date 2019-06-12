@@ -58,6 +58,8 @@ export const config = path => ({
           "createContext",
           "createElement",
           "useContext",
+          "useEffect",
+          "useState",
         ],
       },
     }),
