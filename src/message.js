@@ -35,21 +35,22 @@ export type InflightMessage = {
  * A function filtering messages.
  */
 // TODO: Can we filter messages better?
-export type MessageFilter = (msg: Message) => boolean;
+export type MessageFilter<M: Message> = (msg: M) => boolean;
 
 /**
  * A restricted map of message-key -> subscription-options for a given
  * message-type.
  */
 export type SubscriptionMap<M: Message> = {
-  [tag: $PropertyType<M, "tag">]: Subscription,
+  // TODO: Any way to just grab the message with the matching property?
+  [tag: $PropertyType<M, "tag">]: Subscription<M>,
 };
 
 /**
  * Options for a given subcription, the value true means default values for all
  * options.
  */
-export type Subscription = true | {
+export type Subscription<M: Message> = true | {
   /**
    * If the Subscription is passive it will not consume the message and it will
    * also not count towards the message being handled, default is false.
@@ -61,7 +62,7 @@ export type Subscription = true | {
   /**
    * Extra, user-supplied, filtering logic.
    */
-  filter?: MessageFilter,
+  filter?: MessageFilter<M>,
 };
 
 /**
@@ -69,7 +70,7 @@ export type Subscription = true | {
  * @param {!crustate.Message} message
  * @param {!boolean} received
  */
-export function findMatchingSubscription<M: Message>(subscribers: SubscriptionMap<M>, message: Message, received: bool): ?{ isPassive: boolean } {
+export function findMatchingSubscription<M: Message>(subscribers: SubscriptionMap<M>, message: M, received: bool): ?{ isPassive: boolean } {
   const { tag } = message;
 
   if( ! subscribers[tag]) {

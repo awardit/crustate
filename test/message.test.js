@@ -50,7 +50,6 @@ test("findMatchingSubscription() matches received messages if they are passive",
 });
 
 test("findMatchingSubscription() with a filter", t => {
-  // $ExpectError
   const filter = msg => msg.a;
 
   t.deepEqual(findMatchingSubscription({ a: { filter } }, { tag: "a", a: false}, false), null);
