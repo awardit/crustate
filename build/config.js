@@ -1,4 +1,5 @@
 import babelPlugin     from "rollup-plugin-babel";
+import replacePlugin   from "rollup-plugin-replace";
 import closureCompiler from '@ampproject/rollup-plugin-closure-compiler';
 import gzip            from "rollup-plugin-gzip";
 
@@ -39,6 +40,9 @@ export const config = ({ input, output, plugins = [], external = [], externs }) 
     },
   ],
   plugins: plugins.concat([
+    isProduction ? replacePlugin({
+      "process.env.NODE_ENV": JSON.stringify("production"),
+    }) : null,
     babel,
     compiler(externs),
     isProduction ? gzip({ level: 9 }) : null,
