@@ -204,9 +204,9 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     const { _nested } = this;
 
     if(inst) {
-      this.emit("stateRemoved", inst.getPath(), inst.getData());
+      this.emit("stateRemoved", inst.getPath(), inst._data);
 
-      delete _nested[inst.getName()];
+      delete _nested[inst._name];
     }
   };
 
@@ -367,13 +367,12 @@ export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> impleme
   };
 
   removeNested<U, J, N>(state: State<U, J, N>) {
-    const inst        = this.getNested(state);
-    const { _nested } = this;
+    const inst = this.getNested(state);
 
     if(inst) {
-      this.getStorage().emit("stateRemoved", inst.getPath(), inst.getData());
+      this.getStorage().emit("stateRemoved", inst.getPath(), inst._data);
 
-      delete _nested[inst.getName()];
+      delete this._nested[inst._name];
     }
   };
 
@@ -537,7 +536,7 @@ function processStorageMessage(storage: Storage, inflight: InflightMessage) {
 
 export function createStateSnapshot(node: StateInstance<any, any, any>): StateSnapshot {
   return {
-    defName: node.getName(),
+    defName: node._name,
     // We assume it is immutably updated
     data:    node._data,
     params:  node._params,
