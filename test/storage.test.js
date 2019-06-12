@@ -938,5 +938,3 @@ test("Storage updates subscribe during processing when state data is updated", t
   t.deepEqual(emit.calls[9].arguments, ["unhandledMessage", { tag: "b", __no: true }, ["a", "test"]]);
   t.deepEqual(emit.calls[10].arguments, ["unhandledMessage", { tag: "a", __no: true }, ["a", "test"]]);
 });
-
-test.todo("Add nested message tests, internal order of processing, active/passive subscribers");

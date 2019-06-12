@@ -373,8 +373,6 @@ test.failing("Using react key will recreate the state instance", t => {
   const Wrapper = ({ children }) => {
     const [key, setKey] = useState("a");
 
-    console.log(key);
-
     return <StateContext.Provider value={s}>
       <a onClick={() => setKey("b")}>Click</a>
       <MyData.Provider key={key} data={key}>
