@@ -38,6 +38,7 @@ var removeListener;
 var removeNested;
 var removeSubscriber;
 var replyMessage;
+var restoreSnapshot;
 var sendMessage;
 var stateDefinition;
 var subscribe;

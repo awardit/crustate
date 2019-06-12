@@ -114,6 +114,18 @@ export type StorageEvents = {
    *  * If the subscription was passive
    */
   messageMatched: [Message, StatePath, boolean];
+  /**
+   * Emitted when a snapshot is going to be restored.
+   *
+   * Parameters:
+   *
+   *  * The snapshot to be restored.
+   */
+  snapshotRestore: [Snapshot],
+  /**
+   * Emitted after a snapshot has been restored.
+   */
+  snapshotRestored: [],
 };
 
 /**
@@ -232,7 +244,29 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     inst.sendMessage(msg, sourceName);
   }
 
-  // TODO: restoreSnapshot(snapshot: Snapshot): void
+  restoreSnapshot(snapshot: Snapshot): void {
+    this.emit("snapshotRestore", snapshot);
+
+    restoreSnapshot(this, this, snapshot);
+
+    this.emit("snapshotRestored");
+  }
+}
+
+export function restoreSnapshot(storage: Storage, supervisor: Supervisor, snapshot: Snapshot) {
+  const newNested = {}
+
+  for(let k in snapshot) {
+    const { defName, data, params, nested } = snapshot[k];
+    const spec = getStateDefinitionByName(storage, defName);
+    const inst = new StateInstance(defName, supervisor, params, data);
+
+    restoreSnapshot(storage, inst, nested);
+
+    newNested[k] = inst;
+  }
+
+  supervisor._nested = newNested;
 }
 
 export function ensureState<T, I, M>(storage: Storage, state: State<T, I, M>): void {
@@ -242,6 +276,17 @@ export function ensureState<T, I, M>(storage: Storage, state: State<T, I, M>): v
     // FIXME: Proper exception type
     throw new Error(`State object mismatch for state ${name}`);
   }
+}
+
+export function getStateDefinitionByName<T, I, M: Message>(storage: Storage, name: string): State<T, I, M> {
+  const spec = storage._defs[name];
+
+  if( ! spec) {
+    // TODO: Error type
+    throw new Error(`Missing state definition for state with name ${name}`);
+  }
+
+  return spec;
 }
 
 export type StateEvents<T> = {
@@ -412,18 +457,13 @@ export function processInstanceMessages(storage: Storage, instance: Supervisor, 
   enqueueMessages(storage, sourcePath, inflight, messages);
 
   while(instance instanceof StateInstance) {
-    const definition = storage.stateDefinition(instance._name);
+    const definition = getStateDefinitionByName(storage, instance._name);
     // Traverse down one level
-    sourcePath = sourcePath.slice(0, -1);
-
-    if( ! definition) {
-      // TODO: Error type
-      throw new Error(`Missing state definition for instantiated state with name ${instance.getName()}`);
-    }
+    sourcePath       = sourcePath.slice(0, -1);
 
     // We are going to add to messages if any new messages are generated, save
     // length here
-    const currentLimit  = inflight.length;
+    const currentLimit          = inflight.length;
     const { update, subscribe } = definition;
     // We need to be able to update the filters if the data changes
     let   messageFilter = subscribe(instance._data);
