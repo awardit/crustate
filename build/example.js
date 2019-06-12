@@ -57,6 +57,7 @@ export const commonjs = commonjsPlugin({
     ],
     "react-router-dom": [
       "BrowserRouter",
+      "Link",
     ],
     "react-router": [
       "Route",
