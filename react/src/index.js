@@ -114,7 +114,7 @@ export function useSendMessage(): (message: Message, sourceName?: string) => voi
  * Exclude children when using getNestedOrCreate, they are always new objects
  * and are most likely not of interest to the state.
  */
-function excludeChildren<T: { children?: ?React$Node }>(props: T): $Rest<T, {| children: ?React$Node |}> {
+function excludeChildren<T: { children?: ?React$Node, name?: string }>(props: T): $Rest<T, {| children: ?React$Node, name: ?string |}> {
   const { name: _n, children: _c, ...rest } = props;
 
   return rest;
@@ -128,7 +128,7 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
   const DataContext  = (createContext(undefined): React$Context<T | void>);
   const DataProvider = DataContext.Provider;
 
-  function StateProvider(props) {
+  function StateProvider(props: DataProviderProps<I>) {
     const context = useContext(StateContext);
 
     if( ! context) {
