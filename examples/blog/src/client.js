@@ -8,7 +8,7 @@ import React             from "react";
 import { render }        from "react-dom";
 import { BrowserRouter } from "react-router-dom";
 import App               from "./app";
-import { PostList }      from "./state";
+import { PostListData }  from "./state";
 
 const basename   = window.routerBasename;
 const storage    = new Storage();
@@ -29,10 +29,12 @@ const subscriber = (msg: DataRequest, source: StatePath) => {
   }
 };
 
+["unhandledMessage", "stateCreated", "stateRemoved", "stateNewData", "messageMatched"].forEach(e => storage.addListener(e, (...data) => console.log(e, ...data)));
+
 storage.addSubscriber(subscriber, { "effects/request": true });
 
 // Register the possible states we might restore when we call restoreSnapshot();
-storage.registerState(PostList.state);
+storage.registerState(PostListData.state);
 
 // TODO: Implement restoreSnapshot
 /*

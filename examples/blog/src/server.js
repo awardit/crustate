@@ -1,9 +1,9 @@
 /* @flow */
 
 import type { StatePath } from "crustate";
-import type { DataRequest
-            , Post
-            , PostHeading } from "./effects";
+import type { DataRequest } from "./effects";
+import type { Post
+            , PostHeading } from "./state";
 
 import { StaticRouter }         from "react-router";
 import express                  from "express";
@@ -26,7 +26,7 @@ function getPost(id: number, cb: ((error: true) => mixed) & (error: false, post:
   case 1:
     return cb(false, { id: 1, title: "Post one", body: "This is the first post", author: "Test", date: new Date() });
   case 2:
-    return cb(false, { id: 2, title: "Post one", body: "This is the first post", author: "Martin", date: new Date() });
+    return cb(false, { id: 2, title: "Post B", body: "This is another post", author: "Martin", date: new Date() });
   default:
     return cb(true);
   }
@@ -92,7 +92,7 @@ function createRequestHandler(storage: Storage) {
 app.get("/api/posts", (req, res) => listPosts((error, posts) => error
   ? res.status(500).send(error)
   : res.json(posts)));
-app.get("/api/posts/:id", (req, res) => getPost(req.params.id, (error, post) => error
+app.get("/api/posts/:id", (req, res) => getPost(parseInt(req.params.id, 10), (error, post) => error
   ? res.status(404).end()
   : res.json(post)));
 

@@ -1,15 +1,16 @@
 /* @flow */
 
-import React        from "react";
-import { useData }  from "crustate/react";
-import { PostList } from "../state";
+import React            from "react";
+import { Link }         from "react-router-dom";
+import { useData }      from "crustate/react";
+import { PostListData } from "../state";
 
 const PostItem = ({ id, title }) => <article key={id}>
-  <h2>{title}</h2>
+  <h2><Link to={`/post/${id}`}>{title}</Link></h2>
 </article>;
 
-export const ListPosts = () => {
-  const items = useData(PostList);
+export const ListPostsView = () => {
+  const items = useData(PostListData);
 
   if( ! Array.isArray(items)) {
     return <section>

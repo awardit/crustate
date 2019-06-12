@@ -1,22 +1,11 @@
 /* @flow */
 import type { StatePath
             , Storage } from "crustate";
+import type { Post
+            , PostHeading } from "./state";
 
 export const LIST_RESPONSE: "effects/response/list" = "effects/response/list";
 export const POST_RESPONSE: "effects/response/post" = "effects/response/post";
-
-export type PostHeading = {
-  id:    number,
-  title: string
-};
-
-export type Post = {
-  id:     number,
-  title:  string,
-  date:   Date,
-  author: string,
-  body:   string,
-};
 
 export type DataRequest =
   | {| tag: "effects/request", resource: "list" |}
