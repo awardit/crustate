@@ -366,3 +366,36 @@ test("Rerender with new storage should recreate the state instance in the new st
   t.is(emitB.calls.length, 1);
   t.deepEqual(emitB.calls[0].arguments, ["stateCreated", ["state"], { data: "the initial" }, "the initial"]);
 });
+
+test.failing("Using react key will recreate the state instance", t => {
+  const s       = new Storage();
+  const emit    = t.context.spy(s, "emit");
+  const Wrapper = ({ children }) => {
+    const [key, setKey] = useState("a");
+
+    console.log(key);
+
+    return <StateContext.Provider value={s}>
+      <a onClick={() => setKey("b")}>Click</a>
+      <MyData.Provider key={key} data={key}>
+        {children}
+      </MyData.Provider>
+    </StateContext.Provider>;
+  };
+
+  const { container, getByText } = render(<Wrapper><MyDataUseDataComponent /></Wrapper>);
+
+  t.is(container.outerHTML, `<div><a>Click</a><p>a</p></div>`);
+
+  const btn = getByText("Click");
+  t.not(btn, undefined);
+
+  fireEvent.click(btn);
+
+  t.is(container.outerHTML, `<div><a>Click</a><p>b</p></div>`);
+
+  t.is(emit.calls.length, 3);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "a" }, "a"]);
+  t.deepEqual(emit.calls[1].arguments, ["stateRemoved", ["state"], "a"]);
+  t.deepEqual(emit.calls[2].arguments, ["stateCreated", ["state"], { data: "b" }, "b"]);
+});
