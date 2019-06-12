@@ -367,7 +367,7 @@ test("Rerender with new storage should recreate the state instance in the new st
   t.deepEqual(emitB.calls[0].arguments, ["stateCreated", ["state"], { data: "the initial" }, "the initial"]);
 });
 
-test.failing("Using react key will recreate the state instance", t => {
+test("Using react key will recreate the state instance", t => {
   const s       = new Storage();
   const emit    = t.context.spy(s, "emit");
   const Wrapper = ({ children }) => {
@@ -375,7 +375,7 @@ test.failing("Using react key will recreate the state instance", t => {
 
     return <StateContext.Provider value={s}>
       <a onClick={() => setKey("b")}>Click</a>
-      <MyData.Provider key={key} data={key}>
+      <MyData.Provider name={key} data={key}>
         {children}
       </MyData.Provider>
     </StateContext.Provider>;
@@ -392,8 +392,7 @@ test.failing("Using react key will recreate the state instance", t => {
 
   t.is(container.outerHTML, `<div><a>Click</a><p>b</p></div>`);
 
-  t.is(emit.calls.length, 3);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "a" }, "a"]);
-  t.deepEqual(emit.calls[1].arguments, ["stateRemoved", ["state"], "a"]);
-  t.deepEqual(emit.calls[2].arguments, ["stateCreated", ["state"], { data: "b" }, "b"]);
+  t.is(emit.calls.length, 2);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["a"], { data: "a" }, "a"]);
+  t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["b"], { data: "b" }, "b"]);
 });

@@ -24,7 +24,7 @@ type StateProviderState<T, I, M> = {
   data:     T,
 };
 
-type DataProviderProps<T> = T & { children?: ?React$Node };
+type DataProviderProps<T> = T & { name?: string, children?: ?React$Node };
 
 // FIXME: Redefine this so it throws when undefined
 export type DataFunction<T> = (data: T | void) => ?React$Node;
@@ -115,7 +115,7 @@ export function useSendMessage(): (message: Message, sourceName?: string) => voi
  * and are most likely not of interest to the state.
  */
 function excludeChildren<T: { children?: ?React$Node }>(props: T): $Rest<T, {| children: ?React$Node |}> {
-  const { children: _, ...rest } = props;
+  const { name: _n, children: _c, ...rest } = props;
 
   return rest;
 }
@@ -135,7 +135,7 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
       throw new Error(`<${state.name}.Provider /> must be used inside a <StorageProvider />`);
     }
 
-    const instance        = context.getNestedOrCreate(state, excludeChildren(props));
+    const instance        = context.getNestedOrCreate(state, excludeChildren(props), props.name);
     const [data, setData] = useState(() => instance.getData());
 
     useEffect(() => {
