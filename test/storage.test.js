@@ -37,6 +37,8 @@ test("Storage is not modified when querying for state-instances or definitions",
   t.is(s.stateDefinition("foo"), undefined);
   // $ExpectError minimal State instance for this
   t.is(s.getNested({ name: "foo" }), undefined);
+  // $ExpectError minimal State instance for this
+  t.is(s.getNested({ name: "foo" }, "bar"), undefined);
   t.deepEqual(s.getSnapshot(), {});
   t.is(emit.calls.length, 0);
   // Looking at internals
@@ -1062,4 +1064,248 @@ test("restoreSnapshot restores nested snapshots", t => {
   t.is(subscribe.calls.length, 0);
 });
 
-test.todo("Tests with different names");
+test("Storage getNested, getNestedOrCreate, and removeNested, with a different name should not affect the existing", t => {
+  const s         = new Storage();
+  const emit      = t.context.spy(s, "emit");
+  const init      = t.context.stub(() => updateData(1));
+  const update    = t.context.stub(() => updateData(2));
+  const subscribe = t.context.stub(() => ({}));
+  const d = {
+    name: "foo",
+    init,
+    update,
+    subscribe,
+  };
+
+  t.is(s.getNested(d), undefined);
+  t.is(s.getNested(d, "foo"), undefined);
+  t.is(s.getNested(d, "bar"), undefined);
+  t.not(s.getNestedOrCreate(d), undefined);
+
+  t.deepEqual(s.getSnapshot(), { foo: { id: "foo", data: 1, params: undefined, nested: {} } });
+
+  t.not(s.getNested(d), undefined);
+  t.is(s.getNested(d), s.getNested(d, "foo"));
+  t.is(s.getNestedOrCreate(d), s.getNestedOrCreate(d, undefined, "foo"));
+  t.is(s.getNested(d), s.getNested(d, "foo"));
+  t.is(s.getNested(d, "bar"), undefined);
+  t.not(s.getNestedOrCreate(d, null, "bar"), undefined);
+
+  t.deepEqual(s.getSnapshot(), {
+    foo: { id: "foo", data: 1, params: undefined, nested: {} },
+    bar: { id: "foo", data: 1, params: null, nested: {} },
+  });
+
+  const sFoo = s.getNestedOrCreate(d, undefined, "foo");
+  const sBar = s.getNestedOrCreate(d, null, "bar");
+
+  t.not(sFoo, undefined);
+  t.not(sBar, undefined);
+  t.not(sFoo, sBar);
+
+  t.is(sFoo.getName(), "foo");
+  t.deepEqual(sFoo.getPath(), ["foo"]);
+  t.is(sFoo.getStorage(), s);
+  t.is(sBar.getName(), "bar");
+  t.deepEqual(sBar.getPath(), ["bar"]);
+  t.is(sBar.getStorage(), s);
+
+  s.removeNested(d);
+
+  t.deepEqual(s.getSnapshot(), {
+    bar: { id: "foo", data: 1, params: null, nested: {} },
+  });
+
+  t.not(s.getNestedOrCreate(d, null, "baz"), undefined);
+
+  t.deepEqual(s.getSnapshot(), {
+    bar: { id: "foo", data: 1, params: null, nested: {} },
+    baz: { id: "foo", data: 1, params: null, nested: {} },
+  });
+
+  t.is(s.getNested(d), undefined);
+  t.is(s.getNested(d, "foo"), undefined);
+  t.not(s.getNested(d, "bar"), undefined);
+  t.not(s.getNested(d, "baz"), undefined);
+
+  s.removeNested(d);
+
+  t.deepEqual(s.getSnapshot(), {
+    bar: { id: "foo", data: 1, params: null, nested: {} },
+    baz: { id: "foo", data: 1, params: null, nested: {} },
+  });
+
+  s.removeNested(d, "bar");
+
+  t.deepEqual(s.getSnapshot(), {
+    baz: { id: "foo", data: 1, params: null, nested: {} },
+  });
+
+  t.not(s.getNestedOrCreate(d), undefined);
+
+  t.deepEqual(s.getSnapshot(), {
+    foo: { id: "foo", data: 1, params: undefined, nested: {} },
+    baz: { id: "foo", data: 1, params: null, nested: {} },
+  });
+
+  s.removeNested(d, "foo");
+
+  t.deepEqual(s.getSnapshot(), {
+    baz: { id: "foo", data: 1, params: null, nested: {} },
+  });
+
+  t.is(emit.calls.length, 7);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["foo"], undefined, 1]);
+  t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["bar"], null, 1]);
+  t.deepEqual(emit.calls[2].arguments, ["stateRemoved", ["foo"], 1]);
+  t.deepEqual(emit.calls[3].arguments, ["stateCreated", ["baz"], null, 1]);
+  t.deepEqual(emit.calls[4].arguments, ["stateRemoved", ["bar"], 1]);
+  t.deepEqual(emit.calls[5].arguments, ["stateCreated", ["foo"], undefined, 1]);
+  t.deepEqual(emit.calls[6].arguments, ["stateRemoved", ["foo"], 1]);
+  t.is(init.calls.length, 4);
+  t.is(update.calls.length, 0);
+  t.is(subscribe.calls.length, 0);
+});
+
+test("StateInstance getNested, getNestedOrCreate, and removeNested, with a different name should not affect the existing", t => {
+  const s         = new Storage();
+  const emit      = t.context.spy(s, "emit");
+  const init      = t.context.stub(() => updateData(1));
+  const update    = t.context.stub(() => updateData(2));
+  const subscribe = t.context.stub(() => ({}));
+  const d = {
+    name: "foo",
+    init,
+    update,
+    subscribe,
+  };
+
+  const nested = s.getNestedOrCreate(d, undefined, "bar");
+
+  t.is(nested.getNested(d), undefined);
+  t.is(nested.getNested(d, "foo"), undefined);
+  t.is(nested.getNested(d, "bar"), undefined);
+  t.not(nested.getNestedOrCreate(d), undefined);
+
+  t.deepEqual(s.getSnapshot(), { bar: { id: "foo", data: 1, params: undefined, nested: {
+    foo: { id: "foo", data: 1, params: undefined, nested: {} },
+  } } });
+
+  t.not(nested.getNested(d), undefined);
+  t.not(nested.getNested(d), s.getNested(d));
+  t.is(nested.getNested(d), nested.getNested(d, "foo"));
+  t.is(nested.getNestedOrCreate(d), nested.getNestedOrCreate(d, undefined, "foo"));
+  t.is(nested.getNested(d), nested.getNested(d, "foo"));
+  t.is(nested.getNested(d, "bar"), undefined);
+  t.not(nested.getNestedOrCreate(d, null, "bar"), undefined);
+
+  t.deepEqual(s.getSnapshot(), { bar: { id: "foo", data: 1, params: undefined, nested: {
+    foo: { id: "foo", data: 1, params: undefined, nested: {} },
+    bar: { id: "foo", data: 1, params: null, nested: {} },
+  }}});
+
+  const sFoo = nested.getNestedOrCreate(d, undefined, "foo");
+  const sBar = nested.getNestedOrCreate(d, null, "bar");
+
+  t.not(sFoo, undefined);
+  t.not(sBar, undefined);
+  t.not(sFoo, sBar);
+
+  t.is(sFoo.getName(), "foo");
+  t.deepEqual(sFoo.getPath(), ["bar", "foo"]);
+  t.is(sFoo.getStorage(), s);
+  t.is(sBar.getName(), "bar");
+  t.deepEqual(sBar.getPath(), ["bar", "bar"]);
+  t.is(sBar.getStorage(), s);
+
+  nested.removeNested(d);
+
+  t.deepEqual(s.getSnapshot(), { bar: { id: "foo", data: 1, params: undefined, nested: {
+    bar: { id: "foo", data: 1, params: null, nested: {} },
+  }}});
+
+  t.not(nested.getNestedOrCreate(d, null, "baz"), undefined);
+
+  t.deepEqual(s.getSnapshot(), { bar: { id: "foo", data: 1, params: undefined, nested: {
+    bar: { id: "foo", data: 1, params: null, nested: {} },
+    baz: { id: "foo", data: 1, params: null, nested: {} },
+  }}});
+
+  t.is(nested.getNested(d), undefined);
+  t.is(nested.getNested(d, "foo"), undefined);
+  t.not(nested.getNested(d, "bar"), undefined);
+  t.not(nested.getNested(d, "baz"), undefined);
+
+  nested.removeNested(d);
+
+  t.deepEqual(s.getSnapshot(), { bar: { id: "foo", data: 1, params: undefined, nested: {
+    bar: { id: "foo", data: 1, params: null, nested: {} },
+    baz: { id: "foo", data: 1, params: null, nested: {} },
+  }}});
+
+  nested.removeNested(d, "bar");
+
+  t.deepEqual(s.getSnapshot(), { bar: { id: "foo", data: 1, params: undefined, nested: {
+    baz: { id: "foo", data: 1, params: null, nested: {} },
+  }}});
+
+  t.not(nested.getNestedOrCreate(d), undefined);
+
+  t.deepEqual(s.getSnapshot(), { bar: { id: "foo", data: 1, params: undefined, nested: {
+    foo: { id: "foo", data: 1, params: undefined, nested: {} },
+    baz: { id: "foo", data: 1, params: null, nested: {} },
+  }}});
+
+  nested.removeNested(d, "foo");
+
+  t.deepEqual(s.getSnapshot(), { bar: { id: "foo", data: 1, params: undefined, nested: {
+    baz: { id: "foo", data: 1, params: null, nested: {} },
+  }}});
+
+  t.is(emit.calls.length, 8);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["bar"], undefined, 1]);
+  t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["bar", "foo"], undefined, 1]);
+  t.deepEqual(emit.calls[2].arguments, ["stateCreated", ["bar", "bar"], null, 1]);
+  t.deepEqual(emit.calls[3].arguments, ["stateRemoved", ["bar", "foo"], 1]);
+  t.deepEqual(emit.calls[4].arguments, ["stateCreated", ["bar", "baz"], null, 1]);
+  t.deepEqual(emit.calls[5].arguments, ["stateRemoved", ["bar", "bar"], 1]);
+  t.deepEqual(emit.calls[6].arguments, ["stateCreated", ["bar", "foo"], undefined, 1]);
+  t.deepEqual(emit.calls[7].arguments, ["stateRemoved", ["bar", "foo"], 1]);
+  t.is(init.calls.length, 5);
+  t.is(update.calls.length, 0);
+  t.is(subscribe.calls.length, 0);
+});
+
+test("getNestedOrCreate with a different name should still work to send messages", t => {
+  const s         = new Storage();
+  const emit      = t.context.spy(s, "emit");
+  const init      = t.context.stub(() => updateData(1));
+  const update    = t.context.stub(() => updateData(2));
+  const subscribe = t.context.stub(() => ({}));
+  const d = {
+    name: "foo",
+    init,
+    update,
+    subscribe,
+  };
+
+  const nested = s.getNestedOrCreate(d, undefined, "bar");
+
+  const sFoo = nested.getNestedOrCreate(d)
+  const sBar = nested.getNestedOrCreate(d, null, "bar");
+
+  sFoo.sendMessage({ tag: "AAA", testing: "foo" });
+  sBar.sendMessage({ tag: "AAA", testing: "bar" });
+
+  t.is(emit.calls.length, 7);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["bar"], undefined, 1]);
+  t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["bar", "foo"], undefined, 1]);
+  t.deepEqual(emit.calls[2].arguments, ["stateCreated", ["bar", "bar"], null, 1]);
+  t.deepEqual(emit.calls[3].arguments, ["messageQueued", { tag: "AAA", testing: "foo" }, ["bar", "foo", "$"]]);
+  t.deepEqual(emit.calls[4].arguments, ["unhandledMessage", { tag: "AAA", testing: "foo" }, ["bar", "foo", "$"]]);
+  t.deepEqual(emit.calls[5].arguments, ["messageQueued", { tag: "AAA", testing: "bar" }, ["bar", "bar", "$"]]);
+  t.deepEqual(emit.calls[6].arguments, ["unhandledMessage", { tag: "AAA", testing: "bar" }, ["bar", "bar", "$"]]);
+  t.is(init.calls.length, 3);
+  t.is(update.calls.length, 0);
+  t.is(subscribe.calls.length, 4);
+});
