@@ -1,11 +1,18 @@
-import resolve  from "rollup-plugin-node-resolve";
-import commonjs from "rollup-plugin-commonjs";
-import babel    from "rollup-plugin-babel";
-import replace  from "rollup-plugin-replace";
-import alias    from "rollup-plugin-alias";
-import postcss  from "rollup-plugin-postcss";
+import resolvePlugin  from "rollup-plugin-node-resolve";
+import commonjsPlugin from "rollup-plugin-commonjs";
+import babelPlugin    from "rollup-plugin-babel";
+import replacePlugin  from "rollup-plugin-replace";
+import aliasPlugin    from "rollup-plugin-alias";
+import postcssPlugin  from "rollup-plugin-postcss";
 
-const babelOpts = {
+export const alias = aliasPlugin({
+  // More specific needs to be first, otherwise will alias try to suffix
+  // `/react` on top of `index.mjs`:
+  "crustate/react": "react/dist/index.mjs",
+  "crustate":       "dist/index.mjs",
+});
+
+export const babel = babelPlugin({
   exclude:         "node_modules/**",
   babelrc:         false,
   externalHelpers: false,
@@ -27,10 +34,46 @@ const babelOpts = {
     ["@babel/plugin-transform-flow-strip-types"],
     ["@babel/plugin-proposal-class-properties", { loose: true }],
   ],
-};
-const postcssOpts = {
+});
+
+export const commonjs = commonjsPlugin({
+  namedExports: {
+    "react": [
+      "Component",
+      "Children",
+      "Fragment",
+      "PureComponent",
+      "createContext",
+      "createElement",
+      "useContext",
+      "useEffect",
+      "useState",
+    ],
+    "react-dom": [
+      "render"
+    ],
+    "react-is": [
+      "isValidElementType",
+    ],
+    "react-router-dom": [
+      "BrowserRouter",
+      "Link",
+    ],
+    "react-router": [
+      "Route",
+    ],
+  },
+});
+
+export const postcss = postcssPlugin({
   extract: true,
-};
+});
+
+export const replace = replacePlugin({
+  "process.env.NODE_ENV": JSON.stringify("production"),
+});
+
+export const resolve = resolvePlugin({ mainFields: ["browser", "module", "main"] });
 
 export const config = path => ({
   input: `${path}/src/index.js`,
@@ -40,32 +83,11 @@ export const config = path => ({
     sourcemap: true,
   },
   plugins: [
-    alias({
-      // More specific needs to be first, otherwise will alias try to suffix
-      // `/react` on top of `index.mjs`:
-      "crustate/react": "react/dist/index.mjs",
-      "crustate":       "dist/index.mjs",
-    }),
-    babel(babelOpts),
-    postcss(postcssOpts),
-    commonjs({
-      namedExports: {
-        "react": [
-          "Component",
-          "Children",
-          "Fragment",
-          "PureComponent",
-          "createContext",
-          "createElement",
-          "useContext",
-          "useEffect",
-          "useState",
-        ],
-      },
-    }),
-    resolve({ mainFields: ["browser", "module", "main"] }),
-    replace({
-      "process.env.NODE_ENV": JSON.stringify("production"),
-    }),
+    alias,
+    babel,
+    postcss,
+    commonjs,
+    resolve,
+    replace,
   ],
 });
