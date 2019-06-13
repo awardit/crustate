@@ -70,10 +70,10 @@ function createRequestHandler(storage: Storage) {
 
       getPost(msg.id, (error, data) => {
         if(error) {
-          storage.replyMessage({ tag: "effects/response/list", error }, source);
+          storage.replyMessage({ tag: "effects/response/post", error }, source);
         }
         else {
-          storage.replyMessage({ tag: "effects/response/list", data }, source);
+          storage.replyMessage({ tag: "effects/response/post", data }, source);
         }
 
         finish();
