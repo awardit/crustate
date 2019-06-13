@@ -367,7 +367,7 @@ test("Rerender with new storage should recreate the state instance in the new st
   t.deepEqual(emitB.calls[0].arguments, ["stateCreated", ["state"], { data: "the initial" }, "the initial"]);
 });
 
-test("Using react key will recreate the state instance", t => {
+test("Varying name property will recreate the state instance", t => {
   const s       = new Storage();
   const emit    = t.context.spy(s, "emit");
   const Wrapper = ({ children }) => {
