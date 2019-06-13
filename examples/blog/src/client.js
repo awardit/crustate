@@ -8,7 +8,8 @@ import React             from "react";
 import { render }        from "react-dom";
 import { BrowserRouter } from "react-router-dom";
 import App               from "./app";
-import { PostListData }  from "./state";
+import { PostData
+       , PostListData }  from "./state";
 
 const basename   = window.routerBasename;
 const storage    = new Storage();
@@ -35,13 +36,11 @@ storage.addSubscriber(subscriber, { "effects/request": true });
 
 // Register the possible states we might restore when we call restoreSnapshot();
 storage.registerState(PostListData.state);
+storage.registerState(PostData.state);
 
-// TODO: Implement restoreSnapshot
-/*
 if(window.appdata) {
   storage.restoreSnapshot(window.appdata);
 }
-*/
 
 // Set storage on window so we can inspect it
 window.appState = storage;
