@@ -6,7 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.1.0] - 2019-06-13
 ### Added
+- Added `Storage` `restoreSnapshot`
 - Added optional `name` parameter to React `DataProvider` which will use the
   supplied string as the state-name.
 - Added optional `name` parameter to `Storage` and `StateInstance` `getNested`,
