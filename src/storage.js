@@ -6,6 +6,7 @@ import type { InflightMessage
             , Message
             , SubscriptionMap } from "./message";
 
+import { debugAssert } from "./assert";
 import { updateHasData
        , updateStateData
        , updateStateDataNoNone
@@ -20,13 +21,10 @@ interface AbstractSupervisor {
   _nested: StateInstanceMap;
   getStorage(): Storage;
   getPath(): StatePath;
-  // TODO: Possibility to specify a name which does not match the state-name
-  //       for the instance storage, would enable multiple instances on the
-  //       same level
-  getNested<T, I, M>(state: State<T, I, M>): ?StateInstance<T, I, M>;
-  getNestedOrCreate<T, I, M>(state: State<T, I, M>, params: I): StateInstance<T, I, M>;
+  getNested<T, I, M>(state: State<T, I, M>, name?: string): ?StateInstance<T, I, M>;
+  getNestedOrCreate<T, I, M>(state: State<T, I, M>, params: I, name?: string): StateInstance<T, I, M>;
   sendMessage(message: Message, sourceName?: string): void;
-  removeNested<T, I, M>(state: State<T, I, M>): void;
+  removeNested<T, I, M>(state: State<T, I, M>, name?: string): void;
 }
 
 /**
@@ -36,7 +34,7 @@ interface AbstractSupervisor {
 export type Snapshot = { [instanceName:string]: StateSnapshot };
 export type StateSnapshot = {
   // Name to use to find the state-definition when loading the snapshot
-  defName: string,
+  id:      string,
   data:    mixed,
   params:  mixed,
   nested:  Snapshot,
@@ -137,7 +135,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   /**
    * State-definitions, used for subscribers and messages.
    */
-  _defs: { [key:string]: State<any, any, any> } = {};
+  _defs: { [id:string]: State<any, any, any> } = {};
 
   constructor(): void {
     // TODO: Restore state
@@ -168,10 +166,10 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
    * was new, `false` otherwise.
    */
   tryRegisterState<T, I, M>(state: State<T, I, M>): boolean {
-    const { name } = state;
+    const { name: id } = state;
 
-    if( ! this._defs[name]) {
-      this._defs[name] = state;
+    if( ! this._defs[id]) {
+      this._defs[id] = state;
 
       return true;
     }
@@ -181,32 +179,35 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     return false;
   };
 
-  stateDefinition<T, I, M>(instanceName: string): ?State<T, I, M> {
-    return this._defs[instanceName];
+  stateDefinition<T, I, M>(instanceId: string): ?State<T, I, M> {
+    return this._defs[instanceId];
   };
 
-  getNested<T, I, M>(state: State<T, I, M>): ?StateInstance<T, I, M> {
-    const { _nested } = this;
-
+  getNested<T, I, M>(state: State<T, I, M>, name?: string): ?StateInstance<T, I, M> {
     if(process.env.NODE_ENV !== "production") {
       ensureState(this, state);
     }
 
-    return _nested[state.name];
-  };
-
-  getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J): StateInstance<U, J, N> {
-    return getNestedOrCreate(this, state, params);
-  };
-
-  removeNested<U, J, N>(state: State<U, J, N>) {
-    const inst        = this.getNested(state);
-    const { _nested } = this;
+    const inst = this._nested[name || state.name];
 
     if(inst) {
-      this.emit("stateRemoved", inst.getPath(), inst._data);
+      debugAssert(inst._name === (name || state.name), `State instance name '${inst._name}' does not match key name '${name || state.name}`);
+    }
 
-      delete _nested[inst._name];
+    return inst;
+  };
+
+  getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J, name?: string): StateInstance<U, J, N> {
+    return getNestedOrCreate(this, state, params, name);
+  };
+
+  removeNested<U, J, N>(state: State<U, J, N>, name?: string) {
+    const inst = this.getNested(state, name);
+
+    if(inst) {
+      delete this._nested[name || inst._name];
+
+      this.emit("stateRemoved", inst.getPath(), inst._data);
     }
   };
 
@@ -257,9 +258,9 @@ export function restoreSnapshot(storage: Storage, supervisor: Supervisor, snapsh
   const newNested = {}
 
   for(let k in snapshot) {
-    const { defName, data, params, nested } = snapshot[k];
-    const spec = getStateDefinitionByName(storage, defName);
-    const inst = new StateInstance(defName, supervisor, params, data);
+    const { id, data, params, nested } = snapshot[k];
+    const spec = getStateDefinitionById(storage, id);
+    const inst = new StateInstance(id, supervisor, params, data, k);
 
     restoreSnapshot(storage, inst, nested);
 
@@ -270,20 +271,20 @@ export function restoreSnapshot(storage: Storage, supervisor: Supervisor, snapsh
 }
 
 export function ensureState<T, I, M>(storage: Storage, state: State<T, I, M>): void {
-  const { name } = state;
+  const { name: id } = state;
 
-  if(storage._defs[name] && storage._defs[name] !== state) {
+  if(storage._defs[id] && storage._defs[id] !== state) {
     // FIXME: Proper exception type
-    throw new Error(`State object mismatch for state ${name}`);
+    throw new Error(`State object mismatch for state ${id}`);
   }
 }
 
-export function getStateDefinitionByName<T, I, M: Message>(storage: Storage, name: string): State<T, I, M> {
-  const spec = storage._defs[name];
+export function getStateDefinitionById<T, I, M: Message>(storage: Storage, id: string): State<T, I, M> {
+  const spec = storage._defs[id];
 
   if( ! spec) {
     // TODO: Error type
-    throw new Error(`Missing state definition for state with name ${name}`);
+    throw new Error(`Missing state definition for state with name ${id}`);
   }
 
   return spec;
@@ -304,6 +305,10 @@ export type StateEvents<T> = {
 
 export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> implements AbstractSupervisor {
   /**
+   * Matches the Storage _defs collection.
+   */
+  _id:         string;
+  /**
    * Matches the key used in the supervisor's `_nested` collection.
    */
   _name:       string;
@@ -312,9 +317,10 @@ export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> impleme
   _supervisor: Supervisor;
   _nested:     StateInstanceMap = {};
 
-  constructor(name: string, supervisor: Supervisor, params: I, data: T): void {
+  constructor(id: string, supervisor: Supervisor, params: I, data: T, name: string): void {
     super();
 
+    this._id         = id;
     this._name       = name;
     this._supervisor = supervisor;
     this._params     = params;
@@ -352,27 +358,31 @@ export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> impleme
     return path;
   };
 
-  getNested<U, J, N>(state: State<U, J, N>): ?StateInstance<U, J, N> {
-    const { _nested } = this;
-
+  getNested<U, J, N>(state: State<U, J, N>, name?: string): ?StateInstance<U, J, N> {
     if(process.env.NODE_ENV !== "production") {
       ensureState(this.getStorage(), state);
     }
 
-    return _nested[state.name];
-  };
-
-  getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J): StateInstance<U, J, N> {
-    return getNestedOrCreate(this, state, params);
-  };
-
-  removeNested<U, J, N>(state: State<U, J, N>) {
-    const inst = this.getNested(state);
+    const inst = this._nested[name || state.name];
 
     if(inst) {
-      this.getStorage().emit("stateRemoved", inst.getPath(), inst._data);
+      debugAssert(inst._name === (name || state.name), `State instance name '${inst._name}' does not match key name '${name || state.name}`);
+    }
 
-      delete this._nested[inst._name];
+    return inst;
+  };
+
+  getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J, name?: string): StateInstance<U, J, N> {
+    return getNestedOrCreate(this, state, params, name);
+  };
+
+  removeNested<U, J, N>(state: State<U, J, N>, name?: string) {
+    const inst = this.getNested(state, name);
+
+    if(inst) {
+      delete this._nested[name || inst._name];
+
+      this.getStorage().emit("stateRemoved", inst.getPath(), inst._data);
     }
   };
 
@@ -383,8 +393,8 @@ export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> impleme
   };
 };
 
-export function getNestedOrCreate<T, I, M>(supervisor: Supervisor, state: State<T, I, M>, params: I): StateInstance<T, I, M> {
-  const child = supervisor.getNested(state);
+export function getNestedOrCreate<T, I, M>(supervisor: Supervisor, state: State<T, I, M>, params: I, name?: string): StateInstance<T, I, M> {
+  const child = supervisor.getNested(state, name);
 
   if(child) {
     // TODO: Diff and send message if the params are different
@@ -392,23 +402,26 @@ export function getNestedOrCreate<T, I, M>(supervisor: Supervisor, state: State<
     return child;
   }
 
-  return createState(supervisor, state, params);
+  return createState(supervisor, state, params, name);
 }
 
-export function createState<T, I, M>(supervisor: Supervisor, state: State<T, I, M>, initialData: I): StateInstance<T, I, M> {
-  const { _nested }    = supervisor;
-  const storage        = supervisor.getStorage();
-  const { name, init } = state;
+export function createState<T, I, M>(supervisor: Supervisor, state: State<T, I, M>, initialData: I, name?: string): StateInstance<T, I, M> {
+  const storage  = supervisor.getStorage();
+  const { name: id, init } = state;
+
+  if( ! name) {
+    name = id;
+  }
 
   storage.tryRegisterState(state);
 
   const update   = init(initialData);
   const data     = updateStateDataNoNone(update);
   const messages = updateOutgoingMessages(update);
-  const instance = new StateInstance(name, supervisor, initialData, data);
+  const instance = new StateInstance(id, supervisor, initialData, data, name);
   const path     = instance.getPath();
 
-  _nested[name] = instance;
+  supervisor._nested[name] = instance;
 
   storage.emit("stateCreated", path, (initialData: any), data);
 
@@ -456,7 +469,7 @@ export function processInstanceMessages(storage: Storage, instance: Supervisor, 
   enqueueMessages(storage, sourcePath, inflight, messages);
 
   while(instance instanceof StateInstance) {
-    const definition = getStateDefinitionByName(storage, instance._name);
+    const definition = getStateDefinitionById(storage, instance._id);
     // Traverse down one level
     sourcePath       = sourcePath.slice(0, -1);
 
@@ -536,7 +549,7 @@ function processStorageMessage(storage: Storage, inflight: InflightMessage) {
 
 export function createStateSnapshot(node: StateInstance<any, any, any>): StateSnapshot {
   return {
-    defName: node._name,
+    id:      node._id,
     // We assume it is immutably updated
     data:    node._data,
     params:  node._params,

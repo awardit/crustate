@@ -24,7 +24,7 @@ type StateProviderState<T, I, M> = {
   data:     T,
 };
 
-type DataProviderProps<T> = T & { children?: ?React$Node };
+type DataProviderProps<T> = T & { name?: string, children?: ?React$Node };
 
 // FIXME: Redefine this so it throws when undefined
 export type DataFunction<T> = (data: T | void) => ?React$Node;
@@ -111,11 +111,17 @@ export function useSendMessage(): (message: Message, sourceName?: string) => voi
 }
 
 /**
- * Exclude children when using getNestedOrCreate, they are always new objects
- * and are most likely not of interest to the state.
+ * Exclude children and name properties when using getNestedOrCreate, children
+ * are always new objects and are most likely not of interest to the state, and
+ * name is an external parameter.
  */
-function excludeChildren<T: { children?: ?React$Node }>(props: T): $Rest<T, {| children: ?React$Node |}> {
-  const { children: _, ...rest } = props;
+function excludeChildren<T: { children?: ?React$Node, name?: string }>(props: T): $Rest<T, {| children: ?React$Node, name: ?string |}> {
+  // Manually implemented object-rest-spread to avoid Babel's larger implementation
+  // Object.assign causes Babel to to add an unnecessary polyfill so use spread
+  const rest = { ...props };
+
+  delete rest.children;
+  delete rest.name;
 
   return rest;
 }
@@ -125,18 +131,18 @@ function excludeChildren<T: { children?: ?React$Node }>(props: T): $Rest<T, {| c
  * @return {!StateData}
  */
 export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T, I, M> {
-  const DataContext  = (createContext(undefined): React$Context<T | void>);
-  const DataProvider = DataContext.Provider;
+  const Ctx      = (createContext(undefined): React$Context<T | void>);
+  const Provider = Ctx.Provider;
 
-  function StateProvider(props) {
+  function DataProvider(props: DataProviderProps<I>) {
     const context = useContext(StateContext);
 
     if( ! context) {
       throw new Error(`<${state.name}.Provider /> must be used inside a <StorageProvider />`);
     }
 
-    const instance        = context.getNestedOrCreate(state, excludeChildren(props));
-    const [data, setData] = useState(() => instance.getData());
+    const instance        = context.getNestedOrCreate(state, excludeChildren(props), props.name);
+    const [data, setData] = useState(instance.getData());
 
     useEffect(() => {
       instance.addListener("stateNewData", setData);
@@ -160,19 +166,19 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
     }, [context, instance]);
 
     return createElement(InstanceProvider, { value: instance },
-      createElement(DataProvider, { value: data },
+      createElement(Provider, { value: data },
         props.children));
   }
 
   return {
-    _dataContext: DataContext,
+    _dataContext: Ctx,
     state: state,
     // We have to cheat here since the value must be possible to use as
     // undefined internally, but when testing it should not be possible to use
     // without a fully defined `T`:
-    TestProvider: (DataProvider: React$ComponentType<{ children: ?React$Node, value: any }>),
-    Provider: StateProvider,
-    Consumer: DataContext.Consumer,
+    TestProvider: (Provider: React$ComponentType<{ children: ?React$Node, value: any }>),
+    Provider: DataProvider,
+    Consumer: Ctx.Consumer,
   };
 }
 
