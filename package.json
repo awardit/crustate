@@ -46,14 +46,14 @@
     "distclean": "rm -rf package-lock.json node_modules dist react/dist preact/dist coverage .nyc_output examples/blog/dist examples/counter/dist examples/todomvc/dist",
     "examples": "node examples",
     "flow": "flow check",
-    "prepare": "npm run clean && npm run test && npm run dist",
+    "prepack": "npm run clean && npm run test && npm run dist",
     "test": "npm-run-all test:*",
     "test:flow": "flow status",
     "test:ava": "ava",
     "watch": "nodemon -w src -w test -w react/src --exec \"npm run -q test || true\"",
-    "watch-build": "rollup -c rollup.config.js -w",
-    "watch-test": "nodemon -w src -w test -w react/src --exec \"npm run -q ava || true\"",
-    "watch-coverage": "nodemon -w src -w test -w react/src --exec \"npm run -q coverage || true\""
+    "watch:build": "rollup -c rollup.config.js -w",
+    "watch:test": "nodemon -w src -w test -w react/src --exec \"npm run -q ava || true\"",
+    "watch:coverage": "nodemon -w src -w test -w react/src --exec \"npm run -q coverage || true\""
   },
   "devDependencies": {
     "@ampproject/rollup-plugin-closure-compiler": "0.9.0",
