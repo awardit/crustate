@@ -26,7 +26,7 @@ export default function App({ storage }: Props) {
       <ListPostsView />
     </PostListData.Provider>} />
     <Route exact path="/post/:id" render={({ match: { params: { id } } }: RouteParams) =>
-      <PostData.Provider key={id} postId={parseInt(id, 10)}>
+      <PostData.Provider name={`post_${id}`} postId={parseInt(id, 10)}>
         <PostView />
       </PostData.Provider>} />
   </StorageProvider>;
