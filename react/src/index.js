@@ -142,7 +142,7 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
     }
 
     const instance        = context.getNestedOrCreate(state, excludeChildren(props), props.name);
-    const [data, setData] = useState(() => instance.getData());
+    const [data, setData] = useState(instance.getData());
 
     useEffect(() => {
       instance.addListener("stateNewData", setData);
