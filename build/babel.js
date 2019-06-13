@@ -14,6 +14,10 @@ module.exports = {
       ["@babel/plugin-proposal-class-properties", { loose: true }],
       // Loose mode for smaller and faster code
       ["@babel/plugin-transform-classes", { loose: true }],
+      // Loose mode for array destructuring, object-rest-spread is larger this
+      // way since babel uses a for-loop instead of delete.
+      // Implement object-rest-spread manually instead
+      ["@babel/plugin-transform-destructuring", { loose: true }],
     ],
   },
   test: {

@@ -111,11 +111,17 @@ export function useSendMessage(): (message: Message, sourceName?: string) => voi
 }
 
 /**
- * Exclude children when using getNestedOrCreate, they are always new objects
- * and are most likely not of interest to the state.
+ * Exclude children and name properties when using getNestedOrCreate, children
+ * are always new objects and are most likely not of interest to the state, and
+ * name is an external parameter.
  */
 function excludeChildren<T: { children?: ?React$Node, name?: string }>(props: T): $Rest<T, {| children: ?React$Node, name: ?string |}> {
-  const { name: _n, children: _c, ...rest } = props;
+  // Manually implemented object-rest-spread to avoid Babel's larger implementation
+  // Object.assign causes Babel to to add an unnecessary polyfill so use spread
+  const rest = { ...props };
+
+  delete rest.children;
+  delete rest.name;
 
   return rest;
 }
