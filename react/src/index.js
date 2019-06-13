@@ -160,7 +160,7 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
 
         // Drop the state instance if we were the last listener
         if(instance.listeners("stateNewData").length === 0) {
-          context.removeNested(state);
+          context.removeNested(state, instance.getName());
         }
       };
     }, [context, instance]);

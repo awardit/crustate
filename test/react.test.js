@@ -392,7 +392,8 @@ test("Varying name property will recreate the state instance", t => {
 
   t.is(container.outerHTML, `<div><a>Click</a><p>b</p></div>`);
 
-  t.is(emit.calls.length, 2);
+  t.is(emit.calls.length, 3);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["a"], { data: "a" }, "a"]);
   t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["b"], { data: "b" }, "b"]);
+  t.deepEqual(emit.calls[2].arguments, ["stateRemoved", ["a"], "a"]);
 });
