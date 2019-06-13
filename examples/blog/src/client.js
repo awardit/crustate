@@ -30,7 +30,23 @@ const subscriber = (msg: DataRequest, source: StatePath) => {
   }
 };
 
-["unhandledMessage", "stateCreated", "stateRemoved", "stateNewData", "messageMatched"].forEach(e => storage.addListener(e, (...data) => console.log(e, ...data)));
+// TODO: Currently not a type-safe way of registering listeners
+const events = {
+  unhandledMessage: "warn",
+  stateCreated:     "info",
+  stateRemoved:     "info",
+  stateNewData:     "info",
+  snapshotRestore:  "info",
+  messageQueued:    "info",
+  messageMatched:   "debug",
+  snapshotRestored: "debug",
+};
+
+for(let eventName in events) {
+  let level = events[eventName];
+
+  storage.addListener((eventName: any), (...data) => console[level](eventName, ...data));
+}
 
 storage.addSubscriber(subscriber, { "effects/request": true });
 
