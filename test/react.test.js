@@ -131,7 +131,7 @@ test("State renders correctly and updates when modified", t => {
   </StorageProvider>);
 
   t.is(container.outerHTML, "<div><p>initial</p><a>Foo</a></div>");
-  t.deepEqual(s.getSnapshot(), { state: { data: "initial", defName: "state", nested: {}, params: { data: "initial" }}});
+  t.deepEqual(s.getSnapshot(), { state: { data: "initial", id: "state", nested: {}, params: { data: "initial" }}});
 
   const link = getByText("Foo");
   t.not(link, undefined);
@@ -141,7 +141,7 @@ test("State renders correctly and updates when modified", t => {
 
   t.is(container.outerHTML, "<div><p>the new one</p><a>Foo</a></div>");
   t.is(link.outerHTML, "<a>Foo</a>");
-  t.deepEqual(s.getSnapshot(), { state: { data: "the new one", defName: "state", nested: {}, params: { data: "initial" }}});
+  t.deepEqual(s.getSnapshot(), { state: { data: "the new one", id: "state", nested: {}, params: { data: "initial" }}});
   t.is(emit.calls.length, 4);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "initial" }, "initial"]);
   t.deepEqual(emit.calls[1].arguments, ["messageQueued", { tag: "data", data: "the new one" }, ["state", "$"]]);
@@ -169,7 +169,7 @@ test("State is removed when the Provider is unmounted", t => {
   </StorageProvider>);
 
   t.is(container.outerHTML, `<div><button type="button">Toggle</button></div>`);
-  t.deepEqual(s.getSnapshot(), { state: { data: "my initial", defName: "state", nested: {}, params: { data: "my initial" }}});
+  t.deepEqual(s.getSnapshot(), { state: { data: "my initial", id: "state", nested: {}, params: { data: "my initial" }}});
 
   const btn = getByText("Toggle");
   t.not(btn, undefined);
@@ -193,7 +193,7 @@ test("State is reused at the same level", t => {
   </StorageProvider>);
 
   t.is(container.outerHTML, `<div><p>my initial</p><p>my initial</p></div>`);
-  t.deepEqual(s.getSnapshot(), { state: { data: "my initial", defName: "state", nested: {}, params: { data: "my initial" } }})
+  t.deepEqual(s.getSnapshot(), { state: { data: "my initial", id: "state", nested: {}, params: { data: "my initial" } }})
   t.is(emit.calls.length, 1);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "my initial" }, "my initial"]);
 });
@@ -219,7 +219,7 @@ test("State updates during rendering are respected", t => {
   </StorageProvider>);
 
   t.is(container.outerHTML, `<div><p>updated</p></div>`);
-  t.deepEqual(s.getSnapshot(), { state: { data: "updated", defName: "state", nested: {}, params: { data: "my initial" } }})
+  t.deepEqual(s.getSnapshot(), { state: { data: "updated", id: "state", nested: {}, params: { data: "my initial" } }})
   t.is(emit.calls.length, 4);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "my initial" }, "my initial"]);
   t.deepEqual(emit.calls[1].arguments, ["messageQueued", { tag: "data", data: "updated" }, ["state", "$"]]);
@@ -252,7 +252,7 @@ test("State is removed when the Provider is the last to be unmounted", t => {
   t.is(container.outerHTML,
     `<div><button type="button">first</button><button type="button">second</button></div>`);
   t.deepEqual(s.getSnapshot(),
-    { state: { data: "my initial", defName: "state", nested: {}, params: { data: "my initial" } }});
+    { state: { data: "my initial", id: "state", nested: {}, params: { data: "my initial" } }});
 
   const btnFirst = getByText("first");
   t.not(btnFirst, undefined);
@@ -264,7 +264,7 @@ test("State is removed when the Provider is the last to be unmounted", t => {
   t.is(container.outerHTML,
     `<div><button type="button">first</button><p>No render</p><button type="button">second</button></div>`);
   t.deepEqual(s.getSnapshot(),
-    { state: { data: "my initial", defName: "state", nested: {}, params: { data: "my initial" } }});
+    { state: { data: "my initial", id: "state", nested: {}, params: { data: "my initial" } }});
 
   fireEvent.click(btnSecond);
 

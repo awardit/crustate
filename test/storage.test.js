@@ -104,7 +104,8 @@ test("Storage getNestedOrCreate creates a new state instance", t => {
   t.is(instance instanceof StateInstance, true);
   t.is(s.stateDefinition("test"), state);
   t.is(s.getNested(state), instance);
-  t.deepEqual(s.getSnapshot(), { test: { defName: "test", data: { name: "initData" }, params: undefined, nested: {} } });
+  t.is(s.getNested(state, "bar"), undefined);
+  t.deepEqual(s.getSnapshot(), { test: { id: "test", data: { name: "initData" }, params: undefined, nested: {} } });
   t.is(instance.getName(), "test");
   t.is(instance.getData(), initData);
   t.is(instance.getStorage(), s);
@@ -458,7 +459,7 @@ test("StateInstance getNested throws when trying to use a new state definition w
 
   t.throws(() => inst.getNested(state2), { instanceOf: Error, message: "State object mismatch for state test" });
 
-  t.deepEqual(s.getSnapshot(), { test: { defName: "test", data: { name: "initData" }, params: undefined, nested: {} } });
+  t.deepEqual(s.getSnapshot(), { test: { id: "test", data: { name: "initData" }, params: undefined, nested: {} } });
   t.is(emit.calls.length, 1);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, { name: "initData" }]);
   // Looking at internals
@@ -493,7 +494,7 @@ test("StateInstance getNested on non-existing state instance should return undef
 
     t.is(s.stateDefinition("test"), state);
     t.is(inst.getNested(state), undefined);
-    t.deepEqual(s.getSnapshot(), { test: { defName: "test", data: { name: "initData" }, params: undefined, nested: {} } });
+    t.deepEqual(s.getSnapshot(), { test: { id: "test", data: { name: "initData" }, params: undefined, nested: {} } });
     t.is(init.calls.length, 1)
     t.is(update.calls.length, 0);
     t.is(subscribe.calls.length, 0);
@@ -580,8 +581,8 @@ test("StateInstance init is sent to parent instances", t => {
   t.deepEqual(firstDef.update.calls[0].arguments, [firstData, secondInit]);
   t.is(first.getData(), firstData);
   t.deepEqual(s.getSnapshot(), {
-    first:  { defName: "first",  data: { name: "firstData" },  params: undefined, nested: {
-      second: { defName: "second", data: { name: "secondData" }, params: undefined, nested: {} },
+    first:  { id: "first",  data: { name: "firstData" },  params: undefined, nested: {
+      second: { id: "second", data: { name: "secondData" }, params: undefined, nested: {} },
     } },
   });
   t.is(emit.calls.length, 5);
@@ -637,8 +638,8 @@ test("StateInstance init is sent to parent instances, but not siblings", t => {
 
   t.is(firstDef.update.calls.length, 0);
   t.deepEqual(s.getSnapshot(), {
-    first:  { defName: "first",  data: { name: "firstData" },  params: undefined, nested: {} },
-    second: { defName: "second", data: { name: "secondData" }, params: undefined, nested: {} },
+    first:  { id: "first",  data: { name: "firstData" },  params: undefined, nested: {} },
+    second: { id: "second", data: { name: "secondData" }, params: undefined, nested: {} },
   });
   t.is(emit.calls.length, 4);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }]);
@@ -943,10 +944,10 @@ test("restoreSnapshot throws if it cannot find a matching state definition", t =
   const s    = new Storage();
   const emit = t.context.spy(s, "emit");
 
-  t.throws(() => s.restoreSnapshot({ foo: { defName: "bar", data: null, params: null, nested: {} } }), { message: "Missing state definition for state with name bar" });
+  t.throws(() => s.restoreSnapshot({ foo: { id: "bar", data: null, params: null, nested: {} } }), { message: "Missing state definition for state with name bar" });
 
   t.is(emit.calls.length, 1);
-  t.deepEqual(emit.calls[0].arguments, ["snapshotRestore", { foo: { defName: "bar", data: null, params: null, nested: {} } }]);
+  t.deepEqual(emit.calls[0].arguments, ["snapshotRestore", { foo: { id: "bar", data: null, params: null, nested: {} } }]);
 });
 
 test("restoreSnapshot works on empty", t => {
@@ -981,15 +982,15 @@ test("restoreSnapshot restores a snapshot", t => {
 
   t.deepEqual(s.getSnapshot(), { });
 
-  s.restoreSnapshot({ foo: { defName: "foo", data: 3, params: 23, nested: {} } });
+  s.restoreSnapshot({ foo: { id: "foo", data: 3, params: 23, nested: {} } });
 
-  t.deepEqual(s.getSnapshot(), { foo: { defName: "foo", data: 3, params: 23, nested: {} } });
+  t.deepEqual(s.getSnapshot(), { foo: { id: "foo", data: 3, params: 23, nested: {} } });
 
   t.not(s.getNested(d), undefined);
   t.deepEqual((s.getNested(d): any).getData(), 3);
 
   t.is(emit.calls.length, 2);
-  t.deepEqual(emit.calls[0].arguments, ["snapshotRestore", { foo: { defName: "foo", data: 3, params: 23, nested: {} } }]);
+  t.deepEqual(emit.calls[0].arguments, ["snapshotRestore", { foo: { id: "foo", data: 3, params: 23, nested: {} } }]);
   t.deepEqual(emit.calls[1].arguments, ["snapshotRestored"]);
   t.is(init.calls.length, 0);
   t.is(update.calls.length, 0);
@@ -1013,14 +1014,14 @@ test("restoreSnapshot restores a snapshot with a differing name", t => {
 
   t.deepEqual(s.getSnapshot(), { });
 
-  s.restoreSnapshot({ foo: { defName: "bar", data: 3, params: 23, nested: {} } });
+  s.restoreSnapshot({ foo: { id: "bar", data: 3, params: 23, nested: {} } });
 
-  t.deepEqual(s.getSnapshot(), { foo: { defName: "bar", data: 3, params: 23, nested: {} } });
+  t.deepEqual(s.getSnapshot(), { foo: { id: "bar", data: 3, params: 23, nested: {} } });
 
-  // Test with getNested when we have a working named getNested
+  t.not(s.getNested(d, "foo"), undefined);
 
   t.is(emit.calls.length, 2);
-  t.deepEqual(emit.calls[0].arguments, ["snapshotRestore", { foo: { defName: "bar", data: 3, params: 23, nested: {} } }]);
+  t.deepEqual(emit.calls[0].arguments, ["snapshotRestore", { foo: { id: "bar", data: 3, params: 23, nested: {} } }]);
   t.deepEqual(emit.calls[1].arguments, ["snapshotRestored"]);
   t.is(init.calls.length, 0);
   t.is(update.calls.length, 0);
@@ -1044,9 +1045,9 @@ test("restoreSnapshot restores nested snapshots", t => {
 
   t.deepEqual(s.getSnapshot(), { });
 
-  s.restoreSnapshot({ foo: { defName: "foo", data: 3, params: 23, nested: { foo: { defName: "foo", data: 5, params: 2, nested: {} } } } });
+  s.restoreSnapshot({ foo: { id: "foo", data: 3, params: 23, nested: { foo: { id: "foo", data: 5, params: 2, nested: {} } } } });
 
-  t.deepEqual(s.getSnapshot(), { foo: { defName: "foo", data: 3, params: 23, nested: { foo: { defName: "foo", data: 5, params: 2, nested: {} } } } });
+  t.deepEqual(s.getSnapshot(), { foo: { id: "foo", data: 3, params: 23, nested: { foo: { id: "foo", data: 5, params: 2, nested: {} } } } });
 
   t.not(s.getNested(d), undefined);
   t.deepEqual((s.getNested(d): any).getData(), 3);
@@ -1054,7 +1055,7 @@ test("restoreSnapshot restores nested snapshots", t => {
   t.deepEqual(((s.getNested(d): any).getNested(d): any).getData(), 5);
 
   t.is(emit.calls.length, 2);
-  t.deepEqual(emit.calls[0].arguments, ["snapshotRestore", { foo: { defName: "foo", data: 3, params: 23, nested: { foo: { defName: "foo", data: 5, params: 2, nested: {} } } } }]);
+  t.deepEqual(emit.calls[0].arguments, ["snapshotRestore", { foo: { id: "foo", data: 3, params: 23, nested: { foo: { id: "foo", data: 5, params: 2, nested: {} } } } }]);
   t.deepEqual(emit.calls[1].arguments, ["snapshotRestored"]);
   t.is(init.calls.length, 0);
   t.is(update.calls.length, 0);

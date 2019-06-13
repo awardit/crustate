@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changes
 - `Subscription`, `SubscriptionMap` and `MessageFilter` are now generic over
   `<M: Message>` instead of just using `Message`.
+- `Snapshot` `defName` is renamed to `id`.
 
 ## [0.0.6] - 2019-06-07
 ### Changed

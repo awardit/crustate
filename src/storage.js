@@ -34,7 +34,7 @@ interface AbstractSupervisor {
 export type Snapshot = { [instanceName:string]: StateSnapshot };
 export type StateSnapshot = {
   // Name to use to find the state-definition when loading the snapshot
-  defName: string,
+  id:      string,
   data:    mixed,
   params:  mixed,
   nested:  Snapshot,
@@ -135,7 +135,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   /**
    * State-definitions, used for subscribers and messages.
    */
-  _defs: { [key:string]: State<any, any, any> } = {};
+  _defs: { [id:string]: State<any, any, any> } = {};
 
   constructor(): void {
     // TODO: Restore state
@@ -166,10 +166,10 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
    * was new, `false` otherwise.
    */
   tryRegisterState<T, I, M>(state: State<T, I, M>): boolean {
-    const { name } = state;
+    const { name: id } = state;
 
-    if( ! this._defs[name]) {
-      this._defs[name] = state;
+    if( ! this._defs[id]) {
+      this._defs[id] = state;
 
       return true;
     }
@@ -179,8 +179,8 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     return false;
   };
 
-  stateDefinition<T, I, M>(instanceName: string): ?State<T, I, M> {
-    return this._defs[instanceName];
+  stateDefinition<T, I, M>(instanceId: string): ?State<T, I, M> {
+    return this._defs[instanceId];
   };
 
   getNested<T, I, M>(state: State<T, I, M>, name?: string): ?StateInstance<T, I, M> {
@@ -258,9 +258,9 @@ export function restoreSnapshot(storage: Storage, supervisor: Supervisor, snapsh
   const newNested = {}
 
   for(let k in snapshot) {
-    const { defName, data, params, nested } = snapshot[k];
-    const spec = getStateDefinitionByName(storage, defName);
-    const inst = new StateInstance(defName, supervisor, params, data);
+    const { id, data, params, nested } = snapshot[k];
+    const spec = getStateDefinitionByName(storage, id);
+    const inst = new StateInstance(id, supervisor, params, data);
 
     restoreSnapshot(storage, inst, nested);
 
@@ -544,7 +544,7 @@ function processStorageMessage(storage: Storage, inflight: InflightMessage) {
 
 export function createStateSnapshot(node: StateInstance<any, any, any>): StateSnapshot {
   return {
-    defName: node._name,
+    id:      node._name,
     // We assume it is immutably updated
     data:    node._data,
     params:  node._params,
