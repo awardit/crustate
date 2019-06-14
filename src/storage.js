@@ -137,8 +137,8 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
    */
   _defs: { [id:string]: State<any, any, any> } = {};
 
+  // Explicit constructor results in shorter minified code
   constructor(): void {
-    // TODO: Restore state
     super();
   };
 
@@ -547,7 +547,7 @@ function processStorageMessage(storage: Storage, inflight: InflightMessage) {
   }
 }
 
-export function createStateSnapshot(node: StateInstance<any, any, any>): StateSnapshot {
+export function createStateSnapshot<T, I, M: Message>(node: StateInstance<T, I, M>): StateSnapshot {
   return {
     id:      node._id,
     // We assume it is immutably updated
@@ -558,7 +558,7 @@ export function createStateSnapshot(node: StateInstance<any, any, any>): StateSn
 }
 
 export function createSnapshot(node: Supervisor): Snapshot {
-  return Object.keys(node._nested).reduce((a, key) => {
+  return Object.keys(node._nested).reduce((a: Snapshot, key: string) => {
     a[key] = createStateSnapshot(node._nested[key]);
 
     return a;
