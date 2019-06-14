@@ -14,13 +14,15 @@
     "ssr",
     "state"
   ],
-  "author": "Martin Wernstål <m4rw3r@gmail.com>",
+  "authors": [
+    "Martin Wernstål <m4rw3r@gmail.com>"
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/m4rw3r/crustate.git"
+    "url": "https://github.com/crossroads-loyalty-solutions/crustate.git"
   },
-  "bugs": "https://github.com/m4rw3r/crustate/issues",
-  "homepage": "https://github.com/m4rw3r/crustate",
+  "bugs": "https://github.com/crossroads-loyalty-solutions/crustate/issues",
+  "homepage": "https://github.com/crossroads-loyalty-solutions/crustate",
   "license": "MIT",
   "files": [
     "dist",
