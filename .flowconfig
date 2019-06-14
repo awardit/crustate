@@ -1,8 +1,9 @@
 [ignore]
-<PROJECT_ROOT>/.nyc_output/.*\.[m]?js
-<PROJECT_ROOT>/[p]?react/dist/.*\.[m]?js
-<PROJECT_ROOT>/coverage/.*\.[m]?js
-<PROJECT_ROOT>/dist/.*\.[m]?js
+<PROJECT_ROOT>/.nyc_output/.*
+<PROJECT_ROOT>/[p]?react/dist/.*
+<PROJECT_ROOT>/coverage/.*
+<PROJECT_ROOT>/dist/.*
+<PROJECT_ROOT>/examples/.*/dist/.*
 
 [include]
 
