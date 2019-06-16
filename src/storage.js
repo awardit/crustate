@@ -18,13 +18,13 @@ const ANONYMOUS_SOURCE = "$";
 const REPLY_SOURCE = "<";
 
 interface AbstractSupervisor {
-  _nested: StateInstanceMap;
-  getStorage(): Storage;
-  getPath(): StatePath;
-  getNested<T, I, M>(state: State<T, I, M>, name?: string): ?StateInstance<T, I, M>;
-  getNestedOrCreate<T, I, M>(state: State<T, I, M>, params: I, name?: string): StateInstance<T, I, M>;
-  sendMessage(message: Message, sourceName?: string): void;
-  removeNested<T, I, M>(state: State<T, I, M>, name?: string): void;
+  _nested: StateInstanceMap,
+  getStorage(): Storage,
+  getPath(): StatePath,
+  getNested<T, I, M>(state: State<T, I, M>, name?: string): ?StateInstance<T, I, M>,
+  getNestedOrCreate<T, I, M>(state: State<T, I, M>, params: I, name?: string): StateInstance<T, I, M>,
+  sendMessage(message: Message, sourceName?: string): void,
+  removeNested<T, I, M>(state: State<T, I, M>, name?: string): void,
 }
 
 /**
@@ -101,7 +101,7 @@ export type StorageEvents = {
    *  * The message
    *  * Path of the origin, the closest state + the event source name
    */
-  messageQueued: [Message, StatePath];
+  messageQueued: [Message, StatePath],
   /**
    * Emitted when a message is queued for processing.
    *
@@ -111,7 +111,7 @@ export type StorageEvents = {
    *  * Path of the matching state-instance
    *  * If the subscription was passive
    */
-  messageMatched: [Message, StatePath, boolean];
+  messageMatched: [Message, StatePath, boolean],
   /**
    * Emitted when a snapshot is going to be restored.
    *
