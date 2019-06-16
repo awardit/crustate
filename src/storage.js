@@ -21,8 +21,8 @@ interface AbstractSupervisor {
   _nested: StateInstanceMap,
   getStorage(): Storage,
   getPath(): StatePath,
-  getNested<T, I, M>(state: State<T, I, M>, name?: string): ?StateInstance<T, I, M>,
-  getNestedOrCreate<T, I, M>(state: State<T, I, M>, params: I, name?: string): StateInstance<T, I, M>,
+  getNested<T, I, M>(state: State<T, I, M>, name?: string): ?StateInstance<T, I>,
+  getNestedOrCreate<T, I, M>(state: State<T, I, M>, params: I, name?: string): StateInstance<T, I>,
   sendMessage(message: Message, sourceName?: string): void,
   removeNested<T, I, M>(state: State<T, I, M>, name?: string): void,
 }
@@ -47,7 +47,7 @@ export type StateSnapshot = {
  * closed to make it possible to differentiate between the two types while
  * traversing the tree.
  */
-export type Supervisor = Storage | StateInstance<any, any, any>;
+export type Supervisor = Storage | StateInstance<any, any>;
 
 export type Sink<M: Message> = (message: M, sourcePath: StatePath) => mixed;
 export type Subscriber<M: Message> = { listener: Sink<M>, subscription: SubscriptionMap<M> };
@@ -183,7 +183,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     return this._defs[instanceId];
   }
 
-  getNested<T, I, M>(state: State<T, I, M>, name?: string): ?StateInstance<T, I, M> {
+  getNested<T, I, M>(state: State<T, I, M>, name?: string): ?StateInstance<T, I> {
     if(process.env.NODE_ENV !== "production") {
       ensureState(this, state);
     }
@@ -197,7 +197,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     return inst;
   }
 
-  getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J, name?: string): StateInstance<U, J, N> {
+  getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J, name?: string): StateInstance<U, J> {
     return getNestedOrCreate(this, state, params, name);
   }
 
@@ -303,7 +303,7 @@ export type StateEvents<T> = {
   stateNewData: [T, StatePath, Message],
 };
 
-export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> implements AbstractSupervisor {
+export class StateInstance<T, I> extends EventEmitter<StateEvents<T>> implements AbstractSupervisor {
   /**
    * Matches the Storage _defs collection.
    */
@@ -358,7 +358,7 @@ export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> impleme
     return path;
   }
 
-  getNested<U, J, N>(state: State<U, J, N>, name?: string): ?StateInstance<U, J, N> {
+  getNested<U, J, N>(state: State<U, J, N>, name?: string): ?StateInstance<U, J> {
     if(process.env.NODE_ENV !== "production") {
       ensureState(this.getStorage(), state);
     }
@@ -372,7 +372,7 @@ export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> impleme
     return inst;
   }
 
-  getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J, name?: string): StateInstance<U, J, N> {
+  getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J, name?: string): StateInstance<U, J> {
     return getNestedOrCreate(this, state, params, name);
   }
 
@@ -393,7 +393,7 @@ export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> impleme
   }
 }
 
-export function getNestedOrCreate<T, I, M>(supervisor: Supervisor, state: State<T, I, M>, params: I, name?: string): StateInstance<T, I, M> {
+export function getNestedOrCreate<T, I, M>(supervisor: Supervisor, state: State<T, I, M>, params: I, name?: string): StateInstance<T, I> {
   const child = supervisor.getNested(state, name);
 
   if(child) {
@@ -405,7 +405,7 @@ export function getNestedOrCreate<T, I, M>(supervisor: Supervisor, state: State<
   return createState(supervisor, state, params, name);
 }
 
-export function createState<T, I, M>(supervisor: Supervisor, state: State<T, I, M>, initialData: I, name?: string): StateInstance<T, I, M> {
+export function createState<T, I, M>(supervisor: Supervisor, state: State<T, I, M>, initialData: I, name?: string): StateInstance<T, I> {
   const storage  = supervisor.getStorage();
   const { name: id, init } = state;
 
@@ -442,7 +442,7 @@ export function createInflightMessage(storage: Storage, source: StatePath, messa
   };
 }
 
-export function findSupervisor<A, B, C>(supervisor: Supervisor, path: StatePath): ?Supervisor {
+export function findSupervisor(supervisor: Supervisor, path: StatePath): ?Supervisor {
   for(let i = 0; i < path.length; i++) {
     supervisor = supervisor._nested[path[i]];
 
@@ -548,7 +548,7 @@ function processStorageMessage(storage: Storage, inflight: InflightMessage): voi
   }
 }
 
-export function createStateSnapshot<T, I, M: Message>(node: StateInstance<T, I, M>): StateSnapshot {
+export function createStateSnapshot<T, I>(node: StateInstance<T, I>): StateSnapshot {
   return {
     id:      node._id,
     // We assume it is immutably updated

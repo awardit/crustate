@@ -28,7 +28,7 @@ export type DataFunction<T> = (data: T | void) => ?React$Node;
  * with the given props as its initial data, and supply the state-data to its
  * children.
  */
-export type DataProvider<T, I> = React$ComponentType<DataProviderProps<I>>;
+export type DataProvider<I> = React$ComponentType<DataProviderProps<I>>;
 /**
  * DataConsumer is a component which takes a function as children and will call
  * this function with the state instance data.
@@ -61,7 +61,7 @@ export type StateData<T, I, M> = {
    * useful for testing.
    */
   TestProvider: TestProvider<T>,
-  Provider: DataProvider<T, I>,
+  Provider: DataProvider<I>,
   Consumer: DataConsumer<T>,
 };
 
