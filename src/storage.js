@@ -219,7 +219,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     this._subscribers.push({ listener, subscription });
   }
 
-  removeSubscriber(listener: Sink<any>) {
+  removeSubscriber(listener: Sink<any>): void {
     const { _subscribers } = this;
 
     for(let i = 0; i < _subscribers.length; i++) {
@@ -255,7 +255,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
 }
 
 export function restoreSnapshot(storage: Storage, supervisor: Supervisor, snapshot: Snapshot): void {
-  const newNested = {};
+  const newNested: StateInstanceMap = {};
 
   for(let k in snapshot) {
     const { id, data, params, nested } = snapshot[k];
