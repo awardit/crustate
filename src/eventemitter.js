@@ -13,16 +13,16 @@ export class EventEmitter<Events: {}> {
   addListener<K: $Keys<Events>>(eventName: K, listener: Listener<Events, K>): void {
     const existing: MaybeArray<Listener<Events, K>> = this._eventListeners[eventName];
 
-    if( ! existing) {
-      this._eventListeners[eventName] = listener;
-    }
-    else {
+    if(existing) {
       if(typeof existing === "function") {
         this._eventListeners[eventName] = [existing, listener];
       }
       else {
         existing.push(listener);
       }
+    }
+    else {
+      this._eventListeners[eventName] = listener;
     }
   };
 
@@ -46,18 +46,18 @@ export class EventEmitter<Events: {}> {
   };
 
   removeAllListeners(eventName?: string): void {
-    if( ! eventName) {
-      this._eventListeners = {};
+    if(eventName) {
+      delete this._eventListeners[eventName];
     }
     else {
-      delete this._eventListeners[eventName];
+      this._eventListeners = {};
     }
   };
 
   listeners<K: $Keys<Events>>(eventName: K): Array<Listener<Events, K>> {
     const existing: MaybeArray<Listener<Events, K>> = this._eventListeners[eventName];
 
-    return ! existing ? [] : typeof existing === "function" ? [existing] : existing;
+    return existing ? typeof existing === "function" ? [existing] : existing : [];
   };
 
   /**
