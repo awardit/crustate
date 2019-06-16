@@ -9,7 +9,6 @@
 import type { Context } from "react";
 import type { Message
             , State
-            , StateInstance
             , Storage
             , Supervisor } from "crustate";
 
@@ -18,11 +17,6 @@ import { createContext
        , useContext
        , useEffect
        , useState } from "react";
-
-type StateProviderState<T, I, M> = {
-  instance: StateInstance<T, I, M>,
-  data:     T,
-};
 
 type DataProviderProps<T> = T & { name?: string, children?: ?React$Node };
 
