@@ -38,7 +38,6 @@
   "module": "dist/index.mjs",
   "source": "src/index.js",
   "scripts": {
-    "ava": "ava --verbose",
     "build": "npm-run-all build:*",
     "build:rollup": "rollup -c rollup.config.js",
     "build:flowstub": "cp build/flowstub.js dist/index.js.flow && cp build/flowstub.js dist/index.mjs.flow && cp build/flowstub.js react/dist/index.js.flow && cp build/flowstub.js react/dist/index.mjs.flow && cp build/flowstub.js preact/dist/index.js.flow && cp build/flowstub.js preact/dist/index.mjs.flow",
@@ -51,7 +50,8 @@
     "prepack": "npm run clean && npm run test && npm run dist",
     "test": "npm-run-all test:*",
     "test:flow": "flow status",
-    "test:ava": "ava",
+    "test:ava": "ava --verbose",
+    "test:xo": "xo",
     "watch": "nodemon -w src -w test -w react/src --exec \"npm run -q test || true\"",
     "watch:build": "rollup -c rollup.config.js -w",
     "watch:test": "nodemon -w src -w test -w react/src --exec \"npm run -q ava || true\"",
@@ -69,8 +69,12 @@
     "@babel/register": "7.4.4",
     "@testing-library/react": "8.0.1",
     "ava": "2.1.0",
+    "babel-eslint": "10.0.1",
     "classnames": "2.2.6",
     "cross-env": "5.2.0",
+    "eslint-config-xo-flow": "0.1.0",
+    "eslint-plugin-flowtype": "3.10.3",
+    "eslint-plugin-local": "1.0.0",
     "express": "4.17.1",
     "flow-bin": "0.101.0",
     "jsdom": "15.1.1",
@@ -91,7 +95,8 @@
     "rollup-plugin-node-resolve": "5.0.2",
     "rollup-plugin-postcss": "2.0.3",
     "rollup-plugin-replace": "2.2.0",
-    "todomvc-app-css": "2.2.0"
+    "todomvc-app-css": "2.2.0",
+    "xo": "0.24.0"
   },
   "ava": {
     "babel": {
@@ -140,5 +145,146 @@
       "./test/_register"
     ],
     "powerAssert": true
+  },
+  "xo": {
+    "extends": "xo-flow",
+    "space": 2,
+    "plugins": [
+      "eslint-plugin-local"
+    ],
+    "rules": {
+      "brace-style": [
+        "error",
+        "stroustrup"
+      ],
+      "comma-dangle": [
+        "error",
+        {
+          "arrays": "only-multiline",
+          "objects": "only-multiline",
+          "imports": "never",
+          "exports": "never",
+          "functions": "never"
+        }
+      ],
+      "keyword-spacing": [
+        "error",
+        {
+          "after": true,
+          "overrides": {
+            "if": {
+              "after": false
+            },
+            "for": {
+              "after": false
+            },
+            "while": {
+              "after": false
+            }
+          }
+        }
+      ],
+      "eol-last": [
+        "error",
+        "never"
+      ],
+      "flowtype/array-style-simple-type": [
+        "error",
+        "verbose"
+      ],
+      "flowtype/delimiter-dangle": [
+        "error",
+        "only-multiline"
+      ],
+      "flowtype/newline-after-flow-annotation": [
+        "error",
+        "always"
+      ],
+      "flowtype/require-valid-file-annotation": [
+        "error",
+        "always",
+        {
+          "annotationStyle": "block"
+        }
+      ],
+      "flowtype/require-return-type": [
+        "error",
+        "always",
+        {
+          "annotateUndefined": "always"
+        }
+      ],
+      "flowtype/type-import-style": [
+        "error",
+        "declaration"
+      ],
+      "indent": [
+        "error",
+        2,
+        {
+          "ImportDeclaration": "first"
+        }
+      ],
+      "key-spacing": [
+        "error",
+        {
+          "singleLine": {
+            "mode": "strict"
+          },
+          "multiLine": {
+            "mode": "minimum",
+            "align": "value"
+          }
+        }
+      ],
+      "lines-between-class-members": [
+        "error",
+        "always",
+        {
+          "exceptAfterSingleLine": true
+        }
+      ],
+      "local/space-in-parens": [
+        "error",
+        "never",
+        {
+          "exceptions": [
+            "!"
+          ]
+        }
+      ],
+      "no-multi-spaces": [
+        "error",
+        {
+          "exceptions": {
+            "AssignmentExpression": true,
+            "AssignmentPattern": true,
+            "ObjectTypeProperty": true,
+            "VariableDeclaration": true,
+            "VariableDeclarator": true
+          }
+        }
+      ],
+      "no-useless-constructor": "off",
+      "object-curly-spacing": [
+        "error",
+        "always"
+      ],
+      "quotes": [
+        "error",
+        "double"
+      ],
+      "space-unary-ops": [
+        "error",
+        {
+          "words": true,
+          "nonwords": false,
+          "overrides": {
+            "!": true
+          }
+        }
+      ],
+      "valid-jsdoc": "off"
+    }
   }
 }
