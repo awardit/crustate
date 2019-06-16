@@ -257,7 +257,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
 export function restoreSnapshot(storage: Storage, supervisor: Supervisor, snapshot: Snapshot): void {
   const newNested: StateInstanceMap = {};
 
-  for(let k in snapshot) {
+  for(const k in snapshot) {
     const { id, data, params, nested } = snapshot[k];
     const spec = getStateDefinitionById(storage, id);
     const inst = new StateInstance(id, supervisor, params, data, k);
