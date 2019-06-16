@@ -153,7 +153,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   /**
    * Test
    */
-  registerState<T, I, M>(state: State<T, I, M>) {
+  registerState<T, I, M>(state: State<T, I, M>): void {
     if( ! this.tryRegisterState(state)) {
       // FIXME: Proper exception type
       throw new Error(`Duplicate state name ${state.name}`);
@@ -201,7 +201,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     return getNestedOrCreate(this, state, params, name);
   };
 
-  removeNested<U, J, N>(state: State<U, J, N>, name?: string) {
+  removeNested<U, J, N>(state: State<U, J, N>, name?: string): void {
     const inst = this.getNested(state, name);
 
     if(inst) {
@@ -215,7 +215,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     processStorageMessage(this, createInflightMessage(this, [sourceName], message));
   };
 
-  addSubscriber<M: Message>(listener: Sink<M>, subscription: SubscriptionMap<M>) {
+  addSubscriber<M: Message>(listener: Sink<M>, subscription: SubscriptionMap<M>): void {
     this._subscribers.push({ listener, subscription });
   };
 
@@ -235,7 +235,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     return createSnapshot(this);
   };
 
-  replyMessage(msg: Message, targetState: StatePath, sourceName?: string = REPLY_SOURCE) {
+  replyMessage(msg: Message, targetState: StatePath, sourceName?: string = REPLY_SOURCE): void {
     const inst = findSupervisor(this, targetState);
 
     if( ! inst) {
@@ -254,7 +254,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   }
 }
 
-export function restoreSnapshot(storage: Storage, supervisor: Supervisor, snapshot: Snapshot) {
+export function restoreSnapshot(storage: Storage, supervisor: Supervisor, snapshot: Snapshot): void {
   const newNested = {}
 
   for(let k in snapshot) {
@@ -376,7 +376,7 @@ export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> impleme
     return getNestedOrCreate(this, state, params, name);
   };
 
-  removeNested<U, J, N>(state: State<U, J, N>, name?: string) {
+  removeNested<U, J, N>(state: State<U, J, N>, name?: string): void {
     const inst = this.getNested(state, name);
 
     if(inst) {
@@ -522,7 +522,7 @@ export function processInstanceMessages(storage: Storage, instance: Supervisor, 
   }
 }
 
-function processStorageMessage(storage: Storage, inflight: InflightMessage) {
+function processStorageMessage(storage: Storage, inflight: InflightMessage): void {
   const { _subscribers: s }   = storage;
   const { _message, _source } = inflight;
   let   received              = Boolean(inflight._received);
@@ -558,7 +558,7 @@ export function createStateSnapshot<T, I, M: Message>(node: StateInstance<T, I, 
 }
 
 export function createSnapshot(node: Supervisor): Snapshot {
-  return Object.keys(node._nested).reduce((a: Snapshot, key: string) => {
+  return Object.keys(node._nested).reduce((a: Snapshot, key: string): Snapshot => {
     a[key] = createStateSnapshot(node._nested[key]);
 
     return a;
