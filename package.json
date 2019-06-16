@@ -73,8 +73,11 @@
     "classnames": "2.2.6",
     "cross-env": "5.2.0",
     "eslint-config-xo-flow": "0.1.0",
+    "eslint-config-xo-react": "0.19.0",
     "eslint-plugin-flowtype": "3.10.3",
     "eslint-plugin-local": "1.0.0",
+    "eslint-plugin-react": "7.13.0",
+    "eslint-plugin-react-hooks": "1.6.0",
     "express": "4.17.1",
     "flow-bin": "0.101.0",
     "jsdom": "15.1.1",
@@ -147,12 +150,40 @@
     "powerAssert": true
   },
   "xo": {
-    "extends": "xo-flow",
-    "space": 2,
+    "extends": [
+      "xo-flow",
+      "xo-react"
+    ],
+    "ignores": [
+      "build",
+      "**/rollup.config.js"
+    ],
+    "overrides": [
+      {
+        "files": "test/*.js",
+        "rules": {
+          "flowtype/require-parameter-type": "off",
+          "flowtype/require-return-type": "off",
+          "no-unused-expressions": "off",
+          "quote-props": "off"
+        }
+      },
+      {
+        "files": "examples/**/*.js",
+        "environment": [
+          "browser"
+        ],
+        "rules": {
+          "flowtype/require-parameter-type": "warn",
+          "flowtype/require-return-type": "off"
+        }
+      }
+    ],
     "plugins": [
       "eslint-plugin-local"
     ],
     "rules": {
+      "ava/use-test": "off",
       "brace-style": [
         "error",
         "stroustrup"
@@ -172,10 +203,16 @@
         {
           "after": true,
           "overrides": {
+            "catch": {
+              "after": false
+            },
             "if": {
               "after": false
             },
             "for": {
+              "after": false
+            },
+            "switch": {
               "after": false
             },
             "while": {
@@ -200,6 +237,7 @@
         "error",
         "always"
       ],
+      "flowtype/require-types-at-top": "warn",
       "flowtype/require-valid-file-annotation": [
         "error",
         "always",
@@ -218,8 +256,10 @@
         "error",
         "declaration"
       ],
+      "import/no-unresolved": "off",
+      "import/order": "off",
       "indent": [
-        "error",
+        "warn",
         2,
         {
           "ImportDeclaration": "first"
@@ -265,14 +305,33 @@
           }
         }
       ],
+      "no-case-declarations": "off",
       "no-useless-constructor": "off",
+      "no-unused-vars": [
+        "error",
+        {
+          "varsIgnorePattern": "^React$"
+        }
+      ],
       "object-curly-spacing": [
         "error",
         "always"
       ],
       "quotes": [
         "error",
-        "double"
+        "double",
+        {
+          "allowTemplateLiterals": true
+        }
+      ],
+      "react/jsx-tag-spacing": [
+        "error",
+        {
+          "closingSlash": "never",
+          "beforeSelfClosing": "always",
+          "afterOpening": "never",
+          "beforeClosing": "never"
+        }
       ],
       "space-in-parens": "off",
       "space-unary-ops": [
@@ -285,7 +344,14 @@
           }
         }
       ],
+      "unicorn/catch-error-name": [
+        "error",
+        {
+          "name": "e"
+        }
+      ],
       "valid-jsdoc": "off"
-    }
+    },
+    "space": 2
   }
 }
