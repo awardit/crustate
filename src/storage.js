@@ -140,15 +140,15 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   // Explicit constructor results in shorter minified code
   constructor(): void {
     super();
-  };
+  }
 
   getStorage(): Storage {
     return this;
-  };
+  }
 
   getPath(): StatePath {
     return [];
-  };
+  }
 
   /**
    * Test
@@ -158,7 +158,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
       // FIXME: Proper exception type
       throw new Error(`Duplicate state name ${state.name}`);
     }
-  };
+  }
 
   /**
    * Loads the given state-definition for use, ensures that it is not a new
@@ -177,11 +177,11 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     ensureState(this, state);
 
     return false;
-  };
+  }
 
   stateDefinition<T, I, M>(instanceId: string): ?State<T, I, M> {
     return this._defs[instanceId];
-  };
+  }
 
   getNested<T, I, M>(state: State<T, I, M>, name?: string): ?StateInstance<T, I, M> {
     if(process.env.NODE_ENV !== "production") {
@@ -195,11 +195,11 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     }
 
     return inst;
-  };
+  }
 
   getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J, name?: string): StateInstance<U, J, N> {
     return getNestedOrCreate(this, state, params, name);
-  };
+  }
 
   removeNested<U, J, N>(state: State<U, J, N>, name?: string): void {
     const inst = this.getNested(state, name);
@@ -209,15 +209,15 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
 
       this.emit("stateRemoved", inst.getPath(), inst._data);
     }
-  };
+  }
 
   sendMessage(message: Message, sourceName?: string = ANONYMOUS_SOURCE): void {
     processStorageMessage(this, createInflightMessage(this, [sourceName], message));
-  };
+  }
 
   addSubscriber<M: Message>(listener: Sink<M>, subscription: SubscriptionMap<M>): void {
     this._subscribers.push({ listener, subscription });
-  };
+  }
 
   removeSubscriber(listener: Sink<any>) {
     const { _subscribers } = this;
@@ -229,11 +229,11 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
         return;
       }
     }
-  };
+  }
 
   getSnapshot(): Snapshot {
     return createSnapshot(this);
-  };
+  }
 
   replyMessage(msg: Message, targetState: StatePath, sourceName?: string = REPLY_SOURCE): void {
     const inst = findSupervisor(this, targetState);
@@ -325,15 +325,15 @@ export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> impleme
     this._supervisor = supervisor;
     this._params     = params;
     this._data       = data;
-  };
+  }
 
   getName(): string {
     return this._name;
-  };
+  }
 
   getData(): T {
     return this._data;
-  };
+  }
 
   getStorage(): Storage {
     let s = this._supervisor;
@@ -343,7 +343,7 @@ export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> impleme
     }
 
     return s;
-  };
+  }
 
   getPath(): StatePath {
     const path = [];
@@ -356,7 +356,7 @@ export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> impleme
     }
 
     return path;
-  };
+  }
 
   getNested<U, J, N>(state: State<U, J, N>, name?: string): ?StateInstance<U, J, N> {
     if(process.env.NODE_ENV !== "production") {
@@ -370,11 +370,11 @@ export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> impleme
     }
 
     return inst;
-  };
+  }
 
   getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J, name?: string): StateInstance<U, J, N> {
     return getNestedOrCreate(this, state, params, name);
-  };
+  }
 
   removeNested<U, J, N>(state: State<U, J, N>, name?: string): void {
     const inst = this.getNested(state, name);
@@ -384,14 +384,14 @@ export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> impleme
 
       this.getStorage().emit("stateRemoved", inst.getPath(), inst._data);
     }
-  };
+  }
 
   sendMessage(message: Message, sourceName?: string = ANONYMOUS_SOURCE): void {
     const msgPath = this.getPath().concat([sourceName]);
 
     processInstanceMessages(this.getStorage(), this, [message], msgPath);
-  };
-};
+  }
+}
 
 export function getNestedOrCreate<T, I, M>(supervisor: Supervisor, state: State<T, I, M>, params: I, name?: string): StateInstance<T, I, M> {
   const child = supervisor.getNested(state, name);

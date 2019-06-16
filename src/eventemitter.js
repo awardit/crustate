@@ -24,7 +24,7 @@ export class EventEmitter<Events: {}> {
     else {
       this._eventListeners[eventName] = listener;
     }
-  };
+  }
 
   removeListener<K: $Keys<Events>>(eventName: K, listener: Listener<Events, K>): void {
     const existing: MaybeArray<Listener<Events, K>> = this._eventListeners[eventName];
@@ -43,7 +43,7 @@ export class EventEmitter<Events: {}> {
         }
       }
     }
-  };
+  }
 
   removeAllListeners(eventName?: string): void {
     if(eventName) {
@@ -52,17 +52,14 @@ export class EventEmitter<Events: {}> {
     else {
       this._eventListeners = {};
     }
-  };
+  }
 
   listeners<K: $Keys<Events>>(eventName: K): Array<Listener<Events, K>> {
     const existing: MaybeArray<Listener<Events, K>> = this._eventListeners[eventName];
 
     return existing ? typeof existing === "function" ? [existing] : existing : [];
-  };
+  }
 
-  /**
-   * @param {!string} eventName
-   */
   emit<K: $Keys<Events>>(eventName: K, ...args: $ElementType<Events, K>): void {
     const handler: MaybeArray<Listener<Events, K>> = this._eventListeners[eventName];
 
@@ -74,5 +71,5 @@ export class EventEmitter<Events: {}> {
         handler[i].apply(null, args);
       }
     }
-  };
+  }
 }
