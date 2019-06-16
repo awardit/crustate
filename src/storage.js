@@ -307,15 +307,15 @@ export class StateInstance<T, I, M> extends EventEmitter<StateEvents<T>> impleme
   /**
    * Matches the Storage _defs collection.
    */
-  _id:         string;
+  _id: string;
   /**
    * Matches the key used in the supervisor's `_nested` collection.
    */
-  _name:       string;
-  _data:       T;
-  _params:     I;
+  _name: string;
+  _data: T;
+  _params: I;
   _supervisor: Supervisor;
-  _nested:     StateInstanceMap = {};
+  _nested: StateInstanceMap = {};
 
   constructor(id: string, supervisor: Supervisor, params: I, data: T, name: string): void {
     super();
