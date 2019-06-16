@@ -255,7 +255,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
 }
 
 export function restoreSnapshot(storage: Storage, supervisor: Supervisor, snapshot: Snapshot): void {
-  const newNested = {}
+  const newNested = {};
 
   for(let k in snapshot) {
     const { id, data, params, nested } = snapshot[k];
@@ -486,7 +486,7 @@ export function processInstanceMessages(storage: Storage, instance: Supervisor, 
     for(let i = 0; i < currentLimit; i++) {
       const currentInflight = inflight[i];
       const { _message: m } = currentInflight;
-      const match           = findMatchingSubscription(messageFilter, m, Boolean(currentInflight._received))
+      const match           = findMatchingSubscription(messageFilter, m, Boolean(currentInflight._received));
 
       if(match) {
         if( ! match.isPassive) {
