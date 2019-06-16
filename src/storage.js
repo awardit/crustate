@@ -31,7 +31,7 @@ interface AbstractSupervisor {
  * A snapshot of the state of the application, can be used to restore the state
  * provided the requisite state-definitions have been loaded.
  */
-export type Snapshot = { [instanceName:string]: StateSnapshot };
+export type Snapshot = { [instanceName: string]: StateSnapshot };
 export type StateSnapshot = {
   // Name to use to find the state-definition when loading the snapshot
   id:      string,
@@ -52,7 +52,7 @@ export type Supervisor = Storage | StateInstance<any, any, any>;
 export type Sink<M: Message> = (message: M, sourcePath: StatePath) => mixed;
 export type Subscriber<M: Message> = { listener: Sink<M>, subscription: SubscriptionMap<M> };
 
-export type StateInstanceMap = { [name:string]: StateInstance<any, any, any> };
+export type StateInstanceMap = { [name: string]: StateInstance<any, any> };
 
 export type StorageEvents = {
   /**
@@ -135,7 +135,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   /**
    * State-definitions, used for subscribers and messages.
    */
-  _defs: { [id:string]: State<any, any, any> } = {};
+  _defs: { [id: string]: State<any, any, any> } = {};
 
   // Explicit constructor results in shorter minified code
   constructor(): void {
