@@ -259,7 +259,10 @@ export function restoreSnapshot(storage: Storage, supervisor: Supervisor, snapsh
 
   for(const k in snapshot) {
     const { id, data, params, nested } = snapshot[k];
-    const spec = getStateDefinitionById(storage, id);
+
+    // Ensure the state definition exists when we restore
+    getStateDefinitionById(storage, id);
+
     const inst = new StateInstance(id, supervisor, params, data, k);
 
     restoreSnapshot(storage, inst, nested);
