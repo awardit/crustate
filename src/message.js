@@ -81,7 +81,7 @@ export function findMatchingSubscription<M: Message>(subscribers: SubscriptionMa
   // We do not use object destructuring here since it would require us to
   // create a new object for the default value in the case of true
   const passive    = subscriber === true ? false : !!subscriber.passive;
-  const filter     = subscriber === true ? null  : subscriber.filter;
+  const filter     = subscriber === true ? null : subscriber.filter;
 
   if((passive || ! received) && tag === message.tag && ( ! filter || filter(message))) {
     return { isPassive: passive };
