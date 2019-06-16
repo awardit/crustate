@@ -512,7 +512,7 @@ export function processInstanceMessages(storage: Storage, instance: Supervisor, 
         }
       }
 
-        // No Match
+      // No Match
     }
 
     instance = instance._supervisor;
