@@ -3,13 +3,6 @@
 import type { Message } from "./message";
 
 /**
- * Empty update, indicates that the state has not been modified.
- *
- * @export
- * @const
- */
-export const NONE: NoUpdate = 0;
-/**
  * The empty update.
  */
 export opaque type NoUpdate = 0;
@@ -33,6 +26,14 @@ export type Update<T> =
   | MessageUpdate<T>;
 
 /**
+ * Empty update, indicates that the state has not been modified.
+ *
+ * @export
+ * @const
+ */
+export const NONE: NoUpdate = 0;
+
+/**
  * Creates an update replacing the data of the state.
  *
  * @export
@@ -40,6 +41,7 @@ export type Update<T> =
 export function updateData<T>(data: T): DataUpdate<T> {
   return { _stateData: data };
 }
+
 /**
  * Creates an update replacing the data of the state, and sends a list o
  * messages to supervisoring states.
@@ -62,6 +64,7 @@ export function updateHasData(update: Update<any>): boolean %checks {
 export function updateStateData<T>(update: Update<T>): ?T {
   return updateHasData(update) ? update._stateData : null;
 }
+
 /**
  * Internal: Retrieves the array of outgoing messages from an update.
  *
@@ -70,6 +73,7 @@ export function updateStateData<T>(update: Update<T>): ?T {
 export function updateOutgoingMessages(update: Update<any>): Array<Message> {
   return updateHasData(update) && update._outgoingMessages ? update._outgoingMessages : [];
 }
+
 /**
  * Retrieves the data from types which are guaranteed to contain state data.
  *

@@ -477,8 +477,9 @@ export function processInstanceMessages(storage: Storage, instance: Supervisor, 
     // length here
     const currentLimit          = inflight.length;
     const { update, subscribe } = definition;
+
     // We need to be able to update the filters if the data changes
-    let   messageFilter = subscribe(instance._data);
+    let messageFilter = subscribe(instance._data);
 
     // TODO: Emit event? that we are considering messags for state?
 
