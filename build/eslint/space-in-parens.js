@@ -33,7 +33,7 @@ module.exports = {
                     exceptions: {
                         type: "array",
                         items: {
-                            enum: ["{}", "[]", "()", "empty"]
+                            enum: ["{}", "[]", "()", "empty", "!"]
                         },
                         uniqueItems: true
                     }
@@ -55,6 +55,7 @@ module.exports = {
         if (exceptionsArrayOptions.length) {
             options.braceException = exceptionsArrayOptions.indexOf("{}") !== -1;
             options.bracketException = exceptionsArrayOptions.indexOf("[]") !== -1;
+            options.negationException = exceptionsArrayOptions.indexOf("!") !== -1;
             options.parenException = exceptionsArrayOptions.indexOf("()") !== -1;
             options.empty = exceptionsArrayOptions.indexOf("empty") !== -1;
         }
@@ -76,6 +77,10 @@ module.exports = {
             if (options.bracketException) {
                 openers.push("[");
                 closers.push("]");
+            }
+
+            if (options.negationException) {
+              openers.push("!");
             }
 
             if (options.parenException) {
