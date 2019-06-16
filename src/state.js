@@ -3,10 +3,6 @@
 import type { Update
             , DataUpdate
             , MessageUpdate } from "./update";
-import type { InflightMessage
-            , Message
-            , MessageFilter
-            , MessageTag } from "./message";
 import type { SubscriptionMap } from "./message";
 
 export type StatePath = Array<string>;
