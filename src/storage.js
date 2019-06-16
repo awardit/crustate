@@ -425,7 +425,7 @@ export function createState<T, I, M>(supervisor: Supervisor, state: State<T, I, 
 
   storage.emit("stateCreated", path, (initialData: any), data);
 
-  if(messages.length) {
+  if(messages.length > 0) {
     processInstanceMessages(storage, instance._supervisor, messages, path);
   }
 
