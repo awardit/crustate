@@ -97,7 +97,7 @@ export function useSendMessage(): (message: Message, sourceName?: string) => voi
   const supervisor = useContext(StateContext);
 
   if( ! supervisor) {
-    throw new Error(`useSendMessage() must be used inside a <State.Provider />.`);
+    throw new Error("useSendMessage() must be used inside a <State.Provider />.");
   }
 
   return (message: Message, sourceName?: string): void =>
