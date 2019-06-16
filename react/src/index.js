@@ -89,7 +89,7 @@ type StorageProviderProps = { storage: Storage, children?: ?React$Node };
  *
  * @suppress {checkTypes}
  */
-export function StorageProvider({ storage, children }: StorageProviderProps) {
+export function StorageProvider({ storage, children }: StorageProviderProps): React$Node {
   return createElement(InstanceProvider, { value: storage }, children);
 }
 
@@ -106,7 +106,7 @@ export function useSendMessage(): (message: Message, sourceName?: string) => voi
     throw new Error(`useSendMessage() must be used inside a <State.Provider />.`);
   }
 
-  return (message: Message, sourceName?: string) =>
+  return (message: Message, sourceName?: string): void =>
     supervisor.sendMessage(message, sourceName);
 }
 
@@ -134,7 +134,7 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
   const Ctx      = (createContext(undefined): React$Context<T | void>);
   const Provider = Ctx.Provider;
 
-  function DataProvider(props: DataProviderProps<I>) {
+  function DataProvider(props: DataProviderProps<I>): React$Node {
     const context = useContext(StateContext);
 
     if( ! context) {
@@ -144,7 +144,7 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
     const instance        = context.getNestedOrCreate(state, excludeChildren(props), props.name);
     const [data, setData] = useState(instance.getData());
 
-    useEffect(() => {
+    useEffect((): (() => void) => {
       instance.addListener("stateNewData", setData);
 
       // Data can be new since we are runnning componentDidMount() after render()
@@ -155,7 +155,7 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
         setData(newData);
       }
 
-      return () => {
+      return (): void => {
         instance.removeListener("stateNewData", setData);
 
         // Drop the state instance if we were the last listener

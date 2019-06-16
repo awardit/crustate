@@ -45,7 +45,7 @@ export class EventEmitter<Events: {}> {
     }
   };
 
-  removeAllListeners(eventName?: string) {
+  removeAllListeners(eventName?: string): void {
     if( ! eventName) {
       this._eventListeners = {};
     }
