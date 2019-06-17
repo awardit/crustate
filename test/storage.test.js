@@ -314,7 +314,6 @@ test("Sending messages with a name on a Storage should propagate the name", t =>
   const emit = t.context.spy(s, "emit");
   const recv1 = t.context.stub();
   const msg = { tag: "testMessage" };
-  const msg2 = { tag: "uncaught" };
 
   s.addSubscriber(recv1, { testMessage: true });
 
@@ -377,7 +376,7 @@ test("States with init using updateAndSend should send messages to parent Storag
   const subscribe = t.context.stub(() => ({ "initMsg": true }));
   const state = { name: "test", init, update, subscribe };
 
-  const instance = s.getNestedOrCreate(state);
+  s.getNestedOrCreate(state);
 
   t.is(init.calls.length, 1);
   t.is(subscribe.calls.length, 0);
@@ -577,7 +576,7 @@ test("StateInstance init is sent to parent instances", t => {
   };
 
   const first = s.getNestedOrCreate(firstDef);
-  const second = first.getNestedOrCreate(secondDef);
+  first.getNestedOrCreate(secondDef);
 
   t.is(firstDef.update.calls.length, 1);
   t.deepEqual(firstDef.update.calls[0].arguments, [firstData, secondInit]);
@@ -635,8 +634,8 @@ test("StateInstance init is sent to parent instances, but not siblings", t => {
     subscribe: t.context.stub(() => ({})),
   };
 
-  const first = s.getNestedOrCreate(firstDef);
-  const second = s.getNestedOrCreate(secondDef);
+  s.getNestedOrCreate(firstDef);
+  s.getNestedOrCreate(secondDef);
 
   t.is(firstDef.update.calls.length, 0);
   t.deepEqual(s.getSnapshot(), {
