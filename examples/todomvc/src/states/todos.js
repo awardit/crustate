@@ -5,17 +5,17 @@ import { NONE
        , updateData } from "crustate";
 
 export type Todo = {
-  id:        number,
-  text:      string,
+  id: number,
+  text: string,
   completed: boolean,
 };
 
-const ADD          : "todosAdd"         = "todosAdd";
-const EDIT         : "todosEdit"        = "todosEdit";
-const REMOVE       : "todosRemove"      = "todosRemove";
-const CLEAR_ALL    : "todosClearAll"    = "todosClearAll";
-const COMPLETE     : "todosComplete"    = "todosComplete";
-const COMPLETE_ALL : "todosCompleteAll" = "todosCompleteAll";
+const ADD: "todosAdd" = "todosAdd";
+const EDIT: "todosEdit" = "todosEdit";
+const REMOVE: "todosRemove" = "todosRemove";
+const CLEAR_ALL: "todosClearAll" = "todosClearAll";
+const COMPLETE: "todosComplete" = "todosComplete";
+const COMPLETE_ALL: "todosCompleteAll" = "todosCompleteAll";
 
 type TodoMsg =
   | { tag: typeof ADD, text: string }
@@ -25,12 +25,12 @@ type TodoMsg =
   | { tag: typeof COMPLETE, id: number }
   | { tag: typeof COMPLETE_ALL };
 
-export const add         = (text: string)             => ({ tag: ADD, text });
-export const edit        = (id: number, text: string) => ({ tag: EDIT, id, text });
-export const remove      = (id: number)               => ({ tag: REMOVE, id });
-export const clearAll    = ()                         => ({ tag: CLEAR_ALL });
-export const complete    = (id: number)               => ({ tag: COMPLETE, id });
-export const completeAll = ()                         => ({ tag: COMPLETE_ALL });
+export const add = (text: string) => ({ tag: ADD, text });
+export const edit = (id: number, text: string) => ({ tag: EDIT, id, text });
+export const remove = (id: number) => ({ tag: REMOVE, id });
+export const clearAll = () => ({ tag: CLEAR_ALL });
+export const complete = (id: number) => ({ tag: COMPLETE, id });
+export const completeAll = () => ({ tag: COMPLETE_ALL });
 
 const maxId = (todos: Array<Todo>) => todos.reduce((a, t) => Math.max(a, t.id), 1);
 
@@ -46,23 +46,23 @@ export const TodosState = createStateData<Array<Todo>, {}, TodoMsg>({
     case REMOVE:
       return updateData(todos.filter(t => t.id !== msg.id));
     case COMPLETE:
-      return updateData(todos.map(t => t.id === msg.id ? { id: t.id, text: t.text, completed: !t.completed } : t));
+      return updateData(todos.map(t => t.id === msg.id ? { id: t.id, text: t.text, completed: ! t.completed } : t));
     case COMPLETE_ALL:
       const allMarked = todos.every(t => t.completed);
 
-      return updateData(todos.map(t => ({ id: t.id, text: t.text, completed: !allMarked })));
+      return updateData(todos.map(t => ({ id: t.id, text: t.text, completed: ! allMarked })));
     case CLEAR_ALL:
       return updateData(todos.map(t => ({ id: t.id, text: t.text, completed: false })));
+    default:
+      return NONE;
     }
-
-    return NONE;
   },
   subscribe: () => ({
-    [ADD]: true,
-    [EDIT]: true,
-    [REMOVE]: true,
-    [CLEAR_ALL]: true,
-    [COMPLETE]: true,
+    [ADD]:          true,
+    [EDIT]:         true,
+    [REMOVE]:       true,
+    [CLEAR_ALL]:    true,
+    [COMPLETE]:     true,
     [COMPLETE_ALL]: true,
   }),
 });

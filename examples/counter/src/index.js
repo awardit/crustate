@@ -1,4 +1,5 @@
 /* @flow */
+
 import { NONE
        , updateData
        , Storage } from "crustate";
@@ -6,26 +7,26 @@ import { StorageProvider
        , useData
        , useSendMessage
        , createStateData } from "crustate/react";
-import React    from "react";
+import React from "react";
 import ReactDOM from "react-dom";
 
 const INCREMENT = "increment";
 const DECREMENT = "decrement";
 
 const CounterData = createStateData({
-  name: "counter",
-  init: ({ initial = 0 }: { initial?: number }) => updateData(initial),
+  name:   "counter",
+  init:   ({ initial = 0 }: { initial?: number }) => updateData(initial),
   update: (state, msg) => {
     switch(msg.tag) {
     case INCREMENT:
       return updateData(state + 1);
     case DECREMENT:
       return updateData(state - 1);
+    default:
+      return NONE;
     }
-
-    return NONE;
   },
-  subscribe: (state) => state < 0 ? {} : {
+  subscribe: state => state < 0 ? {} : {
     [INCREMENT]: true,
     [DECREMENT]: true,
   },
@@ -35,20 +36,22 @@ function TheCounter() {
   const sendMessage = useSendMessage();
   const value       = useData(CounterData);
 
-  return <div>
-    <button onClick={() => sendMessage({ tag: INCREMENT })}>+</button>
-    <p>{value}</p>
-    <button onClick={() => sendMessage({ tag: DECREMENT })}>-</button>
-  </div>;
+  return (
+    <div>
+      <button type="button" onClick={() => sendMessage({ tag: INCREMENT })}>+</button>
+      <p>{value}</p>
+      <button type="button" onClick={() => sendMessage({ tag: DECREMENT })}>-</button>
+    </div>
+  );
 }
 
-function App() {
-  return <StorageProvider storage={storage}>
+const App = () => (
+  <StorageProvider storage={storage}>
     <CounterData.Provider>
       <TheCounter />
     </CounterData.Provider>
   </StorageProvider>
-}
+);
 
 const storage = new Storage();
 
