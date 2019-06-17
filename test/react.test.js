@@ -11,12 +11,12 @@ import React,
        , createContext
        , useState } from "react";
 import { Storage
-       , updateData } from "../src/index.js";
+       , updateData } from "../src";
 import { StorageProvider
        , StateContext
        , useSendMessage
        , createStateData
-       , useData } from "../react/src/index.js"
+       , useData } from "../react/src";
 
 // We need to make sure we cleanup after each test, so serial
 const test = ninos(ava).serial;
