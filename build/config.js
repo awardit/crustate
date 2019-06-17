@@ -29,7 +29,7 @@ export const config = ({ input, output, plugins = [], external = [], externs }) 
   input,
   output: [
     {
-      file:      `${output}.mjs`,
+      file:      `${output}.esm.js`,
       sourcemap: true,
       format:    "esm",
     },

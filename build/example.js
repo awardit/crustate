@@ -7,9 +7,9 @@ import postcssPlugin  from "rollup-plugin-postcss";
 
 export const alias = aliasPlugin({
   // More specific needs to be first, otherwise will alias try to suffix
-  // `/react` on top of `index.mjs`:
-  "crustate/react": "react/dist/index.mjs",
-  "crustate":       "dist/index.mjs",
+  // `/react` on top of `index.esm.js`:
+  "crustate/react": "react/dist/index.esm.js",
+  "crustate":       "dist/index.esm.js",
 });
 
 export const babel = babelPlugin({

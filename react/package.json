@@ -3,10 +3,10 @@
   "private": true,
   "version": "0.0.1",
   "main": "dist/index.js",
-  "module": "dist/index.mjs",
+  "module": "dist/index.esm.js",
   "source": "src/index.js",
   "peerDependencies": {
-    "crustate": "^0.0.1",
+    "crustate": "*",
     "react": ">=16.8"
   }
 }
