@@ -1,6 +1,7 @@
 /* @flow */
 
-import type { Update } from "../src/update"
+import type { Update } from "../src/update";
+
 import test from "ava";
 import { NONE
        , updateData
@@ -51,7 +52,7 @@ test("updateData() contains data", t => {
 test("updateData() has no messages", t => {
   t.deepEqual(updateOutgoingMessages(updateData(null)), []);
   t.deepEqual(updateOutgoingMessages(updateData(0)), []);
-})
+});
 
 test("updateAndSend() contains data", t => {
   const o = { object: "object" };

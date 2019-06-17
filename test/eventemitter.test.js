@@ -1,7 +1,7 @@
 /* @flow */
 
-import ninos            from "ninos";
-import ava              from "ava";
+import ninos from "ninos";
+import ava from "ava";
 import { EventEmitter } from "../src/eventemitter";
 
 const test = ninos(ava);
@@ -32,7 +32,7 @@ test("emit() does nothing on undefined", t => {
 });
 
 test("emit() calls a single listener", t => {
-  const stub    = t.context.stub();
+  const stub = t.context.stub();
   const emitter = new TestEmitter({ "foo": stub });
 
   emitter.emit("foo");
@@ -43,7 +43,7 @@ test("emit() calls a single listener", t => {
 });
 
 test("emit() calls a single listener with all arguments", t => {
-  const stub    = t.context.stub();
+  const stub = t.context.stub();
   const emitter = new TestEmitter({ "foo": stub });
 
   emitter.emit("foo", "arg1");
@@ -58,7 +58,7 @@ test("emit() calls a single listener with all arguments", t => {
 });
 
 test("emit() does not call unrelated events", t => {
-  const noCall  = t.context.stub();
+  const noCall = t.context.stub();
   const emitter = new TestEmitter({ "bar": noCall });
 
   emitter.emit("foo");
@@ -68,8 +68,8 @@ test("emit() does not call unrelated events", t => {
 });
 
 test("emit() calls all listeners", t => {
-  const stub1   = t.context.stub();
-  const stub2   = t.context.stub();
+  const stub1 = t.context.stub();
+  const stub2 = t.context.stub();
   const emitter = new TestEmitter({ "foo": [stub1, stub2] });
 
   emitter.emit("foo", "arg1");
@@ -83,9 +83,9 @@ test("emit() calls all listeners", t => {
 });
 
 test("addListener() adds listeners", t => {
-  const stub1   = t.context.stub();
-  const stub2   = t.context.stub();
-  const stub3   = t.context.stub();
+  const stub1 = t.context.stub();
+  const stub2 = t.context.stub();
+  const stub3 = t.context.stub();
   const emitter = new TestEmitter({});
 
   emitter.addListener("foo", stub1);
@@ -103,8 +103,8 @@ test("addListener() adds listeners", t => {
 });
 
 test("addListener() adds different listeners", t => {
-  const stub1   = t.context.stub();
-  const stub2   = t.context.stub();
+  const stub1 = t.context.stub();
+  const stub2 = t.context.stub();
   const emitter = new TestEmitter({});
 
   emitter.addListener("foo", stub1);
@@ -119,8 +119,8 @@ test("addListener() adds different listeners", t => {
 });
 
 test("removeListener() removes a listener", t => {
-  const stub1   = t.context.stub();
-  const stub2   = t.context.stub();
+  const stub1 = t.context.stub();
+  const stub2 = t.context.stub();
   const emitter = new TestEmitter({ "foo": stub1, "bar": stub2 });
 
   emitter.removeListener("foo", stub1);
@@ -139,9 +139,9 @@ test("removeListener() removes a listener", t => {
 });
 
 test("removeListener() removes a listener when we have multiple", t => {
-  const stub1   = t.context.stub();
-  const stub2   = t.context.stub();
-  const stub3   = t.context.stub();
+  const stub1 = t.context.stub();
+  const stub2 = t.context.stub();
+  const stub3 = t.context.stub();
   const emitter = new TestEmitter({ "foo": [stub1, stub2, stub3] });
 
   emitter.removeListener("foo", stub2);
@@ -158,9 +158,9 @@ test("removeListener() removes a listener when we have multiple", t => {
 });
 
 test("removeAllListeners(eventName) removes all listeners for a specific event", t => {
-  const stub1   = t.context.stub();
-  const stub2   = t.context.stub();
-  const stub3   = t.context.stub();
+  const stub1 = t.context.stub();
+  const stub2 = t.context.stub();
+  const stub3 = t.context.stub();
   const emitter = new TestEmitter({ "foo": [stub1, stub2], "bar": stub3 });
 
   emitter.removeAllListeners("foo");
@@ -174,9 +174,9 @@ test("removeAllListeners(eventName) removes all listeners for a specific event",
 });
 
 test("removeAllListeners() removes all listeners for all events", t => {
-  const stub1   = t.context.stub();
-  const stub2   = t.context.stub();
-  const stub3   = t.context.stub();
+  const stub1 = t.context.stub();
+  const stub2 = t.context.stub();
+  const stub3 = t.context.stub();
   const emitter = new TestEmitter({ "foo": [stub1, stub2], "bar": stub3 });
 
   emitter.removeAllListeners();
@@ -190,9 +190,9 @@ test("removeAllListeners() removes all listeners for all events", t => {
 });
 
 test("listeners() returns all listeners for a specific event", t => {
-  const stub1   = t.context.stub();
-  const stub2   = t.context.stub();
-  const stub3   = t.context.stub();
+  const stub1 = t.context.stub();
+  const stub2 = t.context.stub();
+  const stub3 = t.context.stub();
   const emitter = new TestEmitter({ "foo": [stub1, stub2], "bar": stub3 });
 
   t.deepEqual(emitter.listeners("foo"), [stub1, stub2]);
