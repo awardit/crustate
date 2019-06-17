@@ -152,6 +152,50 @@ test("State renders correctly and updates when modified", t => {
   t.deepEqual(emit.calls[3].arguments, ["stateNewData", "the new one", ["state"], { tag: "data", data: "the new one" }]);
 });
 
+test("sendMessage should have a path", t => {
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+
+  const { container, getByText } = render(
+    <StorageProvider storage={s}>
+      <UseSendMessageComponent msg={{ tag: "data", data: "whatevs" }} />
+    </StorageProvider>);
+
+  t.is(container.outerHTML, "<div><a>Foo</a></div>");
+
+  const link = getByText("Foo");
+  t.not(link, undefined);
+
+  // Click is synchronous and will trigger the sendMessage call
+  fireEvent.click(link);
+
+  t.is(emit.calls.length, 2);
+  t.deepEqual(emit.calls[0].arguments, ["messageQueued", { tag: "data", data: "whatevs" }, ["$"]]);
+  t.deepEqual(emit.calls[1].arguments, ["unhandledMessage", { tag: "data", data: "whatevs" }, ["$"]]);
+});
+
+test("sendMessage should be able to set a path", t => {
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+
+  const { container, getByText } = render(
+    <StorageProvider storage={s}>
+      <UseSendMessagePathComponent msg={{ tag: "data", data: "whatevs" }} path="aaaaa" />
+    </StorageProvider>);
+
+  t.is(container.outerHTML, "<div><a>Foo</a></div>");
+
+  const link = getByText("Foo");
+  t.not(link, undefined);
+
+  // Click is synchronous and will trigger the sendMessage call
+  fireEvent.click(link);
+
+  t.is(emit.calls.length, 2);
+  t.deepEqual(emit.calls[0].arguments, ["messageQueued", { tag: "data", data: "whatevs" }, ["aaaaa"]]);
+  t.deepEqual(emit.calls[1].arguments, ["unhandledMessage", { tag: "data", data: "whatevs" }, ["aaaaa"]]);
+});
+
 test("State is removed when the Provider is unmounted", t => {
   const DoUnmount = ({ children }: { children: React$Node }) => {
     const [show, setShow] = useState(true);
