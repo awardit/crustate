@@ -158,21 +158,23 @@
       "build",
       "**/rollup.config.js"
     ],
+    "envs": [
+      "node",
+      "browser"
+    ],
     "overrides": [
       {
         "files": "test/*.js",
         "rules": {
           "flowtype/require-parameter-type": "off",
           "flowtype/require-return-type": "off",
+          "flowtype/no-unused-expressions": "off",
           "no-unused-expressions": "off",
           "quote-props": "off"
         }
       },
       {
         "files": "examples/**/*.js",
-        "environment": [
-          "browser"
-        ],
         "rules": {
           "flowtype/require-parameter-type": "warn",
           "flowtype/require-return-type": "off"
