@@ -27,6 +27,8 @@ const subscriber = (msg: DataRequest, source: StatePath) => {
       data => storage.replyMessage({ tag: "effects/response/post", data }, source),
       error => storage.replyMessage({ tag: "effects/response/post", error: String(error) }, source));
     break;
+  default:
+    throw new Error(`Unknown resource '${msg.resource}'.`);
   }
 };
 
@@ -42,8 +44,8 @@ const events = {
   snapshotRestored: "debug",
 };
 
-for(let eventName in events) {
-  let level = events[eventName];
+for(const eventName in events) {
+  const level = events[eventName];
 
   storage.addListener((eventName: any), (...data) => console[level](eventName, ...data));
 }
@@ -69,7 +71,7 @@ if( ! element) {
 
 const root = (
   <BrowserRouter basename={basename}>
-  <App storage={storage} />
+    <App storage={storage} />
   </BrowserRouter>
 );
 
