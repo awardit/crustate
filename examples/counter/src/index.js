@@ -1,12 +1,12 @@
 /* @flow */
 
 import { NONE
-       , updateData
-       , Storage } from "crustate";
+  , updateData
+  , Storage } from "crustate";
 import { StorageProvider
-       , useData
-       , useSendMessage
-       , createStateData } from "crustate/react";
+  , useData
+  , useSendMessage
+  , createStateData } from "crustate/react";
 import React from "react";
 import ReactDOM from "react-dom";
 
@@ -14,8 +14,8 @@ const INCREMENT = "increment";
 const DECREMENT = "decrement";
 
 const CounterData = createStateData({
-  name:   "counter",
-  init:   ({ initial = 0 }: { initial?: number }) => updateData(initial),
+  name: "counter",
+  init: ({ initial = 0 }: { initial?: number }) => updateData(initial),
   update: (state, msg) => {
     switch(msg.tag) {
     case INCREMENT:
@@ -34,7 +34,7 @@ const CounterData = createStateData({
 
 function TheCounter() {
   const sendMessage = useSendMessage();
-  const value       = useData(CounterData);
+  const value = useData(CounterData);
 
   return (
     <div>
@@ -63,7 +63,7 @@ const storage = new Storage();
   "messageMatched",
 ].map(event => storage.addListener(event, (...args) => console.log(event, ...args)));
 
-const el = document.getElementById("app");
+const el = document.querySelector("#app");
 
 if( ! el) {
   throw new Error(`Missing <div id="app />`);

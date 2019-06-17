@@ -2,7 +2,7 @@
 
 import { createStateData } from "crustate/react";
 import { NONE
-       , updateData } from "crustate";
+  , updateData } from "crustate";
 
 export type Todo = {
   id: number,
@@ -35,8 +35,8 @@ export const completeAll = () => ({ tag: COMPLETE_ALL });
 const maxId = (todos: Array<Todo>) => todos.reduce((a, t) => Math.max(a, t.id), 1);
 
 export const TodosState = createStateData<Array<Todo>, {}, TodoMsg>({
-  name:   "todos",
-  init:   () => updateData([]),
+  name: "todos",
+  init: () => updateData([]),
   update: (todos, msg) => {
     switch(msg.tag) {
     case ADD:
@@ -58,11 +58,11 @@ export const TodosState = createStateData<Array<Todo>, {}, TodoMsg>({
     }
   },
   subscribe: () => ({
-    [ADD]:          true,
-    [EDIT]:         true,
-    [REMOVE]:       true,
-    [CLEAR_ALL]:    true,
-    [COMPLETE]:     true,
+    [ADD]: true,
+    [EDIT]: true,
+    [REMOVE]: true,
+    [CLEAR_ALL]: true,
+    [COMPLETE]: true,
     [COMPLETE_ALL]: true,
   }),
 });
