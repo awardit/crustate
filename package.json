@@ -265,18 +265,6 @@
           "ImportDeclaration": "first"
         }
       ],
-      "key-spacing": [
-        "error",
-        {
-          "singleLine": {
-            "mode": "strict"
-          },
-          "multiLine": {
-            "mode": "minimum",
-            "align": "value"
-          }
-        }
-      ],
       "lines-between-class-members": [
         "error",
         "always",
@@ -293,20 +281,7 @@
           ]
         }
       ],
-      "no-multi-spaces": [
-        "error",
-        {
-          "exceptions": {
-            "AssignmentExpression": true,
-            "AssignmentPattern": true,
-            "ObjectTypeProperty": true,
-            "VariableDeclaration": true,
-            "VariableDeclarator": true
-          }
-        }
-      ],
       "no-case-declarations": "off",
-      "no-useless-constructor": "off",
       "no-unused-vars": [
         "error",
         {
@@ -337,8 +312,6 @@
       "space-unary-ops": [
         "error",
         {
-          "words": true,
-          "nonwords": false,
           "overrides": {
             "!": true
           }
