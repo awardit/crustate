@@ -137,10 +137,12 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
    */
   _defs: { [id: string]: State<any, any, any> } = {};
 
+  /* eslint-disable no-useless-constructor */
   // Explicit constructor results in shorter minified code
   constructor(): void {
     super();
   }
+  /* eslint-enable no-useless-constructor */
 
   getStorage(): Storage {
     return this;
@@ -257,7 +259,10 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
 export function restoreSnapshot(storage: Storage, supervisor: Supervisor, snapshot: Snapshot): void {
   const newNested: StateInstanceMap = {};
 
+  /* eslint-disable guard-for-in */
+  // We trust that the user has not been poking around in globals
   for(const k in snapshot) {
+  /* eslint-enable guard-for-in */
     const { id, data, params, nested } = snapshot[k];
 
     // Ensure the state definition exists when we restore

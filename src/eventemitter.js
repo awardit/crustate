@@ -63,6 +63,8 @@ export class EventEmitter<Events: {}> {
   emit<K: $Keys<Events>>(eventName: K, ...args: $ElementType<Events, K>): void {
     const handler: MaybeArray<Listener<Events, K>> = this._eventListeners[eventName];
 
+    // Manually used apply since it avoids an iterator shim
+    /* eslint-disable prefer-spread */
     if(typeof handler === "function") {
       handler.apply(null, args);
     }
@@ -71,5 +73,6 @@ export class EventEmitter<Events: {}> {
         handler[i].apply(null, args);
       }
     }
+    /* eslint-enable prefer-spread */
   }
 }
