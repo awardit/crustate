@@ -34,10 +34,10 @@ interface AbstractSupervisor {
 export type Snapshot = { [instanceName: string]: StateSnapshot };
 export type StateSnapshot = {
   // Name to use to find the state-definition when loading the snapshot
-  id:      string,
-  data:    mixed,
-  params:  mixed,
-  nested:  Snapshot,
+  id: string,
+  data: mixed,
+  params: mixed,
+  nested: Snapshot,
 };
 
 /**
@@ -328,11 +328,11 @@ export class StateInstance<T, I> extends EventEmitter<StateEvents<T>> implements
   constructor(id: string, supervisor: Supervisor, params: I, data: T, name: string): void {
     super();
 
-    this._id         = id;
-    this._name       = name;
+    this._id = id;
+    this._name = name;
     this._supervisor = supervisor;
-    this._params     = params;
-    this._data       = data;
+    this._params = params;
+    this._data = data;
   }
 
   getName(): string {
@@ -355,7 +355,7 @@ export class StateInstance<T, I> extends EventEmitter<StateEvents<T>> implements
 
   getPath(): StatePath {
     const path = [];
-    let   s    = this;
+    let s = this;
 
     while(s instanceof StateInstance) {
       path.unshift(s._name);
@@ -414,7 +414,7 @@ export function getNestedOrCreate<T, I, M>(supervisor: Supervisor, state: State<
 }
 
 export function createState<T, I, M>(supervisor: Supervisor, state: State<T, I, M>, initialData: I, name?: string): StateInstance<T, I> {
-  const storage  = supervisor.getStorage();
+  const storage = supervisor.getStorage();
   const { name: id, init } = state;
 
   if( ! name) {
@@ -423,11 +423,11 @@ export function createState<T, I, M>(supervisor: Supervisor, state: State<T, I, 
 
   storage.tryRegisterState(state);
 
-  const update   = init(initialData);
-  const data     = updateStateDataNoNone(update);
+  const update = init(initialData);
+  const data = updateStateDataNoNone(update);
   const messages = updateOutgoingMessages(update);
   const instance = new StateInstance(id, supervisor, initialData, data, name);
-  const path     = instance.getPath();
+  const path = instance.getPath();
 
   supervisor._nested[name] = instance;
 
@@ -444,8 +444,8 @@ export function createInflightMessage(storage: Storage, source: StatePath, messa
   storage.emit("messageQueued", message, source);
 
   return {
-    _message:  message,
-    _source:   source,
+    _message: message,
+    _source: source,
     _received: null,
   };
 }
@@ -478,23 +478,24 @@ export function processInstanceMessages(storage: Storage, instance: Supervisor, 
 
   while(instance instanceof StateInstance) {
     const definition = getStateDefinitionById(storage, instance._id);
-    // Traverse down one level
-    sourcePath       = sourcePath.slice(0, -1);
 
     // We are going to add to messages if any new messages are generated, save
     // length here
-    const currentLimit          = inflight.length;
+    const currentLimit = inflight.length;
     const { update, subscribe } = definition;
 
     // We need to be able to update the filters if the data changes
     let messageFilter = subscribe(instance._data);
+
+    // Traverse down one level
+    sourcePath = sourcePath.slice(0, -1);
 
     // TODO: Emit event? that we are considering messags for state?
 
     for(let i = 0; i < currentLimit; i++) {
       const currentInflight = inflight[i];
       const { _message: m } = currentInflight;
-      const match           = findMatchingSubscription(messageFilter, m, Boolean(currentInflight._received));
+      const match = findMatchingSubscription(messageFilter, m, Boolean(currentInflight._received));
 
       if(match) {
         if( ! match.isPassive) {
@@ -506,7 +507,7 @@ export function processInstanceMessages(storage: Storage, instance: Supervisor, 
         const updateRequest = update(instance._data, m);
 
         if(updateHasData(updateRequest)) {
-          const data     = updateStateData(updateRequest);
+          const data = updateStateData(updateRequest);
           const outgoing = updateOutgoingMessages(updateRequest);
 
           instance._data = data;
@@ -532,13 +533,13 @@ export function processInstanceMessages(storage: Storage, instance: Supervisor, 
 }
 
 function processStorageMessage(storage: Storage, inflight: InflightMessage): void {
-  const { _subscribers: s }   = storage;
+  const { _subscribers: s } = storage;
   const { _message, _source } = inflight;
-  let   received              = Boolean(inflight._received);
+  let received = Boolean(inflight._received);
 
   for(let i = 0; i < s.length; i++) {
     const { listener, subscription } = s[i];
-    const match                      = findMatchingSubscription(subscription, _message, Boolean(received));
+    const match = findMatchingSubscription(subscription, _message, Boolean(received));
 
     if(match) {
       if( ! match.isPassive) {
@@ -558,11 +559,11 @@ function processStorageMessage(storage: Storage, inflight: InflightMessage): voi
 
 export function createStateSnapshot<T, I>(node: StateInstance<T, I>): StateSnapshot {
   return {
-    id:      node._id,
+    id: node._id,
     // We assume it is immutably updated
-    data:    node._data,
-    params:  node._params,
-    nested:  createSnapshot(node),
+    data: node._data,
+    params: node._params,
+    nested: createSnapshot(node),
   };
 }
 
