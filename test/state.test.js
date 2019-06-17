@@ -1,25 +1,20 @@
 /* @flow */
 
-import type { Init
-            , State
-            , StateUpdate } from "../src/state";
+import type { State } from "../src/state";
 import type { Message } from "../src/message";
 
-import ninos            from "ninos";
-import test             from "ava";
+import test from "ava";
 import { NONE
-       , updateData
-       , updateAndSend } from "../src/update";
+       , updateData } from "../src/update";
 
 // Type tests
 type MyMessage = { tag: "a" } | { tag: "b" };
 ({
   name: "test",
   init: () => updateData("init"),
-  update: (data, msg) => NONE,
+  update: () => NONE,
   subscribe: () => ({}),
 }: State<string, void, MyMessage>);
-
 
 test("State can be instantiated", t => {
   const definition: State<string, void, Message> = {

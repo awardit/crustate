@@ -1,6 +1,6 @@
 /* @flow */
 
-import test            from "ava";
+import test from "ava";
 import { debugAssert } from "../src/assert";
 
 test("debugAssert with NODE_ENV = development", t => {
