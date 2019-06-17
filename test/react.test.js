@@ -204,7 +204,7 @@ test("State is removed when the Provider is unmounted", t => {
       <>
         <button type="button" onClick={() => setShow( ! show)}>Toggle</button>
         {show ? children : <p>No render</p>}
-      <>
+      </>
     );
   };
 
