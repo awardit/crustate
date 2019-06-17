@@ -14,7 +14,7 @@ import App from "./app";
 
 // Create a router only since We run this file through the main
 // `examples/index.js` application
-const app = express.Router();
+const app = new express.Router();
 
 function listPosts(cb: (error: boolean, posts: Array<PostHeading>) => mixed) {
   cb(false, [{ id: 1, title: "Post one" }, { id: 2, title: "Post B" }]);
@@ -80,6 +80,8 @@ function createRequestHandler(storage: Storage) {
         finish();
       });
       break;
+    default:
+      throw new Error(`Unknown resource '${msg.resource}'.`);
     }
   };
 
@@ -110,7 +112,7 @@ app.use((req, res, next) => {
 const renderApp = (req, res, context): string => ReactDomServer.renderToString(
   <StaticRouter
     basename={req.baseUrl}
-                location={req.url}
+    location={req.url}
     context={context}
   >
     <App storage={res.locals.storage} />
