@@ -28,8 +28,8 @@ export type Subscribe<T, M> = (state: T) => SubscriptionMap<M>;
  * the initial data `I`.
  */
 export type State<T, I, M> = {
-  name:      string,
-  init:      Init<T, I>,
-  update:    StateUpdate<T, M>,
+  name: string,
+  init: Init<T, I>,
+  update: StateUpdate<T, M>,
   subscribe: Subscribe<T, M>,
 };

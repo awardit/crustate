@@ -1,4 +1,5 @@
 /* @flow */
+
 /*
  * We need to suppress Google Closure Compiler's checkTypes warnings throughout
  * the file since @ampproject/rollup-plugin-closure-compiler generates bad
@@ -33,7 +34,7 @@ export type DataProvider<I> = React$ComponentType<DataProviderProps<I>>;
  * DataConsumer is a component which takes a function as children and will call
  * this function with the state instance data.
  */
-export type DataConsumer<T> = React$ComponentType<{ children: DataFunction<T>}>;
+export type DataConsumer<T> = React$ComponentType<{ children: DataFunction<T> }>;
 
 /**
  * TestProvider is a component which exposes a property for setting the
@@ -125,7 +126,7 @@ function excludeChildren<T: { children?: ?React$Node, name?: string }>(props: T)
  * @return {!StateData}
  */
 export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T, I, M> {
-  const Ctx          = (createContext(undefined): React$Context<T | void>);
+  const Ctx = (createContext(undefined): React$Context<T | void>);
   const { Provider } = Ctx;
 
   function DataProvider(props: DataProviderProps<I>): React$Node {
@@ -135,7 +136,7 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
       throw new Error(`<${state.name}.Provider /> must be used inside a <StorageProvider />`);
     }
 
-    const instance        = context.getNestedOrCreate(state, excludeChildren(props), props.name);
+    const instance = context.getNestedOrCreate(state, excludeChildren(props), props.name);
     const [data, setData] = useState(instance.getData());
 
     useEffect((): (() => void) => {
@@ -171,8 +172,8 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
     // undefined internally, but when testing it should not be possible to use
     // without a fully defined `T`:
     TestProvider: (Provider: React$ComponentType<{ children: ?React$Node, value: any }>),
-    Provider:     DataProvider,
-    Consumer:     Ctx.Consumer,
+    Provider: DataProvider,
+    Consumer: Ctx.Consumer,
   };
 }
 

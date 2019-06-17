@@ -22,8 +22,8 @@ export type Message = {
  * A message on its way upwards in the hierarchy.
  */
 export type InflightMessage = {
-  _message:  Message,
-  _source:   StatePath,
+  _message: Message,
+  _source: StatePath,
   /**
    * If an active subscription has received this message this is the state path
    * which received it.
@@ -80,8 +80,8 @@ export function findMatchingSubscription<M: Message>(subscribers: SubscriptionMa
   const subscriber = subscribers[tag];
   // We do not use object destructuring here since it would require us to
   // create a new object for the default value in the case of true
-  const passive    = subscriber === true ? false : !!subscriber.passive;
-  const filter     = subscriber === true ? null : subscriber.filter;
+  const passive = subscriber === true ? false : Boolean(subscriber.passive);
+  const filter = subscriber === true ? null : subscriber.filter;
 
   if((passive || ! received) && tag === message.tag && ( ! filter || filter(message))) {
     return { isPassive: passive };
