@@ -7,9 +7,7 @@ import { cleanup
        , render } from "@testing-library/react";
 import { JSDOM } from "jsdom";
 import React,
-       { Component
-       , createContext
-       , useState } from "react";
+       { useState } from "react";
 import { Storage
        , updateData } from "../src";
 import { StorageProvider
@@ -63,7 +61,7 @@ const MyData = createStateData<string, { test?: boolean, data: string }, UpdateM
 (() => {
   // Testing some stuff which we cannot run
   // $ExpectError
-  const data: number = useData(MyData);
+  (useData(MyData): number);
 
   (<StorageProvider storage={new Storage()} />);
   (<StorageProvider storage={new Storage()}>test</StorageProvider>);
@@ -155,14 +153,14 @@ test("State renders correctly and updates when modified", t => {
 });
 
 test("State is removed when the Provider is unmounted", t => {
-  const DoUnmount = ({ children }) => {
+  const DoUnmount = ({ children }: { children: React$Node }) => {
     const [show, setShow] = useState(true);
 
     return (
-      <React.Fragment>
+      <>
         <button type="button" onClick={() => setShow( ! show)}>Toggle</button>
         {show ? children : <p>No render</p>}
-      </React.Fragment>
+      <>
     );
   };
 
@@ -195,7 +193,7 @@ test("State is reused at the same level", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
 
-  const { container, getByText } = render(
+  const { container } = render(
     <StorageProvider storage={s}>
       <MyData.Provider data="my initial"><MyDataUseDataComponent /></MyData.Provider>
       <MyData.Provider data="second initial"><MyDataUseDataComponent /></MyData.Provider>
@@ -223,7 +221,7 @@ test("State updates during rendering are respected", t => {
     return <p>{data}</p>;
   };
 
-  const { container, getByText } = render(
+  const { container } = render(
     <StorageProvider storage={s}>
       <MyData.Provider data="my initial"><MyUpdatingComponent /></MyData.Provider>
     </StorageProvider>);
@@ -238,14 +236,14 @@ test("State updates during rendering are respected", t => {
 });
 
 test("State is removed when the Provider is the last to be unmounted", t => {
-  const DoUnmount = ({ children, text }) => {
+  const DoUnmount = ({ children, text }: { children: React$Node, text: string }) => {
     const [show, setShow] = useState(true);
 
     return (
-      <React.Fragment>
+      <>
         <button type="button" onClick={() => setShow( ! show)}>{text}</button>
         {show ? children : <p>No render</p>}
-      </React.Fragment>
+      </>
     );
   };
 
@@ -292,16 +290,16 @@ test("State is removed when the Provider is the last to be unmounted", t => {
 test("Rerender should not do anything with the same parameters", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
-  const RerenderComponent = ({ children }) => {
+  const RerenderComponent = ({ children }: { children: React$Node }) => {
     const [a, setA] = useState(0);
 
     return (
-      <React.Fragment>
+      <>
         <a onClick={() => setA(a + 1)}>Click</a>
         <MyData.Provider data="the initial">
           {children}
         </MyData.Provider>
-      </React.Fragment>
+      </>
     );
   };
 
@@ -325,7 +323,7 @@ test("Rerender should not do anything with the same parameters", t => {
 test("Rerender without storage should throw", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
-  const RerenderComponent = ({ children }) => {
+  const RerenderComponent = ({ children }: { children: React$Node }) => {
     const [localS, setStorage] = useState(s);
 
     return (
@@ -357,7 +355,7 @@ test("Rerender with new storage should recreate the state instance in the new st
   const sB = new Storage();
   const emitA = t.context.spy(sA, "emit");
   const emitB = t.context.spy(sB, "emit");
-  const RerenderComponent = ({ children }) => {
+  const RerenderComponent = ({ children }: { children: React$Node }) => {
     const [localS, setStorage] = useState(sA);
 
     return (
@@ -390,7 +388,7 @@ test("Rerender with new storage should recreate the state instance in the new st
 test("Varying name property will recreate the state instance", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
-  const Wrapper = ({ children }) => {
+  const Wrapper = ({ children }: { children: React$Node }) => {
     const [key, setKey] = useState("a");
 
     return (
