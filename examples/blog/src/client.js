@@ -1,15 +1,15 @@
 /* @flow */
 
-import type { StatePath }   from "crustate";
+import type { StatePath } from "crustate";
 import type { DataRequest } from "./effects";
 
-import { Storage }       from "crustate";
-import React             from "react";
-import { render }        from "react-dom";
+import { Storage } from "crustate";
+import React from "react";
+import { render } from "react-dom";
 import { BrowserRouter } from "react-router-dom";
-import App               from "./app";
+import App from "./app";
 import { PostData
-       , PostListData }  from "./state";
+       , PostListData } from "./state";
 
 const basename   = window.routerBasename;
 const storage    = new Storage();
@@ -67,6 +67,10 @@ if( ! element) {
   throw new Error("Example: #app element was not found");
 }
 
-render(<BrowserRouter basename={basename}>
+const root = (
+  <BrowserRouter basename={basename}>
   <App storage={storage} />
-</BrowserRouter>, element);
+  </BrowserRouter>
+);
+
+render(root, element);

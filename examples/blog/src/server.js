@@ -5,19 +5,19 @@ import type { DataRequest } from "./effects";
 import type { Post
             , PostHeading } from "./state";
 
-import { StaticRouter }         from "react-router";
-import express                  from "express";
-import { Storage }              from "crustate";
-import React                    from "react";
-import ReactDomServer           from "react-dom/server";
-import App                      from "./app";
+import { StaticRouter } from "react-router";
+import express from "express";
+import { Storage } from "crustate";
+import React from "react";
+import ReactDomServer from "react-dom/server";
+import App from "./app";
 
 // Create a router only since We run this file through the main
 // `examples/index.js` application
 const app = express.Router();
 
 function listPosts(cb: (error: boolean, posts: Array<PostHeading>) => mixed) {
-  cb(false, [{ id: 1, title: "Post one"}, { id: 2, title: "Post B" }]);
+  cb(false, [{ id: 1, title: "Post one" }, { id: 2, title: "Post B" }]);
 }
 
 function getPost(id: number, cb: ((error: true) => mixed) & (error: false, post: Post) => mixed) {
@@ -36,9 +36,9 @@ function getPost(id: number, cb: ((error: true) => mixed) & (error: false, post:
  * Server version of the request handler.
  */
 function createRequestHandler(storage: Storage) {
-  const resolvers  = [];
-  let   waiting    = 0;
-  const finish     = () => {
+  let waiting = 0;
+  const resolvers = [];
+  const finish = () => {
     waiting -= 1;
 
     if(waiting === 0) {
@@ -47,6 +47,7 @@ function createRequestHandler(storage: Storage) {
       }
     }
   };
+
   const subscriber = (msg: DataRequest, source: StatePath) => {
     switch(msg.resource) {
     case "list":
@@ -89,12 +90,12 @@ function createRequestHandler(storage: Storage) {
   };
 }
 
-app.get("/api/posts", (req, res) => listPosts((error, posts) => error
-  ? res.status(500).send(error)
-  : res.json(posts)));
-app.get("/api/posts/:id", (req, res) => getPost(parseInt(req.params.id, 10), (error, post) => error
-  ? res.status(404).end()
-  : res.json(post)));
+app.get("/api/posts", (req, res) => listPosts((error, posts) => error ?
+  res.status(500).send(error) :
+  res.json(posts)));
+app.get("/api/posts/:id", (req, res) => getPost(parseInt(req.params.id, 10), (error, post) => error ?
+  res.status(404).end() :
+  res.json(post)));
 
 app.use((req, res, next) => {
   const storage = new Storage();
@@ -107,9 +108,11 @@ app.use((req, res, next) => {
 });
 
 const renderApp = (req, res, context): string => ReactDomServer.renderToString(
-  <StaticRouter basename={req.baseUrl}
+  <StaticRouter
+    basename={req.baseUrl}
                 location={req.url}
-                context={context}>
+    context={context}
+  >
     <App storage={res.locals.storage} />
   </StaticRouter>
 );

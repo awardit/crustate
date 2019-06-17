@@ -3,14 +3,7 @@
 import type { Todo } from "./todos";
 
 import { createStateData } from "crustate/react";
-import { NONE
-       , updateData } from "crustate";
-
-const SET: "filterSet" = "filterSet";
-
-export const SHOW_ACTIVE    = "ACTIVE";
-export const SHOW_ALL       = "ALL";
-export const SHOW_COMPLETED = "COMPLETED";
+import { updateData } from "crustate";
 
 export type Filter =
   | typeof SHOW_ALL
@@ -19,22 +12,29 @@ export type Filter =
 
 type FilterMsg = { tag: typeof SET, value: Filter };
 
-export const todoFilterPredicate = (filter: Filter) => (todo: Todo) => {
+const SET: "filterSet" = "filterSet";
+
+export const SHOW_ACTIVE    = "ACTIVE";
+export const SHOW_ALL       = "ALL";
+export const SHOW_COMPLETED = "COMPLETED";
+
+export const todoFilterPredicate = (filter: Filter) => (todo: Todo): boolean => {
   if(filter === SHOW_ACTIVE) {
-    return !todo.completed;
+    return ! todo.completed;
   }
-  else if(filter === SHOW_COMPLETED) {
+
+  if(filter === SHOW_COMPLETED) {
     return todo.completed;
   }
 
   return true;
 };
 
-export const setFilter = (value: Filter) => ({ tag: SET, value});
+export const setFilter = (value: Filter): FilterMsg => ({ tag: SET, value });
 
 export const FilterState = createStateData<Filter, {}, FilterMsg>({
   name:      "filter",
-  init:      ()       => updateData(SHOW_ALL),
+  init:      () => updateData(SHOW_ALL),
   update:    (_, msg) => updateData(msg.value),
-  subscribe: ()       => ({ [SET]: true })
+  subscribe: () => ({ [SET]: true })
 });

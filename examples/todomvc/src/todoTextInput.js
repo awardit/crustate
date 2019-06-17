@@ -1,14 +1,14 @@
 /* @flow */
 
-import React      from "react";
+import React from "react";
 import classnames from "classnames";
 
 type TodoTextInputProps = {
-  editing?:     boolean,
-  newTodo?:     boolean,
-  onSave:       (text: string) => mixed,
+  editing?: boolean,
+  newTodo?: boolean,
+  onSave: (text: string) => mixed,
   placeholder?: string,
-  text?:        string,
+  text?: string,
 };
 
 export const TodoTextInput = ({ editing, newTodo, onSave, placeholder, text: defaultText }: TodoTextInputProps) => {
@@ -28,13 +28,16 @@ export const TodoTextInput = ({ editing, newTodo, onSave, placeholder, text: def
     }
   };
 
-  return <input className={classnames({ "edit": editing, "new-todo": newTodo })}
-                type="text"
-                placeholder={placeholder}
-                autoFocus={true}
-                value={text}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                onKeyDown={handleKeyDown} />
+  return (
+    <input
+      autoFocus
+      type="text"
+      className={classnames({ edit: editing, "new-todo": newTodo })}
+      placeholder={placeholder}
+      value={text}
+      onBlur={handleBlur}
+      onChange={handleChange}
+      onKeyDown={handleKeyDown}
+    />
+  );
 };
-

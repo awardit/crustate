@@ -1,18 +1,18 @@
 /* @flow */
 
-import type { Todo }           from "./states/todos";
+import type { Todo } from "./states/todos";
 
-import React                   from "react";
-import classnames              from "classnames";
+import React from "react";
+import classnames from "classnames";
 import { useSendMessage
-       , useData }             from "crustate/react";
+       , useData } from "crustate/react";
 import { FilterState
        , todoFilterPredicate } from "./states/filter";
 import { TodosState
        , edit
        , remove
-       , complete }            from "./states/todos";
-import { TodoTextInput }       from "./todoTextInput";
+       , complete } from "./states/todos";
+import { TodoTextInput } from "./todoTextInput";
 
 export const TodoList = () => {
   const todos  = useData(TodosState);

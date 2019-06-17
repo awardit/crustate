@@ -1,6 +1,5 @@
 /* @flow */
-import type { StatePath
-            , Storage } from "crustate";
+
 import type { Post
             , PostHeading } from "./state";
 
