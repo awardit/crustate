@@ -195,7 +195,7 @@
         {
           "arrays": "only-multiline",
           "objects": "only-multiline",
-          "imports": "never",
+          "imports": "only-multiline",
           "exports": "never",
           "functions": "never"
         }
@@ -260,13 +260,6 @@
       ],
       "import/no-unresolved": "off",
       "import/order": "off",
-      "indent": [
-        "warn",
-        2,
-        {
-          "ImportDeclaration": "first"
-        }
-      ],
       "lines-between-class-members": [
         "error",
         "always",

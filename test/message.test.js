@@ -1,7 +1,6 @@
 /* @flow */
 
-import type { Message
-            , SubscriptionMap } from "../src/message";
+import type { Message, SubscriptionMap } from "../src/message";
 
 import ninos from "ninos";
 import ava from "ava";

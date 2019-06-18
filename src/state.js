@@ -1,8 +1,6 @@
 /* @flow */
 
-import type { Update
-            , DataUpdate
-            , MessageUpdate } from "./update";
+import type { Update, DataUpdate, MessageUpdate } from "./update";
 import type { SubscriptionMap } from "./message";
 
 export type StatePath = Array<string>;

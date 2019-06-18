@@ -4,8 +4,7 @@ import type { State } from "../src/state";
 import type { Message } from "../src/message";
 
 import test from "ava";
-import { NONE
-       , updateData } from "../src/update";
+import { NONE, updateData } from "../src/update";
 
 // Type tests
 type MyMessage = { tag: "a" } | { tag: "b" };

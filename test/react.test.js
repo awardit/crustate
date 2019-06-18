@@ -2,19 +2,17 @@
 
 import ava from "ava";
 import ninos from "ninos";
-import { cleanup
-       , fireEvent
-       , render } from "@testing-library/react";
+import { cleanup, fireEvent, render } from "@testing-library/react";
 import { JSDOM } from "jsdom";
-import React,
-       { useState } from "react";
-import { Storage
-       , updateData } from "../src";
-import { StorageProvider
-       , StateContext
-       , useSendMessage
-       , createStateData
-       , useData } from "../react/src";
+import React, { useState } from "react";
+import { Storage, updateData } from "../src";
+import {
+  StorageProvider,
+  StateContext,
+  useSendMessage,
+  createStateData,
+  useData,
+} from "../react/src";
 
 // We need to make sure we cleanup after each test, so serial
 const test = ninos(ava).serial;
