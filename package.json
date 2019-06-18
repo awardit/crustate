@@ -260,6 +260,13 @@
       ],
       "import/no-unresolved": "off",
       "import/order": "off",
+      "indent": [
+        "error",
+        2,
+        {
+          "SwitchCase": 0
+        }
+      ],
       "lines-between-class-members": [
         "error",
         "always",
