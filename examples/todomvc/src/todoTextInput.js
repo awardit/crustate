@@ -14,8 +14,8 @@ type TodoTextInputProps = {
 export const TodoTextInput = ({ editing, newTodo, onSave, placeholder, text: defaultText }: TodoTextInputProps) => {
   const [text, setText] = React.useState(defaultText || "");
 
-  const handleBlur    = e => newTodo && onSave(e.target.value);
-  const handleChange  = e => setText(e.target.value);
+  const handleBlur = e => newTodo && onSave(e.target.value);
+  const handleChange = e => setText(e.target.value);
   const handleKeyDown = e => {
     const text = e.target.value.trim();
 

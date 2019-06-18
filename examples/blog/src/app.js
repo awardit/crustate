@@ -5,8 +5,7 @@ import type { Storage } from "crustate";
 import { StorageProvider } from "crustate/react";
 import React from "react";
 import { Route } from "react-router";
-import { PostData
-       , PostListData } from "./state";
+import { PostData, PostListData } from "./state";
 import { ListPostsView } from "./views/list";
 import { PostView } from "./views/post";
 

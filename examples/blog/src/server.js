@@ -2,8 +2,7 @@
 
 import type { StatePath } from "crustate";
 import type { DataRequest } from "./effects";
-import type { Post
-            , PostHeading } from "./state";
+import type { Post, PostHeading } from "./state";
 
 import { StaticRouter } from "react-router";
 import express from "express";

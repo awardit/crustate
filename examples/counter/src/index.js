@@ -1,12 +1,12 @@
 /* @flow */
 
-import { NONE
-  , updateData
-  , Storage } from "crustate";
-import { StorageProvider
-  , useData
-  , useSendMessage
-  , createStateData } from "crustate/react";
+import { NONE, updateData, Storage } from "crustate";
+import {
+  StorageProvider,
+  useData,
+  useSendMessage,
+  createStateData,
+} from "crustate/react";
 import React from "react";
 import ReactDOM from "react-dom";
 
