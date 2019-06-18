@@ -4,26 +4,25 @@ import type { Todo } from "./states/todos";
 
 import React from "react";
 import classnames from "classnames";
-import { useSendMessage
-       , useData } from "crustate/react";
-import { FilterState
-       , todoFilterPredicate } from "./states/filter";
-import { TodosState
-       , edit
-       , remove
-       , complete } from "./states/todos";
+import { useSendMessage, useData } from "crustate/react";
+import { FilterState, todoFilterPredicate } from "./states/filter";
+import { TodosState, edit, remove, complete } from "./states/todos";
 import { TodoTextInput } from "./todoTextInput";
 
 export const TodoList = () => {
-  const todos  = useData(TodosState);
+  const todos = useData(TodosState);
   const filter = useData(FilterState);
 
-  return <ul className="todo-list">
-    {todos.filter(todoFilterPredicate(filter)).map(todo =>
-      <TodoItem key={todo.id}
-                todo={todo} />
-    )}
-  </ul>
+  return (
+    <ul className="todo-list">
+      {todos.filter(todoFilterPredicate(filter)).map(todo => (
+        <TodoItem
+          key={todo.id}
+          todo={todo}
+        />
+      ))}
+    </ul>
+  );
 };
 
 type TodoItemProps = {
@@ -32,9 +31,9 @@ type TodoItemProps = {
 
 export const TodoItem = ({ todo: { id, text, completed } }: TodoItemProps) => {
   const [editing, setEditing] = React.useState(false);
-  const sendMessage           = useSendMessage();
-  const handleDoubleClick     = () => setEditing(true);
-  const handleSave            = text => {
+  const sendMessage = useSendMessage();
+  const handleDoubleClick = () => setEditing(true);
+  const handleSave = text => {
     if(text.length === 0) {
       sendMessage(remove(id));
     }
@@ -45,21 +44,32 @@ export const TodoItem = ({ todo: { id, text, completed } }: TodoItemProps) => {
     setEditing(false);
   };
 
-  return <li className={classnames({ completed, editing })}>
-    {editing
-      ? <TodoTextInput text={text}
-                       editing={true}
-                       onSave={handleSave} />
-      : <div className="view">
-          <input className="toggle"
-                 type="checkbox"
-                 checked={completed}
-                 onChange={() => sendMessage(complete(id))} />
+  return (
+    <li className={classnames({ completed, editing })}>
+      {editing ? (
+        <TodoTextInput
+          editing
+          text={text}
+          onSave={handleSave}
+        />
+      ) : (
+        <div className="view">
+          <input
+            className="toggle"
+            type="checkbox"
+            checked={completed}
+            onChange={() => sendMessage(complete(id))}
+          />
           <label onDoubleClick={handleDoubleClick}>
             {text}
           </label>
-          <button className="destroy"
-                  onClick={() => sendMessage(remove(id))} />
-        </div>}
-    </li>;
+          <button
+            className="destroy"
+            type="button"
+            onClick={() => sendMessage(remove(id))}
+          />
+        </div>
+      )}
+    </li>
+  );
 };

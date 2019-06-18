@@ -1,8 +1,7 @@
 /* @flow */
 
 import { createStateData } from "crustate/react";
-import { NONE
-  , updateData } from "crustate";
+import { NONE, updateData } from "crustate";
 
 export type Todo = {
   id: number,

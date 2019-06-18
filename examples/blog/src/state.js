@@ -1,15 +1,10 @@
 /* @flow */
 
-import type { ListResponse
-            , PostResponse } from "./effects";
+import type { ListResponse, PostResponse } from "./effects";
 
-import { updateAndSend
-       , updateData } from "crustate";
+import { updateAndSend, updateData } from "crustate";
 import { createStateData } from "crustate/react";
-import { requestList
-       , requestPost
-       , LIST_RESPONSE
-       , POST_RESPONSE } from "./effects";
+import { requestList, requestPost, LIST_RESPONSE, POST_RESPONSE } from "./effects";
 
 export type PostHeading = {
   id: number,

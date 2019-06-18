@@ -8,8 +8,7 @@ import React from "react";
 import { render } from "react-dom";
 import { BrowserRouter } from "react-router-dom";
 import App from "./app";
-import { PostData
-       , PostListData } from "./state";
+import { PostData, PostListData } from "./state";
 
 const basename   = window.routerBasename;
 const storage    = new Storage();
@@ -35,12 +34,12 @@ const subscriber = (msg: DataRequest, source: StatePath) => {
 // TODO: Currently not a type-safe way of registering listeners
 const events = {
   unhandledMessage: "warn",
-  stateCreated:     "info",
-  stateRemoved:     "info",
-  stateNewData:     "info",
-  snapshotRestore:  "info",
-  messageQueued:    "info",
-  messageMatched:   "debug",
+  stateCreated: "info",
+  stateRemoved: "info",
+  stateNewData: "info",
+  snapshotRestore: "info",
+  messageQueued: "info",
+  messageMatched: "debug",
   snapshotRestored: "debug",
 };
 

@@ -2,70 +2,89 @@
 
 import type { Filter } from "./states/filter";
 
-import React              from "react";
-import classnames         from "classnames";
-import { clearAll }       from "./states/todos";
-import { useData
-       , useSendMessage } from "crustate/react";
-import { SHOW_ALL
-       , SHOW_COMPLETED
-       , SHOW_ACTIVE
-       , FilterState
-       , setFilter }      from "./states/filter";
+import React from "react";
+import classnames from "classnames";
+import { clearAll } from "./states/todos";
+import { useData, useSendMessage } from "crustate/react";
+import {
+  SHOW_ALL,
+  SHOW_COMPLETED,
+  SHOW_ACTIVE,
+  FilterState,
+  setFilter,
+} from "./states/filter";
 
 const FILTER_TITLES = {
-  [SHOW_ALL]:       "All",
-  [SHOW_ACTIVE]:    "Active",
+  [SHOW_ALL]: "All",
+  [SHOW_ACTIVE]: "Active",
   [SHOW_COMPLETED]: "Completed",
 };
 
 type LinkProps = {
   children: React$Node,
   selected: boolean,
-  onClick:  (event: Event) => mixed,
+  onClick: (event: Event) => mixed,
 };
 
-export const Link = ({ children, selected, onClick }: LinkProps) => <a
-  className={classnames({ selected })}
-  style={{ cursor: 'pointer' }}
-  onClick={onClick}>{children}</a>
+export const Link = ({ children, selected, onClick }: LinkProps) => (
+  <a
+    className={classnames({ selected })}
+    style={{ cursor: "pointer" }}
+    onClick={onClick}
+  >
+    {children}
+  </a>
+);
 
 type FilterLinkProps = {
   children: React$Node,
-  filter:   Filter,
+  filter: Filter,
 };
 
 export const FilterLink = ({ filter, children }: FilterLinkProps) => {
   const sendMessage = useSendMessage();
-  const current     = useData(FilterState);
+  const current = useData(FilterState);
 
-  return <Link selected={current === filter}
-               onClick={() => sendMessage(setFilter(filter))}>{children}</Link>
-}
+  return (
+    <Link
+      selected={current === filter}
+      onClick={() => sendMessage(setFilter(filter))}
+    >
+      {children}
+    </Link>
+  );
+};
 
 type FooterProps = {
-  activeCount:    number,
+  activeCount: number,
   completedCount: number,
 };
 
 export const Footer = ({ activeCount, completedCount }: FooterProps) => {
-  const itemWord    = activeCount === 1 ? 'item' : 'items';
+  const itemWord = activeCount === 1 ? "item" : "items";
   const sendMessage = useSendMessage();
 
-  return <footer className="footer">
+  return (
+    <footer className="footer">
       <span className="todo-count">
-        <strong>{activeCount || 'No'}</strong> {itemWord} left
+        <strong>{activeCount || "No"}</strong> {itemWord} left
       </span>
       <ul className="filters">
-        {Object.keys(FILTER_TITLES).map(filter =>
+        {Object.keys(FILTER_TITLES).map(filter => (
           <li key={filter}>
             <FilterLink filter={filter}>{FILTER_TITLES[filter]}</FilterLink>
           </li>
-        )}
+        ))}
       </ul>
-      {completedCount > 0
-        ? <button className="clear-completed"
-                  onClick={() => sendMessage(clearAll())}>Clear completed</button>
-        : null}
+      {completedCount > 0 ?
+        <button
+          type="button"
+          className="clear-completed"
+          onClick={() => sendMessage(clearAll())}
+        >
+          Clear completed
+        </button> :
+        null}
     </footer>
-}
+  );
+};
