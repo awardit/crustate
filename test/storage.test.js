@@ -2,13 +2,8 @@
 
 import ninos from "ninos";
 import ava from "ava";
-import { Storage
-  , StateInstance
-  , findSupervisor
-  , processInstanceMessages } from "../src/storage";
-import { NONE
-  , updateData
-  , updateAndSend } from "../src/update";
+import { Storage, StateInstance, findSupervisor, processInstanceMessages } from "../src/storage";
+import { NONE, updateData, updateAndSend } from "../src/update";
 
 // We redefine this here so we can test it
 const MESSAGE_NEW_PARAMS = "crustate/stateNewParams";

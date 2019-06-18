@@ -3,13 +3,15 @@
 import type { Update } from "../src/update";
 
 import test from "ava";
-import { NONE
-       , updateData
-       , updateHasData
-       , updateAndSend
-       , updateStateData
-       , updateOutgoingMessages
-       , updateStateDataNoNone } from "../src/update";
+import {
+  NONE,
+  updateData,
+  updateHasData,
+  updateAndSend,
+  updateStateData,
+  updateOutgoingMessages,
+  updateStateDataNoNone,
+} from "../src/update";
 
 // Type tests
 (NONE: Update<null>);

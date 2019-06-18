@@ -1,16 +1,15 @@
 /* @flow */
 
-import type { State
-            , StatePath } from "./state";
-import type { InflightMessage
-            , Message
-            , SubscriptionMap } from "./message";
+import type { State, StatePath } from "./state";
+import type { InflightMessage, Message, SubscriptionMap } from "./message";
 
 import { debugAssert } from "./assert";
-import { updateHasData
-       , updateStateData
-       , updateStateDataNoNone
-       , updateOutgoingMessages } from "./update";
+import {
+  updateHasData,
+  updateStateData,
+  updateStateDataNoNone,
+  updateOutgoingMessages,
+} from "./update";
 import { findMatchingSubscription } from "./message";
 import { EventEmitter } from "./eventemitter";
 

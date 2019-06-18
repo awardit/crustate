@@ -8,16 +8,15 @@
  */
 
 import type { Context } from "react";
-import type { Message
-            , State
-            , Storage
-            , Supervisor } from "crustate";
+import type { Message, State, Storage, Supervisor } from "crustate";
 
-import { createContext
-       , createElement
-       , useContext
-       , useEffect
-       , useState } from "react";
+import {
+  createContext,
+  createElement,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 type DataProviderProps<T> = T & { name?: string, children?: ?React$Node };
 
