@@ -14,6 +14,8 @@ import {
   useData,
 } from "../react/src";
 
+type UpdateMsg = { tag: "data", data: string };
+
 // We need to make sure we cleanup after each test, so serial
 const test = ninos(ava).serial;
 
@@ -34,8 +36,6 @@ function init() {
 
 test.beforeEach(init);
 test.afterEach.always(cleanup);
-
-type UpdateMsg = { tag: "data", data: string };
 
 const MyData = createStateData<string, { test?: boolean, data: string }, UpdateMsg>({
   name: "state",

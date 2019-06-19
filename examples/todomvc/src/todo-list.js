@@ -9,6 +9,10 @@ import { FilterState, todoFilterPredicate } from "./states/filter";
 import { TodosState, edit, remove, complete } from "./states/todos";
 import { TodoTextInput } from "./todo-text-input";
 
+type TodoItemProps = {
+  todo: Todo,
+};
+
 export const TodoList = () => {
   const todos = useData(TodosState);
   const filter = useData(FilterState);
@@ -23,10 +27,6 @@ export const TodoList = () => {
       ))}
     </ul>
   );
-};
-
-type TodoItemProps = {
-  todo: Todo,
 };
 
 export const TodoItem = ({ todo: { id, text, completed } }: TodoItemProps) => {

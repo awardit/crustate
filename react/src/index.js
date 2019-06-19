@@ -66,6 +66,8 @@ export type StateData<T, I, M> = {
   Consumer: DataConsumer<T>,
 };
 
+type StorageProviderProps = { storage: Storage, children?: ?React$Node };
+
 /**
  * The basic state context where we will carry either a Storage, or a state
  * instance for the current nesting.
@@ -75,8 +77,6 @@ export type StateData<T, I, M> = {
 export const StateContext: Context<?Supervisor> = createContext(null);
 
 const InstanceProvider = StateContext.Provider;
-
-type StorageProviderProps = { storage: Storage, children?: ?React$Node };
 
 // TODO: better handling of this, should probably have more stuff?
 /**

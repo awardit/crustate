@@ -21,17 +21,17 @@ export type Post = {
 
 export type PostListDataState = Array<PostHeading> | string | null;
 
+export type PostDataState =
+  | {| state: "LOADING", postId: number |}
+  | {| state: "LOADED", post: Post |}
+  | {| state: "ERROR", error: string |};
+
 export const PostListData = createStateData<PostListDataState, {}, ListResponse>({
   name: "list",
   init: () => updateAndSend(null, requestList()),
   update: (state, msg) => msg.data ? updateData(msg.data) : updateData(msg.error),
   subscribe: state => state ? {} : { [LIST_RESPONSE]: true },
 });
-
-export type PostDataState =
-  | {| state: "LOADING", postId: number |}
-  | {| state: "LOADED", post: Post |}
-  | {| state: "ERROR", error: string |};
 
 export const PostData = createStateData<PostDataState, { postId: number }, PostResponse>({
   name: "post",
