@@ -203,7 +203,7 @@
           "arrays": "only-multiline",
           "objects": "only-multiline",
           "imports": "only-multiline",
-          "exports": "never",
+          "exports": "only-multiline",
           "functions": "never"
         }
       ],
@@ -229,10 +229,6 @@
             }
           }
         }
-      ],
-      "eol-last": [
-        "error",
-        "never"
       ],
       "flowtype/array-style-simple-type": [
         "error",
