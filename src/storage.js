@@ -13,19 +13,6 @@ import {
 import { findMatchingSubscription } from "./message";
 import { EventEmitter } from "./eventemitter";
 
-const ANONYMOUS_SOURCE = "$";
-const REPLY_SOURCE = "<";
-
-interface AbstractSupervisor {
-  _nested: StateInstanceMap,
-  getStorage(): Storage,
-  getPath(): StatePath,
-  getNested<T, I, M>(state: State<T, I, M>, name?: string): ?StateInstance<T, I>,
-  getNestedOrCreate<T, I, M>(state: State<T, I, M>, params: I, name?: string): StateInstance<T, I>,
-  sendMessage(message: Message, sourceName?: string): void,
-  removeNested<T, I, M>(state: State<T, I, M>, name?: string): void,
-}
-
 /**
  * A snapshot of the state of the application, can be used to restore the state
  * provided the requisite state-definitions have been loaded.
@@ -124,6 +111,32 @@ export type StorageEvents = {
    */
   snapshotRestored: [],
 };
+
+export type StateEvents<T> = {
+  /**
+   * Emitted when a state-instance updates its data.
+   *
+   * Parameters:
+   *
+   *  * The new data
+   *  * Path to the new state
+   *  * Message which caused the update
+   */
+  stateNewData: [T, StatePath, Message],
+};
+
+interface AbstractSupervisor {
+  _nested: StateInstanceMap,
+  getStorage(): Storage,
+  getPath(): StatePath,
+  getNested<T, I, M>(state: State<T, I, M>, name?: string): ?StateInstance<T, I>,
+  getNestedOrCreate<T, I, M>(state: State<T, I, M>, params: I, name?: string): StateInstance<T, I>,
+  sendMessage(message: Message, sourceName?: string): void,
+  removeNested<T, I, M>(state: State<T, I, M>, name?: string): void,
+}
+
+const ANONYMOUS_SOURCE = "$";
+const REPLY_SOURCE = "<";
 
 /**
  * Base node in a state-tree, anchors all states and carries all data.
@@ -304,19 +317,6 @@ export function getStateDefinitionById<T, I, M: Message>(
 
   return spec;
 }
-
-export type StateEvents<T> = {
-  /**
-   * Emitted when a state-instance updates its data.
-   *
-   * Parameters:
-   *
-   *  * The new data
-   *  * Path to the new state
-   *  * Message which caused the update
-   */
-  stateNewData: [T, StatePath, Message],
-};
 
 export class StateInstance<T, I>
   extends EventEmitter<StateEvents<T>>

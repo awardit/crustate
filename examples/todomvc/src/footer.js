@@ -14,16 +14,26 @@ import {
   setFilter,
 } from "./states/filter";
 
-const FILTER_TITLES = {
-  [SHOW_ALL]: "All",
-  [SHOW_ACTIVE]: "Active",
-  [SHOW_COMPLETED]: "Completed",
-};
-
 type LinkProps = {
   children: React$Node,
   selected: boolean,
   onClick: (event: Event) => mixed,
+};
+
+type FilterLinkProps = {
+  children: React$Node,
+  filter: Filter,
+};
+
+type FooterProps = {
+  activeCount: number,
+  completedCount: number,
+};
+
+const FILTER_TITLES = {
+  [SHOW_ALL]: "All",
+  [SHOW_ACTIVE]: "Active",
+  [SHOW_COMPLETED]: "Completed",
 };
 
 export const Link = ({ children, selected, onClick }: LinkProps) => (
@@ -35,11 +45,6 @@ export const Link = ({ children, selected, onClick }: LinkProps) => (
     {children}
   </a>
 );
-
-type FilterLinkProps = {
-  children: React$Node,
-  filter: Filter,
-};
 
 export const FilterLink = ({ filter, children }: FilterLinkProps) => {
   const sendMessage = useSendMessage();
@@ -53,11 +58,6 @@ export const FilterLink = ({ filter, children }: FilterLinkProps) => {
       {children}
     </Link>
   );
-};
-
-type FooterProps = {
-  activeCount: number,
-  completedCount: number,
 };
 
 export const Footer = ({ activeCount, completedCount }: FooterProps) => {

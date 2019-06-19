@@ -6,8 +6,6 @@ import ninos from "ninos";
 import ava from "ava";
 import { findMatchingSubscription } from "../src/message";
 
-const test = ninos(ava);
-
 // Type tests
 type AMessage = { tag: "a" };
 type BMessage = { tag: string, foo: boolean };
@@ -19,6 +17,8 @@ type BMessage = { tag: string, foo: boolean };
 (({ b: true }): SubscriptionMap<AMessage | BMessage>);
 // $ExpectError
 (({ c: true }): SubscriptionMap<AMessage>);
+
+const test = ninos(ava);
 
 test("findMatchingSubscription() ", t => {
   t.deepEqual(findMatchingSubscription({}, { tag: "a" }, false), null);

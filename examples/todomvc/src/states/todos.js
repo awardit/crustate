@@ -9,13 +9,6 @@ export type Todo = {
   completed: boolean,
 };
 
-const ADD: "todosAdd" = "todosAdd";
-const EDIT: "todosEdit" = "todosEdit";
-const REMOVE: "todosRemove" = "todosRemove";
-const CLEAR_ALL: "todosClearAll" = "todosClearAll";
-const COMPLETE: "todosComplete" = "todosComplete";
-const COMPLETE_ALL: "todosCompleteAll" = "todosCompleteAll";
-
 type TodoMsg =
   | { tag: typeof ADD, text: string }
   | { tag: typeof EDIT, id: number, text: string }
@@ -23,6 +16,13 @@ type TodoMsg =
   | { tag: typeof CLEAR_ALL }
   | { tag: typeof COMPLETE, id: number }
   | { tag: typeof COMPLETE_ALL };
+
+const ADD: "todosAdd" = "todosAdd";
+const EDIT: "todosEdit" = "todosEdit";
+const REMOVE: "todosRemove" = "todosRemove";
+const CLEAR_ALL: "todosClearAll" = "todosClearAll";
+const COMPLETE: "todosComplete" = "todosComplete";
+const COMPLETE_ALL: "todosCompleteAll" = "todosCompleteAll";
 
 export const add = (text: string) => ({ tag: ADD, text });
 export const edit = (id: number, text: string) => ({ tag: EDIT, id, text });
