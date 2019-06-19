@@ -43,11 +43,11 @@ const events = {
   snapshotRestored: "debug",
 };
 
-for(const eventName in events) {
+Object.keys(events).forEach(eventName => {
   const level = events[eventName];
 
   storage.addListener((eventName: any), (...data) => console[level](eventName, ...data));
-}
+});
 
 storage.addSubscriber(subscriber, { "effects/request": true });
 
@@ -62,7 +62,7 @@ if(window.appdata) {
 // Set storage on window so we can inspect it
 window.appState = storage;
 
-const element = document.getElementById("app");
+const element = document.querySelector("#app");
 
 if( ! element) {
   throw new Error("Example: #app element was not found");
