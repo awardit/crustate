@@ -10,8 +10,8 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./app";
 import { PostData, PostListData } from "./state";
 
-const basename   = window.routerBasename;
-const storage    = new Storage();
+const basename = window.routerBasename;
+const storage = new Storage();
 const subscriber = (msg: DataRequest, source: StatePath) => {
   switch(msg.resource) {
   case "list":
