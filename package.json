@@ -170,7 +170,11 @@
           "flowtype/require-return-type": "off",
           "flowtype/no-unused-expressions": "off",
           "no-unused-expressions": "off",
-          "quote-props": "off"
+          "quote-props": "off",
+          "max-len": [
+            "warn",
+            140
+          ]
         }
       },
       {
@@ -281,6 +285,13 @@
           "exceptions": [
             "!"
           ]
+        }
+      ],
+      "max-len": [
+        "error",
+        {
+          "code": 100,
+          "comments": 80
         }
       ],
       "no-case-declarations": "off",

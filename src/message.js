@@ -70,7 +70,10 @@ export type Subscription<M: Message> = true | {
  * @param {!crustate.Message} message
  * @param {!boolean} received
  */
-export function findMatchingSubscription<M: Message>(subscribers: SubscriptionMap<M>, message: M, received: boolean): ?{ isPassive: boolean } {
+export function findMatchingSubscription<M: Message>(
+  subscribers: SubscriptionMap<M>,
+  message: M, received: boolean
+): ?{ isPassive: boolean } {
   const { tag } = message;
 
   if( ! subscribers[tag]) {

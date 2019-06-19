@@ -192,7 +192,8 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     const inst = this._nested[name || state.name];
 
     if(inst) {
-      debugAssert(inst._name === (name || state.name), `State instance name '${inst._name}' does not match key name '${name || state.name}`);
+      debugAssert(inst._name === (name || state.name),
+        `State instance name '${inst._name}' does not match key name '${name || state.name}`);
     }
 
     return inst;
@@ -255,7 +256,11 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   }
 }
 
-export function restoreSnapshot(storage: Storage, supervisor: Supervisor, snapshot: Snapshot): void {
+export function restoreSnapshot(
+  storage: Storage,
+  supervisor: Supervisor,
+  snapshot: Snapshot
+): void {
   const newNested: StateInstanceMap = {};
 
   /* eslint-disable guard-for-in */
@@ -286,7 +291,10 @@ export function ensureState<T, I, M>(storage: Storage, state: State<T, I, M>): v
   }
 }
 
-export function getStateDefinitionById<T, I, M: Message>(storage: Storage, id: string): State<T, I, M> {
+export function getStateDefinitionById<T, I, M: Message>(
+  storage: Storage,
+  id: string
+): State<T, I, M> {
   const spec = storage._defs[id];
 
   if( ! spec) {
@@ -310,7 +318,9 @@ export type StateEvents<T> = {
   stateNewData: [T, StatePath, Message],
 };
 
-export class StateInstance<T, I> extends EventEmitter<StateEvents<T>> implements AbstractSupervisor {
+export class StateInstance<T, I>
+  extends EventEmitter<StateEvents<T>>
+  implements AbstractSupervisor {
   /**
    * Matches the Storage _defs collection.
    */
@@ -373,7 +383,8 @@ export class StateInstance<T, I> extends EventEmitter<StateEvents<T>> implements
     const inst = this._nested[name || state.name];
 
     if(inst) {
-      debugAssert(inst._name === (name || state.name), `State instance name '${inst._name}' does not match key name '${name || state.name}`);
+      debugAssert(inst._name === (name || state.name),
+        `State instance name '${inst._name}' does not match key name '${name || state.name}`);
     }
 
     return inst;
@@ -400,7 +411,12 @@ export class StateInstance<T, I> extends EventEmitter<StateEvents<T>> implements
   }
 }
 
-export function getNestedOrCreate<T, I, M>(supervisor: Supervisor, state: State<T, I, M>, params: I, name?: string): StateInstance<T, I> {
+export function getNestedOrCreate<T, I, M>(
+  supervisor: Supervisor,
+  state: State<T, I, M>,
+  params: I,
+  name?: string
+): StateInstance<T, I> {
   const child = supervisor.getNested(state, name);
 
   if(child) {
@@ -412,7 +428,12 @@ export function getNestedOrCreate<T, I, M>(supervisor: Supervisor, state: State<
   return createState(supervisor, state, params, name);
 }
 
-export function createState<T, I, M>(supervisor: Supervisor, state: State<T, I, M>, initialData: I, name?: string): StateInstance<T, I> {
+export function createState<T, I, M>(
+  supervisor: Supervisor,
+  state: State<T, I, M>,
+  initialData: I,
+  name?: string
+): StateInstance<T, I> {
   const storage = supervisor.getStorage();
   const { name: id, init } = state;
 
@@ -439,7 +460,11 @@ export function createState<T, I, M>(supervisor: Supervisor, state: State<T, I, 
   return instance;
 }
 
-export function createInflightMessage(storage: Storage, source: StatePath, message: Message): InflightMessage {
+export function createInflightMessage(
+  storage: Storage,
+  source: StatePath,
+  message: Message
+): InflightMessage {
   storage.emit("messageQueued", message, source);
 
   return {
@@ -461,17 +486,28 @@ export function findSupervisor(supervisor: Supervisor, path: StatePath): ?Superv
   return supervisor;
 }
 
-export function enqueueMessages(storage: Storage, source: StatePath, inflight: Array<InflightMessage>, messages: Array<Message>): void {
+export function enqueueMessages(
+  storage: Storage,
+  source: StatePath,
+  inflight: Array<InflightMessage>,
+  messages: Array<Message>
+): void {
   for(let i = 0; i < messages.length; i++) {
     inflight.push(createInflightMessage(storage, source, messages[i]));
   }
 }
 
 // TODO: Split this
-export function processInstanceMessages(storage: Storage, instance: Supervisor, messages: Array<Message>, sourcePath: StatePath): void {
+export function processInstanceMessages(
+  storage: Storage,
+  instance: Supervisor,
+  messages: Array<Message>,
+  sourcePath: StatePath
+): void {
   const inflight = [];
 
-  // TODO: Test-assertion for sourcePath.length === instance.getPath().length + 1 ?
+  // TODO: Test-assertion for
+  //       sourcePath.length === instance.getPath().length + 1 ?
 
   enqueueMessages(storage, sourcePath, inflight, messages);
 

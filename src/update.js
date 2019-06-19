@@ -6,20 +6,28 @@ import type { Message } from "./message";
  * The empty update.
  */
 export opaque type NoUpdate = 0;
+
 /**
  * An update containing new data for the state. Created using `update`.
  */
 export opaque type DataUpdate<T> = {| _stateData: T |};
+
 /**
  * An update containing new data for the state, and a few messages. Created
  * using `updateAndSend`.
  */
-export opaque type MessageUpdate<T> = {| _stateData: T, _outgoingMessages: Array<Message> |};
+export opaque type MessageUpdate<T> = {|
+  _stateData: T,
+  _outgoingMessages: Array<Message>,
+|};
+
 /**
- * Update containing new state-data if any, and any messages to send to supervisors.
+ * Update containing new state-data if any, and any messages to send to
+ * supervisors.
+ * NOTE: Cannot be opaque since that will prevent flow to use a subsection of
+ *       updates
  */
 // TODO: Do we let updates just send messages?
-// NOTE: Cannot be opaque since that will prevent flow to use a subsection of updates
 export type Update<T> =
   | NoUpdate
   | DataUpdate<T>
@@ -71,7 +79,9 @@ export function updateStateData<T>(update: Update<T>): ?T {
  * NOTE: Should not be exported so it can be inlined.
  */
 export function updateOutgoingMessages(update: Update<any>): Array<Message> {
-  return updateHasData(update) && update._outgoingMessages ? update._outgoingMessages : [];
+  return updateHasData(update) && update._outgoingMessages ?
+    update._outgoingMessages :
+    [];
 }
 
 /**
