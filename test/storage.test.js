@@ -807,14 +807,14 @@ test("Storage.replyMessage", t => {
 
   const emit = t.context.spy(s, "emit");
 
-  t.throws(() => s.replyMessage(msgA, ["foo", "bar"]), { instanceOf: Error, message: "Could not find state instance at [foo, bar]." });
-
   s.replyMessage(msgA, []);
   s.replyMessage(msgA, ["a"]);
   s.replyMessage(msgB, ["a", "b"]);
   s.replyMessage(msgB, ["a", "b"], "outside");
+  s.replyMessage(msgA, ["foo", "bar"]);
+  s.replyMessage(msgA, ["foo", "bar"], "another");
 
-  t.is(emit.calls.length, 8);
+  t.is(emit.calls.length, 12);
   t.deepEqual(emit.calls[0].arguments, ["messageQueued", { tag: "A" }, ["<"]]);
   t.deepEqual(emit.calls[1].arguments, ["unhandledMessage", { tag: "A" }, ["<"]]);
   t.deepEqual(emit.calls[2].arguments, ["messageQueued", { tag: "A" }, ["a", "<"]]);
@@ -823,6 +823,10 @@ test("Storage.replyMessage", t => {
   t.deepEqual(emit.calls[5].arguments, ["unhandledMessage", { tag: "B" }, ["a", "b", "<"]]);
   t.deepEqual(emit.calls[6].arguments, ["messageQueued", { tag: "B" }, ["a", "b", "outside"]]);
   t.deepEqual(emit.calls[7].arguments, ["unhandledMessage", { tag: "B" }, ["a", "b", "outside"]]);
+  t.deepEqual(emit.calls[8].arguments, ["messageQueued", { tag: "A" }, ["foo", "bar", "<"]]);
+  t.deepEqual(emit.calls[9].arguments, ["unhandledMessage", { tag: "A" }, ["foo", "bar", "<"]]);
+  t.deepEqual(emit.calls[10].arguments, ["messageQueued", { tag: "A" }, ["foo", "bar", "another"]]);
+  t.deepEqual(emit.calls[11].arguments, ["unhandledMessage", { tag: "A" }, ["foo", "bar", "another"]]);
 });
 
 test("Storage.removeNested", t => {
