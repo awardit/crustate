@@ -2,7 +2,7 @@
 
 import ninos from "ninos";
 import ava from "ava";
-import { Storage, StateInstance, findSupervisor, processInstanceMessages } from "../src/storage";
+import { Storage, StateInstance, findClosestSupervisor, processInstanceMessages } from "../src/storage";
 import { NONE, updateData, updateAndSend } from "../src/update";
 
 // We redefine this here so we can test it
@@ -753,7 +753,7 @@ test("Passive subscribers always receive messages from children", t => {
   t.deepEqual(emit.calls[7].arguments, ["unhandledMessage", { tag: "firstMsg" }, ["first"]]);
 });
 
-test("findSupervisor", t => {
+test("findClosestSupervisor", t => {
   const defA = {
     name: "a",
     init: t.context.stub(() => updateData({})),
@@ -775,15 +775,21 @@ test("findSupervisor", t => {
   const sBA = s.getNestedOrCreate(defB).getNestedOrCreate(defA);
   const sBB = s.getNestedOrCreate(defB).getNestedOrCreate(defB);
 
-  t.is(findSupervisor(s, []), s);
-  t.is(findSupervisor(s, ["a"]), sA);
-  t.is(findSupervisor(s, ["a", "b"]), sAB);
-  t.is(findSupervisor(s, ["a", "a"]), sAA);
-  t.is(findSupervisor(s, ["b"]), sB);
-  t.is(findSupervisor(s, ["b", "a"]), sBA);
-  t.is(findSupervisor(s, ["b", "b"]), sBB);
-  t.is(findSupervisor(s, ["c"]), null);
-  t.is(findSupervisor(s, ["c", "d"]), null);
+  t.is(findClosestSupervisor(s, []), s);
+  t.is(findClosestSupervisor(s, ["a"]), sA);
+  t.is(findClosestSupervisor(s, ["a", "c"]), sA);
+  t.is(findClosestSupervisor(s, ["a", "b"]), sAB);
+  t.is(findClosestSupervisor(s, ["a", "b", "c"]), sAB);
+  t.is(findClosestSupervisor(s, ["a", "a"]), sAA);
+  t.is(findClosestSupervisor(s, ["a", "a", "c"]), sAA);
+  t.is(findClosestSupervisor(s, ["b"]), sB);
+  t.is(findClosestSupervisor(s, ["b", "c"]), sB);
+  t.is(findClosestSupervisor(s, ["b", "a"]), sBA);
+  t.is(findClosestSupervisor(s, ["b", "a", "c"]), sBA);
+  t.is(findClosestSupervisor(s, ["b", "b"]), sBB);
+  t.is(findClosestSupervisor(s, ["b", "b", "c"]), sBB);
+  t.is(findClosestSupervisor(s, ["c"]), s);
+  t.is(findClosestSupervisor(s, ["c", "d"]), s);
 });
 
 test("Storage.replyMessage", t => {
@@ -920,24 +926,20 @@ test("Storage updates subscribe during processing when state data is updated", t
   const i = s.getNestedOrCreate(def);
 
   processInstanceMessages(s, i, [
-    { tag: "b", __no: true },
-    { tag: "a", __yes: true },
-    { tag: "b", __yes: true },
-    { tag: "a", __no: true }
-  ], ["a", "test"]);
+    { _message: { tag: "b", __no: true }, _source: ["a", "test"], _received: null },
+    { _message: { tag: "a", __yes: true }, _source: ["a", "test"], _received: null },
+    { _message: { tag: "b", __yes: true }, _source: ["a", "test"], _received: null },
+    { _message: { tag: "a", __no: true }, _source: ["a", "test"], _received: null },
+  ]);
 
-  t.is(emit.calls.length, 11);
+  t.is(emit.calls.length, 7);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["a"], undefined, false]);
-  t.deepEqual(emit.calls[1].arguments, ["messageQueued", { tag: "b", __no: true }, ["a", "test"]]);
-  t.deepEqual(emit.calls[2].arguments, ["messageQueued", { tag: "a", __yes: true }, ["a", "test"]]);
-  t.deepEqual(emit.calls[3].arguments, ["messageQueued", { tag: "b", __yes: true }, ["a", "test"]]);
-  t.deepEqual(emit.calls[4].arguments, ["messageQueued", { tag: "a", __no: true }, ["a", "test"]]);
-  t.deepEqual(emit.calls[5].arguments, ["messageMatched", { tag: "a", __yes: true }, ["a"], false]);
-  t.deepEqual(emit.calls[6].arguments, ["stateNewData", true, ["a"], { tag: "a", __yes: true }]);
-  t.deepEqual(emit.calls[7].arguments, ["messageMatched", { tag: "b", __yes: true }, ["a"], false]);
-  t.deepEqual(emit.calls[8].arguments, ["stateNewData", true, ["a"], { tag: "b", __yes: true }]);
-  t.deepEqual(emit.calls[9].arguments, ["unhandledMessage", { tag: "b", __no: true }, ["a", "test"]]);
-  t.deepEqual(emit.calls[10].arguments, ["unhandledMessage", { tag: "a", __no: true }, ["a", "test"]]);
+  t.deepEqual(emit.calls[1].arguments, ["messageMatched", { tag: "a", __yes: true }, ["a"], false]);
+  t.deepEqual(emit.calls[2].arguments, ["stateNewData", true, ["a"], { tag: "a", __yes: true }]);
+  t.deepEqual(emit.calls[3].arguments, ["messageMatched", { tag: "b", __yes: true }, ["a"], false]);
+  t.deepEqual(emit.calls[4].arguments, ["stateNewData", true, ["a"], { tag: "b", __yes: true }]);
+  t.deepEqual(emit.calls[5].arguments, ["unhandledMessage", { tag: "b", __no: true }, ["a", "test"]]);
+  t.deepEqual(emit.calls[6].arguments, ["unhandledMessage", { tag: "a", __no: true }, ["a", "test"]]);
 });
 
 test("restoreSnapshot throws if it cannot find a matching state definition", t => {

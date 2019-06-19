@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicit return-type annotations for `void` returns.
 
 ### Changed
+- `Storage`.`replyMessage` will now find the closest state instead of throwing
+  if it does not find the exact path, the source path will still be the same
+  as if the state existed.
 - React `DataProvider` now only uses the initial data as type-parameter.
 - `StateInstance` no longer takes the message-type as a type-parameter.
 

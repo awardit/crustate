@@ -251,13 +251,10 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   }
 
   replyMessage(msg: Message, targetState: StatePath, sourceName?: string = REPLY_SOURCE): void {
-    const inst = findSupervisor(this, targetState);
+    const instance = findClosestSupervisor(this, targetState);
+    const inflight = [createInflightMessage(this, targetState.concat(sourceName), msg)];
 
-    if( ! inst) {
-      throw new Error(`Could not find state instance at [${targetState.join(", ")}].`);
-    }
-
-    inst.sendMessage(msg, sourceName);
+    processInstanceMessages(this, instance, inflight);
   }
 
   restoreSnapshot(snapshot: Snapshot): void {
@@ -405,9 +402,10 @@ export class StateInstance<T, I>
   }
 
   sendMessage(message: Message, sourceName?: string = ANONYMOUS_SOURCE): void {
+    const storage = this.getStorage();
     const msgPath = this.getPath().concat([sourceName]);
 
-    processInstanceMessages(this.getStorage(), this, [message], msgPath);
+    processInstanceMessages(storage, this, [createInflightMessage(storage, msgPath, message)]);
   }
 }
 
@@ -454,7 +452,11 @@ export function createState<T, I, M>(
   storage.emit("stateCreated", path, (initialData: any), data);
 
   if(messages.length > 0) {
-    processInstanceMessages(storage, instance._supervisor, messages, path);
+    processInstanceMessages(
+      storage,
+      instance._supervisor,
+      messages.map((m: Message): InflightMessage => createInflightMessage(storage, path, m))
+    );
   }
 
   return instance;
@@ -474,13 +476,13 @@ export function createInflightMessage(
   };
 }
 
-export function findSupervisor(supervisor: Supervisor, path: StatePath): ?Supervisor {
+export function findClosestSupervisor(supervisor: Supervisor, path: StatePath): Supervisor {
   for(let i = 0; i < path.length; i++) {
-    supervisor = supervisor._nested[path[i]];
-
-    if( ! supervisor) {
-      return null;
+    if( ! supervisor._nested[path[i]]) {
+      return supervisor;
     }
+
+    supervisor = supervisor._nested[path[i]];
   }
 
   return supervisor;
@@ -497,19 +499,12 @@ export function enqueueMessages(
   }
 }
 
-// TODO: Split this
 export function processInstanceMessages(
   storage: Storage,
   instance: Supervisor,
-  messages: Array<Message>,
-  sourcePath: StatePath
+  inflight: Array<InflightMessage>
 ): void {
-  const inflight = [];
-
-  // TODO: Test-assertion for
-  //       sourcePath.length === instance.getPath().length + 1 ?
-
-  enqueueMessages(storage, sourcePath, inflight, messages);
+  let sourcePath = instance.getPath();
 
   while(instance instanceof StateInstance) {
     const definition = getStateDefinitionById(storage, instance._id);
@@ -521,9 +516,6 @@ export function processInstanceMessages(
 
     // We need to be able to update the filters if the data changes
     let messageFilter = subscribe(instance._data);
-
-    // Traverse down one level
-    sourcePath = sourcePath.slice(0, -1);
 
     // TODO: Emit event? that we are considering messags for state?
 
@@ -559,6 +551,8 @@ export function processInstanceMessages(
       // No Match
     }
 
+    // Traverse down one level
+    sourcePath = sourcePath.slice(0, -1);
     instance = instance._supervisor;
   }
 
