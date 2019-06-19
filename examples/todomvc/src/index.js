@@ -20,7 +20,7 @@ const storage = new Storage();
   "messageMatched",
 ].map(event => storage.addListener(event, (...args): void => console.log(event, ...args)));
 
-const el = document.getElementById("app");
+const el = document.querySelector("#app");
 
 if( ! el) {
   throw new Error(`Missing <div id="app />`);
