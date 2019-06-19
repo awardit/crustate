@@ -262,6 +262,15 @@
         "error",
         "declaration"
       ],
+      "import/no-unassigned-import": [
+        "error",
+        {
+          "allow": [
+            "**/*.css",
+            "**/*.scss"
+          ]
+        }
+      ],
       "import/no-unresolved": "off",
       "import/order": "off",
       "indent": [
