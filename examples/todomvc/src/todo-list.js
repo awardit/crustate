@@ -7,7 +7,7 @@ import classnames from "classnames";
 import { useSendMessage, useData } from "crustate/react";
 import { FilterState, todoFilterPredicate } from "./states/filter";
 import { TodosState, edit, remove, complete } from "./states/todos";
-import { TodoTextInput } from "./todoTextInput";
+import { TodoTextInput } from "./todo-text-input";
 
 export const TodoList = () => {
   const todos = useData(TodosState);

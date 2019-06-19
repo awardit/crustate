@@ -4,8 +4,8 @@ import React from "react";
 import { useSendMessage, useData } from "crustate/react";
 import { TodosState, add, completeAll } from "./states/todos";
 import { Footer } from "./footer";
-import { TodoTextInput } from "./todoTextInput";
-import { TodoList } from "./todoList";
+import { TodoTextInput } from "./todo-text-input";
+import { TodoList } from "./todo-list";
 
 export const Header = () => {
   const sendMessage = useSendMessage();
