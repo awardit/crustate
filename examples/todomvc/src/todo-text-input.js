@@ -11,7 +11,20 @@ type TodoTextInputProps = {
   text?: string,
 };
 
-export const TodoTextInput = ({ editing, newTodo, onSave, placeholder, text: defaultText }: TodoTextInputProps) => {
+TodoTextInput.defaultProps = {
+  editing: false,
+  newTodo: false,
+  placeholder: "",
+  text: "",
+};
+
+export function TodoTextInput({
+  editing,
+  newTodo,
+  onSave,
+  placeholder,
+  text: defaultText,
+}: TodoTextInputProps) {
   const [text, setText] = React.useState(defaultText || "");
 
   const handleBlur = e => newTodo && onSave(e.target.value);
@@ -40,4 +53,4 @@ export const TodoTextInput = ({ editing, newTodo, onSave, placeholder, text: def
       onKeyDown={handleKeyDown}
     />
   );
-};
+}
