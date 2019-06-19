@@ -162,7 +162,7 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
           context.removeNested(state, instance.getName());
         }
       };
-    }, [context, instance]);
+    }, [context, data, instance]);
 
     return createElement(InstanceProvider, { value: instance },
       createElement(Provider, { value: data },
