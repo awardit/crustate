@@ -162,7 +162,11 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
           context.removeNested(state, instance.getName());
         }
       };
-    }, [context, data, instance]);
+    /* eslint-disable react-hooks/exhaustive-deps */
+    // We need to skip the dep on data since otherwise we are going to
+    // re-register the state every time
+    }, [context, instance]);
+    /* eslint-enable react-hooks/exhaustive-deps */
 
     return createElement(InstanceProvider, { value: instance },
       createElement(Provider, { value: data },
