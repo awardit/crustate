@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- XO as a linter and coding standard
+- Explicit return-type annotations for `void` returns.
+
+### Changed
+- React `DataProvider` now only uses the initial data as type-parameter.
+- `StateInstance` no longer takes the message-type as a type-parameter.
 
 ## [0.1.2] - 2019-06-17
 ### Fixed
