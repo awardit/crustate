@@ -173,14 +173,17 @@
           "quote-props": "off",
           "max-len": [
             "warn",
-            140
+            140,
+            {
+              "ignoreStrings": true
+            }
           ]
         }
       },
       {
         "files": "examples/**/*.js",
         "rules": {
-          "flowtype/require-parameter-type": "warn",
+          "flowtype/require-parameter-type": "off",
           "flowtype/require-return-type": "off"
         }
       }
