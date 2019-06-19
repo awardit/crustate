@@ -36,7 +36,9 @@ export type PostDataState =
 export const PostData = createStateData<PostDataState, { postId: number }, PostResponse>({
   name: "post",
   init: ({ postId }) => updateAndSend({ state: "LOADING", postId }, requestPost(postId)),
-  update: (state, msg) => msg.data ? updateData({ state: "LOADED", post: msg.data }) : updateData({ state: "ERROR", error: msg.error }),
+  update: (state, msg) => msg.data ?
+    updateData({ state: "LOADED", post: msg.data }) :
+    updateData({ state: "ERROR", error: msg.error }),
   subscribe: state => state.state === "LOADING" ? {
     [POST_RESPONSE]: {
       filter: resp => Boolean(resp.error || (resp.data && resp.data.id === state.postId)),

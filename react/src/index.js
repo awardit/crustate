@@ -29,6 +29,7 @@ export type DataFunction<T> = (data: T | void) => ?React$Node;
  * children.
  */
 export type DataProvider<I> = React$ComponentType<DataProviderProps<I>>;
+
 /**
  * DataConsumer is a component which takes a function as children and will call
  * this function with the state instance data.
@@ -109,8 +110,11 @@ export function useSendMessage(): (message: Message, sourceName?: string) => voi
  * are always new objects and are most likely not of interest to the state, and
  * name is an external parameter.
  */
-function excludeChildren<T: { children?: ?React$Node, name?: string }>(props: T): $Rest<T, {| children: ?React$Node, name: ?string |}> {
-  // Manually implemented object-rest-spread to avoid Babel's larger implementation
+function excludeChildren<T: { children?: ?React$Node, name?: string }>(
+  props: T
+): $Rest<T, {| children: ?React$Node, name: ?string |}> {
+  // Manually implemented object-rest-spread to avoid Babel's larger
+  // implementation
   // Object.assign causes Babel to to add an unnecessary polyfill so use spread
   const rest = { ...props };
 
@@ -141,7 +145,8 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
     useEffect((): (() => void) => {
       instance.addListener("stateNewData", setData);
 
-      // Data can be new since we are runnning componentDidMount() after render()
+      // Data can be new since we are runnning componentDidMount()
+      // after render()
       const newData = instance.getData();
 
       if(data !== newData) {
