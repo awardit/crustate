@@ -23,9 +23,21 @@ function getPost(id: number, cb: ((error: true) => mixed) & (error: false, post:
   // TODO: Implement
   switch(id) {
   case 1:
-    return cb(false, { id: 1, title: "Post one", body: "This is the first post", author: "Test", date: new Date() });
+    return cb(false, {
+      id: 1,
+      title: "Post one",
+      body: "This is the first post",
+      author: "Test",
+      date: new Date(),
+    });
   case 2:
-    return cb(false, { id: 2, title: "Post B", body: "This is another post", author: "Martin", date: new Date() });
+    return cb(false, {
+      id: 2,
+      title: "Post B",
+      body: "This is another post",
+      author: "Martin",
+      date: new Date(),
+    });
   default:
     return cb(true);
   }
@@ -55,7 +67,8 @@ function createRequestHandler(storage: Storage) {
 
       listPosts((error, data) => {
         if(error) {
-          // TODO: How can we type this to ensure we reply with the correct message type?
+          // TODO: How can we type this to ensure we reply with the correct
+          //       message type?
           storage.replyMessage({ tag: "effects/response/list", error }, source);
         }
         else {
@@ -91,12 +104,14 @@ function createRequestHandler(storage: Storage) {
   };
 }
 
-app.get("/api/posts", (req, res) => listPosts((error, posts) => error ?
-  res.status(500).send(error) :
-  res.json(posts)));
-app.get("/api/posts/:id", (req, res) => getPost(parseInt(req.params.id, 10), (error, post) => error ?
-  res.status(404).end() :
-  res.json(post)));
+app.get("/api/posts", (req, res) =>
+  listPosts((error, posts) => error ?
+    res.status(500).send(error) :
+    res.json(posts)));
+app.get("/api/posts/:id", (req, res) =>
+  getPost(parseInt(req.params.id, 10), (error, post) => error ?
+    res.status(404).end() :
+    res.json(post)));
 
 app.use((req, res, next) => {
   const storage = new Storage();

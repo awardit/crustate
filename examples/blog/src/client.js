@@ -17,14 +17,15 @@ const subscriber = (msg: DataRequest, source: StatePath) => {
   case "list":
     // TODO: Generalize this:
     fetch(`${basename}/api/posts`).then(r => r.json()).then(
-      // TODO: How can we type this to ensure we reply with the correct message type?
+      // TODO: How can we type this to ensure we reply with the correct
+      //       message type?
       data => storage.replyMessage({ tag: "effects/response/list", data }, source),
-      error => storage.replyMessage({ tag: "effects/response/list", error: String(error) }, source));
+      e => storage.replyMessage({ tag: "effects/response/list", error: String(e) }, source));
     break;
   case "post":
     fetch(`${basename}/api/posts/${msg.id}`).then(r => r.json()).then(
       data => storage.replyMessage({ tag: "effects/response/post", data }, source),
-      error => storage.replyMessage({ tag: "effects/response/post", error: String(error) }, source));
+      e => storage.replyMessage({ tag: "effects/response/post", error: String(e) }, source));
     break;
   default:
     throw new Error(`Unknown resource '${msg.resource}'.`);

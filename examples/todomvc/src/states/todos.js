@@ -41,11 +41,15 @@ export const TodosState = createStateData<Array<Todo>, {}, TodoMsg>({
     case ADD:
       return updateData([...todos, { id: maxId(todos) + 1, text: msg.text, completed: false }]);
     case EDIT:
-      return updateData(todos.map(t => t.id === msg.id ? { id: t.id, text: msg.text, completed: t.completed } : t));
+      return updateData(todos.map(t => t.id === msg.id ?
+        { id: t.id, text: msg.text, completed: t.completed } :
+        t));
     case REMOVE:
       return updateData(todos.filter(t => t.id !== msg.id));
     case COMPLETE:
-      return updateData(todos.map(t => t.id === msg.id ? { id: t.id, text: t.text, completed: ! t.completed } : t));
+      return updateData(todos.map(t => t.id === msg.id ?
+        { id: t.id, text: t.text, completed: ! t.completed } :
+        t));
     case COMPLETE_ALL:
       const allMarked = todos.every(t => t.completed);
 
