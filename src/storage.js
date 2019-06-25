@@ -154,16 +154,23 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   }
   /* eslint-enable no-useless-constructor */
 
+  /**
+   * Returns the Storage backing all state in this tree.
+   */
   getStorage(): Storage {
     return this;
   }
 
+  /**
+   * Returns the path to this state.
+   */
   getPath(): StatePath {
     return [];
   }
 
   /**
-   * Test
+   * Adds the supplied model to the Storage so it can be used when
+   * using restoreSnapshot(). Throws if a model with the same id already exist.
    */
   addModel<T, I, M>(model: Model<T, I, M>): void {
     if( ! tryAddModel(this, model)) {
@@ -172,18 +179,33 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     }
   }
 
+  /**
+   * Returns the model with the given id, if it exists.
+   */
   getModel<T, I, M>(id: string): ?Model<T, I, M> {
     return this._defs[id];
   }
 
+  /**
+   * Returns the nested State for the given model and name if it
+   * exists, name defaults to model id.
+   */
   getState<T, I, M>(model: Model<T, I, M>, name?: string): ?State<T, I> {
     return getState(this, model, name);
   }
 
+  /**
+   * Attempts to retrieve the nested State for the given model and name,
+   * if it does not exist it will be created, name defaults to model id.
+   */
   createState<U, J, N>(model: Model<U, J, N>, params: J, name?: string): State<U, J> {
     return createState(this, model, params, name);
   }
 
+  /**
+   * Removes the nested State for the given model and name if it exists,
+   * name defaults to model id.
+   */
   removeState<U, J, N>(model: Model<U, J, N>, name?: string): void {
     const inst = getState(this, model, name);
 
@@ -194,14 +216,25 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     }
   }
 
+  /**
+   * Sends the given message to any matching State or Subscriber in the
+   * state-tree.
+   */
   sendMessage(message: Message, sourceName?: string = ANONYMOUS_SOURCE): void {
     processStorageMessage(this, createInflightMessage(this, [sourceName], message));
   }
 
+  /**
+   * Adds a listener subscribing to the messages matching the given
+   * subscriptions.
+   */
   addSubscriber<M: Message>(listener: Listener<M>, subscriptions: Subscriptions<M>): void {
     this._subscribers.push({ listener, subscriptions });
   }
 
+  /**
+   * Removes the supplied listener.
+   */
   removeSubscriber(listener: Listener<any>): void {
     const { _subscribers } = this;
 
@@ -214,10 +247,10 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     }
   }
 
-  getSnapshot(): Snapshot {
-    return createSnapshot(this);
-  }
-
+  /**
+   * Looks up the closest matching State for the given path, then sends the
+   * supplied message to all matching States and Subscribers.
+   */
   replyMessage(msg: Message, targetState: StatePath, sourceName?: string = REPLY_SOURCE): void {
     const instance = findClosestSupervisor(this, targetState);
     const inflight = [createInflightMessage(this, targetState.concat(sourceName), msg)];
@@ -225,6 +258,17 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     processInstanceMessages(this, instance, inflight);
   }
 
+  /**
+   * Creates a snapshot of the current state-tree. State-data will not be
+   * copied.
+   */
+  getSnapshot(): Snapshot {
+    return createSnapshot(this);
+  }
+
+  /**
+   * Attempts to restore a snapshot. Will throw if required models are missing.
+   */
   restoreSnapshot(snapshot: Snapshot): void {
     this.emit("snapshotRestore", snapshot);
 
@@ -234,6 +278,9 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   }
 }
 
+/**
+ * Object representing an instance of a Model.
+ */
 export class State<T, I>
   extends EventEmitter<StateEvents<T>>
   implements AbstractSupervisor {
@@ -260,14 +307,23 @@ export class State<T, I>
     this._data = data;
   }
 
+  /**
+   * Returns the name of this State.
+   */
   getName(): string {
     return this._name;
   }
 
+  /**
+   * Returns the data contained in this State.
+   */
   getData(): T {
     return this._data;
   }
 
+  /**
+   * Returns the Storage backing all state in this tree.
+   */
   getStorage(): Storage {
     let s = this._supervisor;
 
@@ -278,6 +334,9 @@ export class State<T, I>
     return s;
   }
 
+  /**
+   * Returns the path to this state.
+   */
   getPath(): StatePath {
     const path = [];
     let s = this;
@@ -291,14 +350,26 @@ export class State<T, I>
     return path;
   }
 
+  /**
+   * Returns the nested State for the given model and name if it
+   * exists, name defaults to model id.
+   */
   getState<U, J, N>(model: Model<U, J, N>, name?: string): ?State<U, J> {
     return getState(this, model, name);
   }
 
+  /**
+   * Attempts to retrieve the nested State for the given model and name,
+   * if it does not exist it will be created, name defaults to model id.
+   */
   createState<U, J, N>(model: Model<U, J, N>, params: J, name?: string): State<U, J> {
     return createState(this, model, params, name);
   }
 
+  /**
+   * Removes the nested State for the given model and name if it exists,
+   * name defaults to model id.
+   */
   removeState<U, J, N>(model: Model<U, J, N>, name?: string): void {
     const inst = getState(this, model, name);
 
@@ -309,6 +380,10 @@ export class State<T, I>
     }
   }
 
+  /**
+   * Sends the given message to any matching State or Subscriber in the
+   * state-tree.
+   */
   sendMessage(message: Message, sourceName?: string = ANONYMOUS_SOURCE): void {
     const storage = this.getStorage();
     const msgPath = this.getPath().concat([sourceName]);

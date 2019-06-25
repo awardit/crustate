@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `update` now returns a nullable `Update`
 - `State` -> `Model`
 - `Init` -> `ModelInit`
+- `Model`.`name` -> `id`
 - `StateUpdate` -> `ModelUpdate`
 - `Subscribe` -> `ModelSubscribe`
 - `SubscriptionMap` -> `Subscriptions`

@@ -161,7 +161,6 @@ test.failing("Storage createState sends an update message and returns the same i
   t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, initData]);
   t.deepEqual(emit.calls[1].arguments, ["stateNewData", 2, ["test"], { tag: MESSAGE_NEW_PARAMS, params: 2 }]);
-  // TODO: How to ensure call order? instance should fire before storage
   t.deepEqual(instanceEmit.calls.length, 1);
   t.deepEqual(instanceEmit.calls[1].arguments, ["stateNewData", 2, ["test"], { tag: MESSAGE_NEW_PARAMS, params: 2 }]);
 });
