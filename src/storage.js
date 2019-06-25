@@ -247,74 +247,6 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   }
 }
 
-export function restoreSnapshot(
-  storage: Storage,
-  supervisor: Supervisor,
-  snapshot: Snapshot
-): void {
-  const newNested: StateMap = {};
-
-  /* eslint-disable guard-for-in */
-  // We trust that the user has not been poking around in globals
-  for(const k in snapshot) {
-  /* eslint-enable guard-for-in */
-    const { id, data, params, nested } = snapshot[k];
-
-    // Ensure the model exists when we restore
-    getModelById(storage, id);
-
-    const inst = new State(id, supervisor, params, data, k);
-
-    restoreSnapshot(storage, inst, nested);
-
-    newNested[k] = inst;
-  }
-
-  supervisor._nested = newNested;
-}
-
-/**
-  * Loads the given model for use, ensures that it is not a new model with the
-  * same name if it is already loaded. `true` returned if it was new, `false`
-  * otherwise.
-  */
-export function tryAddModel<T, I, M>(storage: Storage, model: Model<T, I, M>): boolean {
-  const { name: id } = model;
-
-  if( ! storage._defs[id]) {
-    storage._defs[id] = model;
-
-    return true;
-  }
-
-  ensureModel(storage, model);
-
-  return false;
-}
-
-export function ensureModel<T, I, M>(storage: Storage, model: Model<T, I, M>): void {
-  const { name: id } = model;
-
-  if(storage._defs[id] && storage._defs[id] !== model) {
-    // FIXME: Proper exception type
-    throw new Error(`Model mismatch for '${id}'.`);
-  }
-}
-
-export function getModelById<T, I, M: Message>(
-  storage: Storage,
-  id: string
-): Model<T, I, M> {
-  const spec = storage._defs[id];
-
-  if( ! spec) {
-    // TODO: Error type
-    throw new Error(`Missing model for state '${id}'.`);
-  }
-
-  return spec;
-}
-
 export class State<T, I>
   extends EventEmitter<StateEvents<T>>
   implements AbstractSupervisor {
@@ -407,6 +339,74 @@ export class State<T, I>
 
     processInstanceMessages(storage, this, [createInflightMessage(storage, msgPath, message)]);
   }
+}
+
+export function restoreSnapshot(
+  storage: Storage,
+  supervisor: Supervisor,
+  snapshot: Snapshot
+): void {
+  const newNested: StateMap = {};
+
+  /* eslint-disable guard-for-in */
+  // We trust that the user has not been poking around in globals
+  for(const k in snapshot) {
+  /* eslint-enable guard-for-in */
+    const { id, data, params, nested } = snapshot[k];
+
+    // Ensure the model exists when we restore
+    getModelById(storage, id);
+
+    const inst = new State(id, supervisor, params, data, k);
+
+    restoreSnapshot(storage, inst, nested);
+
+    newNested[k] = inst;
+  }
+
+  supervisor._nested = newNested;
+}
+
+/**
+  * Loads the given model for use, ensures that it is not a new model with the
+  * same name if it is already loaded. `true` returned if it was new, `false`
+  * otherwise.
+  */
+export function tryAddModel<T, I, M>(storage: Storage, model: Model<T, I, M>): boolean {
+  const { name: id } = model;
+
+  if( ! storage._defs[id]) {
+    storage._defs[id] = model;
+
+    return true;
+  }
+
+  ensureModel(storage, model);
+
+  return false;
+}
+
+export function ensureModel<T, I, M>(storage: Storage, model: Model<T, I, M>): void {
+  const { name: id } = model;
+
+  if(storage._defs[id] && storage._defs[id] !== model) {
+    // FIXME: Proper exception type
+    throw new Error(`Model mismatch for '${id}'.`);
+  }
+}
+
+export function getModelById<T, I, M: Message>(
+  storage: Storage,
+  id: string
+): Model<T, I, M> {
+  const spec = storage._defs[id];
+
+  if( ! spec) {
+    // TODO: Error type
+    throw new Error(`Missing model for state '${id}'.`);
+  }
+
+  return spec;
 }
 
 export function createState<T, I, M>(
