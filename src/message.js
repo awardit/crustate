@@ -62,7 +62,7 @@ export type Subscription<M: Message> = true | {
   /**
    * Extra, user-supplied, filtering logic.
    */
-  filter?: MessageFilter<M>,
+  matching?: MessageFilter<M>,
 };
 
 /**
@@ -84,9 +84,9 @@ export function findMatchingSubscription<M: Message>(
   // We do not use object destructuring here since it would require us to
   // create a new object for the default value in the case of true
   const passive = subscriber === true ? false : Boolean(subscriber.passive);
-  const filter = subscriber === true ? null : subscriber.filter;
+  const matching = subscriber === true ? null : subscriber.matching;
 
-  if((passive || ! received) && tag === message.tag && ( ! filter || filter(message))) {
+  if((passive || ! received) && tag === message.tag && ( ! matching || matching(message))) {
     return { isPassive: passive };
   }
 

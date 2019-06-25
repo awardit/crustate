@@ -100,7 +100,7 @@ state-hierarchy and can be subscribed to in supervising states.
 ```javascript
 type Subscribe<T, M: Message>    = (state: T) => SubscriptionMap<M>;
 type SubscriptionMap<M: Message> = { [tag: $PropertyType<M, "tag">]: Subscription };
-type Subscription<M: Message>    = true | { passive?: boolean, filter?: (msg: M) => bool };
+type Subscription<M: Message>    = true | { passive?: boolean, matching?: (msg: M) => bool };
 ```
 
 For a state to actually receive messages it first needs to subscribe to

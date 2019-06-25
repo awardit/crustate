@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `StateUpdate` -> `ModelUpdate`
 - `Subscribe` -> `ModelSubscribe`
 - `SubscriptionMap` -> `Subscriptions`
+- `Subscription`.`filter` -> `matching`
 - `Supervisor`.`getNested` -> `getState`
 - `Supervisor`.`getNestedOrCreate` -> `createState`
 - `Supervisor`.`removeNested` -> `removeState`
