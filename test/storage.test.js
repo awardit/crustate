@@ -31,9 +31,9 @@ test("Storage is not modified when querying for state-instances or definitions",
 
   t.is(s.getModel("foo"), undefined);
   // $ExpectError minimal State instance for this
-  t.is(s.getNested({ name: "foo" }), undefined);
+  t.is(s.getState({ name: "foo" }), undefined);
   // $ExpectError minimal State instance for this
-  t.is(s.getNested({ name: "foo" }, "bar"), undefined);
+  t.is(s.getState({ name: "foo" }, "bar"), undefined);
   t.deepEqual(s.getSnapshot(), {});
   t.is(emit.calls.length, 0);
   // Looking at internals
@@ -52,7 +52,7 @@ test("Storage can register state definitons", t => {
 
   t.is(s.registerModel(state), undefined);
   t.is(s.getModel("test"), state);
-  t.is(s.getNested(state), undefined);
+  t.is(s.getState(state), undefined);
   t.deepEqual(s.getSnapshot(), {});
   t.is(emit.calls.length, 0);
   // Looking at internals
@@ -76,7 +76,7 @@ test("Storage rejects duplicate state definitions", t => {
   t.throws(() => s.registerModel(state), { instanceOf: Error, message: "Duplicate model 'test'." });
 
   t.is(s.getModel("test"), state);
-  t.is(s.getNested(state), undefined);
+  t.is(s.getState(state), undefined);
   t.deepEqual(s.getSnapshot(), {});
   t.is(emit.calls.length, 0);
   // Looking at internals
@@ -88,7 +88,7 @@ test("Storage rejects duplicate state definitions", t => {
   t.deepEqual(stub3.calls, []);
 });
 
-test("Storage getNestedOrCreate creates a new state instance", t => {
+test("Storage createState creates a new state instance", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const initData = { name: "initData" };
@@ -96,12 +96,12 @@ test("Storage getNestedOrCreate creates a new state instance", t => {
   const update = t.context.stub();
   const subscribe = t.context.stub(() => []);
   const state = { name: "test", init, update, subscribe };
-  const instance = s.getNestedOrCreate(state);
+  const instance = s.createState(state);
 
   t.is(instance instanceof State, true);
   t.is(s.getModel("test"), state);
-  t.is(s.getNested(state), instance);
-  t.is(s.getNested(state, "bar"), undefined);
+  t.is(s.getState(state), instance);
+  t.is(s.getState(state, "bar"), undefined);
   t.deepEqual(s.getSnapshot(), { test: { id: "test", data: { name: "initData" }, params: undefined, nested: {} } });
   t.is(instance.getName(), "test");
   t.is(instance.getData(), initData);
@@ -119,7 +119,7 @@ test("Storage getNestedOrCreate creates a new state instance", t => {
   t.is(subscribe.calls.length, 0);
 });
 
-test("Storage getNestedOrCreate returns the same instance given the same params", t => {
+test("Storage createState returns the same instance given the same params", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const initData = { name: "initData" };
@@ -127,8 +127,8 @@ test("Storage getNestedOrCreate returns the same instance given the same params"
   const update = t.context.stub();
   const subscribe = t.context.stub(() => []);
   const state = { name: "test", init, update, subscribe };
-  const instance = s.getNestedOrCreate(state);
-  const instance2 = s.getNestedOrCreate(state);
+  const instance = s.createState(state);
+  const instance2 = s.createState(state);
 
   t.is(instance, instance2);
   t.is(init.calls.length, 1);
@@ -139,7 +139,7 @@ test("Storage getNestedOrCreate returns the same instance given the same params"
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, initData]);
 });
 
-test.failing("Storage getNestedOrCreate sends an update message and returns the same instance when new params are supplied", t => {
+test.failing("Storage createState sends an update message and returns the same instance when new params are supplied", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const initData = { name: "initData" };
@@ -147,9 +147,9 @@ test.failing("Storage getNestedOrCreate sends an update message and returns the 
   const update = t.context.stub((state, msg) => updateData(msg.params));
   const subscribe = t.context.stub(() => ({ [MESSAGE_NEW_PARAMS]: true }));
   const state = { name: "test", init, update, subscribe };
-  const instance = s.getNestedOrCreate(state, 1);
+  const instance = s.createState(state, 1);
   const instanceEmit = t.context.spy(instance, "emit");
-  const instance2 = s.getNestedOrCreate(state, 2);
+  const instance2 = s.createState(state, 2);
 
   t.is(instance, instance2);
   t.is(init.calls.length, 1);
@@ -166,7 +166,7 @@ test.failing("Storage getNestedOrCreate sends an update message and returns the 
   t.deepEqual(instanceEmit.calls[1].arguments, ["stateNewData", 2, ["test"], { tag: MESSAGE_NEW_PARAMS, params: 2 }]);
 });
 
-test("Storage getNestedOrCreate throws when trying to use a new state definition with the same identifier", t => {
+test("Storage createState throws when trying to use a new state definition with the same identifier", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const initData = { name: "initData" };
@@ -176,10 +176,10 @@ test("Storage getNestedOrCreate throws when trying to use a new state definition
   const state = { name: "test", init, update, subscribe };
   const state2 = { name: "test", init, update, subscribe };
   s.registerModel(state);
-  t.throws(() => s.getNestedOrCreate(state2), { instanceOf: Error, message: "Model mismatch for 'test'." });
+  t.throws(() => s.createState(state2), { instanceOf: Error, message: "Model mismatch for 'test'." });
 
   t.is(s.getModel("test"), state);
-  t.is(s.getNested(state), undefined);
+  t.is(s.getState(state), undefined);
   t.deepEqual(s.getSnapshot(), {});
   t.deepEqual(emit.calls.length, 0);
   // Looking at internals
@@ -191,7 +191,7 @@ test("Storage getNestedOrCreate throws when trying to use a new state definition
   t.is(subscribe.calls.length, 0);
 });
 
-test("Storage getNested on non-existing state instance should throw when using a mismatched state-definition of same name in dev-mode", t => {
+test("Storage getState on non-existing state instance should throw when using a mismatched state-definition of same name in dev-mode", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const initData = { name: "initData" };
@@ -201,10 +201,10 @@ test("Storage getNested on non-existing state instance should throw when using a
   const state = { name: "test", init, update, subscribe };
   const state2 = { name: "test", init, update, subscribe };
   s.registerModel(state);
-  t.throws(() => s.getNested(state2), { instanceOf: Error, message: "Model mismatch for 'test'." });
+  t.throws(() => s.getState(state2), { instanceOf: Error, message: "Model mismatch for 'test'." });
 
   t.is(s.getModel("test"), state);
-  t.is(s.getNested(state), undefined);
+  t.is(s.getState(state), undefined);
   t.deepEqual(s.getSnapshot(), {});
   t.deepEqual(emit.calls.length, 0);
   // Looking at internals
@@ -216,7 +216,7 @@ test("Storage getNested on non-existing state instance should throw when using a
   t.is(subscribe.calls.length, 0);
 });
 
-test("Storage getNested on non-existing state instance should return undefined when using a mismatched state-definition of same name in dev-mode", t => {
+test("Storage getState on non-existing state instance should return undefined when using a mismatched state-definition of same name in dev-mode", t => {
   const nodeEnv = process.env.NODE_ENV;
   process.env.NODE_ENV = "production";
 
@@ -231,10 +231,10 @@ test("Storage getNested on non-existing state instance should return undefined w
     const state2 = { name: "test", init, update, subscribe };
 
     s.registerModel(state);
-    t.is(s.getNested(state2), undefined);
+    t.is(s.getState(state2), undefined);
 
     t.is(s.getModel("test"), state);
-    t.is(s.getNested(state), undefined);
+    t.is(s.getState(state), undefined);
     t.deepEqual(s.getSnapshot(), {});
     t.deepEqual(emit.calls.length, 0);
     // Looking at internals
@@ -371,7 +371,7 @@ test("States with init using updateAndSend should send messages to parent Storag
   const subscribe = t.context.stub(() => ({ "initMsg": true }));
   const state = { name: "test", init, update, subscribe };
 
-  s.getNestedOrCreate(state);
+  s.createState(state);
 
   t.is(init.calls.length, 1);
   t.is(subscribe.calls.length, 0);
@@ -400,17 +400,17 @@ test("States can be nested", t => {
     subscribe: t.context.stub(() => ({})),
   };
 
-  const first = s.getNestedOrCreate(firstDef);
-  const second = first.getNestedOrCreate(secondDef);
+  const first = s.createState(firstDef);
+  const second = first.createState(secondDef);
 
   t.is(second instanceof State, true);
   t.is(second.getName(), "second");
   t.deepEqual(second.getPath(), ["first", "second"]);
   t.is(second.getData(), secondData);
   t.is(second.getStorage(), s);
-  t.is(first.getNested(firstDef), undefined);
-  t.is(first.getNested(secondDef), second);
-  t.is(second.getNested(firstDef), undefined);
+  t.is(first.getState(firstDef), undefined);
+  t.is(first.getState(secondDef), second);
+  t.is(second.getState(firstDef), undefined);
   t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["first"], undefined, { name: "firstData" }]);
   t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["first", "second"], undefined, { name: "secondData" }]);
@@ -424,11 +424,11 @@ test("States of the same definition can be nested", t => {
   const update = t.context.stub(() => NONE);
   const subscribe = t.context.stub(() => ({}));
   const state = { name: "test", init, update, subscribe };
-  const first = s.getNestedOrCreate(state);
+  const first = s.createState(state);
 
-  t.is(first.getNested(state), undefined);
+  t.is(first.getState(state), undefined);
 
-  const second = first.getNestedOrCreate(state);
+  const second = first.createState(state);
 
   t.is(second instanceof State, true);
   t.is(second.getName(), "test");
@@ -441,7 +441,7 @@ test("States of the same definition can be nested", t => {
   t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["test", "test"], undefined, { name: "initData" }]);
 });
 
-test("State getNested throws when trying to use a new state definition with the same identifier", t => {
+test("State getState throws when trying to use a new state definition with the same identifier", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const initData = { name: "initData" };
@@ -451,9 +451,9 @@ test("State getNested throws when trying to use a new state definition with the 
   const state = { name: "test", init, update, subscribe };
   const state2 = { name: "test", init, update, subscribe };
   s.registerModel(state);
-  const inst = s.getNestedOrCreate(state);
+  const inst = s.createState(state);
 
-  t.throws(() => inst.getNested(state2), { instanceOf: Error, message: "Model mismatch for 'test'." });
+  t.throws(() => inst.getState(state2), { instanceOf: Error, message: "Model mismatch for 'test'." });
 
   t.deepEqual(s.getSnapshot(), { test: { id: "test", data: { name: "initData" }, params: undefined, nested: {} } });
   t.is(emit.calls.length, 1);
@@ -466,7 +466,7 @@ test("State getNested throws when trying to use a new state definition with the 
   t.is(subscribe.calls.length, 0);
 });
 
-test("State getNested on non-existing state instance should return undefined when using a mismatched state-definition of same name in dev-mode", t => {
+test("State getState on non-existing state instance should return undefined when using a mismatched state-definition of same name in dev-mode", t => {
   const nodeEnv = process.env.NODE_ENV;
   process.env.NODE_ENV = "production";
 
@@ -482,14 +482,14 @@ test("State getNested on non-existing state instance should return undefined whe
 
     s.registerModel(state);
 
-    const inst = s.getNestedOrCreate(state);
+    const inst = s.createState(state);
 
     t.is(inst instanceof State, true);
 
-    t.is(inst.getNested(state2), undefined);
+    t.is(inst.getState(state2), undefined);
 
     t.is(s.getModel("test"), state);
-    t.is(inst.getNested(state), undefined);
+    t.is(inst.getState(state), undefined);
     t.deepEqual(s.getSnapshot(), { test: { id: "test", data: { name: "initData" }, params: undefined, nested: {} } });
     t.is(init.calls.length, 1);
     t.is(update.calls.length, 0);
@@ -514,7 +514,7 @@ test("Messages sent on State should propagate upwards", t => {
     subscribe: t.context.stub(() => ({})),
   };
 
-  const first = s.getNestedOrCreate(firstDef);
+  const first = s.createState(firstDef);
 
   first.sendMessage(initMsg);
 
@@ -538,7 +538,7 @@ test("Messages with a sourceName sent on State should propagate upwards with tha
     subscribe: t.context.stub(() => ({})),
   };
 
-  const first = s.getNestedOrCreate(firstDef);
+  const first = s.createState(firstDef);
 
   first.sendMessage(initMsg, "thesource");
 
@@ -570,8 +570,8 @@ test("State init is sent to parent instances", t => {
     subscribe: t.context.stub(() => ({})),
   };
 
-  const first = s.getNestedOrCreate(firstDef);
-  first.getNestedOrCreate(secondDef);
+  const first = s.createState(firstDef);
+  first.createState(secondDef);
 
   t.is(firstDef.update.calls.length, 1);
   t.deepEqual(firstDef.update.calls[0].arguments, [firstData, secondInit]);
@@ -600,7 +600,7 @@ test("no message matches on nested states", t => {
     subscribe: t.context.stub(() => ({ "never": true })),
   };
 
-  const f = s.getNestedOrCreate(firstDef);
+  const f = s.createState(firstDef);
 
   f.sendMessage({ tag: "nomatch" });
   t.is(emit.calls.length, 3);
@@ -629,8 +629,8 @@ test("State init is sent to parent instances, but not siblings", t => {
     subscribe: t.context.stub(() => ({})),
   };
 
-  s.getNestedOrCreate(firstDef);
-  s.getNestedOrCreate(secondDef);
+  s.createState(firstDef);
+  s.createState(secondDef);
 
   t.is(firstDef.update.calls.length, 0);
   t.deepEqual(s.getSnapshot(), {
@@ -658,7 +658,7 @@ test("Messages generated during processing are handled in order", t => {
     subscribe: t.context.stub(() => ({ "initMsg": { passive: true } })),
   };
 
-  const first = s.getNestedOrCreate(firstDef);
+  const first = s.createState(firstDef);
 
   first.sendMessage(initMsg);
 
@@ -693,7 +693,7 @@ test("Active subscribers prevent parents and unhandledMessage from receiving", t
   s.addSubscriber(stub1, { "initMsg": true });
   s.addSubscriber(stub2, { "firstMsg": true });
 
-  const first = s.getNestedOrCreate(firstDef);
+  const first = s.createState(firstDef);
 
   first.sendMessage(initMsg);
 
@@ -730,7 +730,7 @@ test("Passive subscribers always receive messages from children", t => {
   s.addSubscriber(stub1, { "initMsg": { passive: true } });
   s.addSubscriber(stub2, { "firstMsg": { passive: true } });
 
-  const first = s.getNestedOrCreate(firstDef);
+  const first = s.createState(firstDef);
 
   first.sendMessage(initMsg);
 
@@ -768,12 +768,12 @@ test("findClosestSupervisor", t => {
   };
   const s = new Storage();
 
-  const sA = s.getNestedOrCreate(defA);
-  const sAB = s.getNestedOrCreate(defA).getNestedOrCreate(defB);
-  const sAA = s.getNestedOrCreate(defA).getNestedOrCreate(defA);
-  const sB = s.getNestedOrCreate(defB);
-  const sBA = s.getNestedOrCreate(defB).getNestedOrCreate(defA);
-  const sBB = s.getNestedOrCreate(defB).getNestedOrCreate(defB);
+  const sA = s.createState(defA);
+  const sAB = s.createState(defA).createState(defB);
+  const sAA = s.createState(defA).createState(defA);
+  const sB = s.createState(defB);
+  const sBA = s.createState(defB).createState(defA);
+  const sBB = s.createState(defB).createState(defB);
 
   t.is(findClosestSupervisor(s, []), s);
   t.is(findClosestSupervisor(s, ["a"]), sA);
@@ -809,7 +809,7 @@ test("Storage.replyMessage", t => {
   const msgA = { tag: "A" };
   const msgB = { tag: "B" };
 
-  s.getNestedOrCreate(defA).getNestedOrCreate(defB);
+  s.createState(defA).createState(defB);
 
   const emit = t.context.spy(s, "emit");
 
@@ -835,7 +835,7 @@ test("Storage.replyMessage", t => {
   t.deepEqual(emit.calls[11].arguments, ["unhandledMessage", { tag: "A" }, ["foo", "bar", "another"]]);
 });
 
-test("Storage.removeNested", t => {
+test("Storage.removeState", t => {
   const s = new Storage();
   const defA = {
     name: "a",
@@ -851,27 +851,27 @@ test("Storage.removeNested", t => {
   };
   const emit = t.context.spy(s, "emit");
 
-  t.is(s.getNested(defA), undefined);
-  t.is(s.removeNested(defA), undefined);
+  t.is(s.getState(defA), undefined);
+  t.is(s.removeState(defA), undefined);
   t.is(emit.calls.length, 0);
-  t.is(s.removeNested(defB), undefined);
+  t.is(s.removeState(defB), undefined);
   t.is(emit.calls.length, 0);
-  t.is(s.getNested(defA), undefined);
+  t.is(s.getState(defA), undefined);
 
-  const a = s.getNestedOrCreate(defA);
+  const a = s.createState(defA);
 
   t.is(a instanceof State, true);
-  t.is(s.getNested(defA), a);
-  t.is(s.removeNested(defB), undefined);
-  t.is(s.getNested(defA), a);
-  t.is(s.removeNested(defA), undefined);
-  t.is(s.getNested(defA), undefined);
+  t.is(s.getState(defA), a);
+  t.is(s.removeState(defB), undefined);
+  t.is(s.getState(defA), a);
+  t.is(s.removeState(defA), undefined);
+  t.is(s.getState(defA), undefined);
   t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["a"], undefined, {}]);
   t.deepEqual(emit.calls[1].arguments, ["stateRemoved", ["a"], {}]);
 });
 
-test("State.removeNested", t => {
+test("State.removeState", t => {
   const s = new Storage();
   const defA = {
     name: "a",
@@ -886,26 +886,26 @@ test("State.removeNested", t => {
     subscribe: t.context.stub(() => ({})),
   };
   const emit = t.context.spy(s, "emit");
-  const a = s.getNestedOrCreate(defA);
+  const a = s.createState(defA);
   const emitA = t.context.spy(a, "emit");
 
   t.is(emit.calls.length, 1);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["a"], undefined, {}]);
-  t.is(a.getNested(defA), undefined);
-  t.is(a.removeNested(defA), undefined);
+  t.is(a.getState(defA), undefined);
+  t.is(a.removeState(defA), undefined);
   t.is(emit.calls.length, 1);
-  t.is(a.removeNested(defB), undefined);
+  t.is(a.removeState(defB), undefined);
   t.is(emit.calls.length, 1);
-  t.is(a.getNested(defA), undefined);
+  t.is(a.getState(defA), undefined);
 
-  const i = a.getNestedOrCreate(defA);
+  const i = a.createState(defA);
 
   t.is(i instanceof State, true);
-  t.is(a.getNested(defA), i);
-  t.is(a.removeNested(defB), undefined);
-  t.is(a.getNested(defA), i);
-  t.is(a.removeNested(defA), undefined);
-  t.is(i.getNested(defA), undefined);
+  t.is(a.getState(defA), i);
+  t.is(a.removeState(defB), undefined);
+  t.is(a.getState(defA), i);
+  t.is(a.removeState(defA), undefined);
+  t.is(i.getState(defA), undefined);
   t.is(emit.calls.length, 3);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["a"], undefined, {}]);
   t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["a", "a"], undefined, {}]);
@@ -923,7 +923,7 @@ test("Storage updates subscribe during processing when state data is updated", t
   };
 
   const emit = t.context.spy(s, "emit");
-  const i = s.getNestedOrCreate(def);
+  const i = s.createState(def);
 
   processInstanceMessages(s, i, [
     { _message: { tag: "b", __no: true }, _source: ["a", "test"], _received: null },
@@ -988,8 +988,8 @@ test("restoreSnapshot restores a snapshot", t => {
 
   t.deepEqual(s.getSnapshot(), { foo: { id: "foo", data: 3, params: 23, nested: {} } });
 
-  t.not(s.getNested(d), undefined);
-  t.deepEqual((s.getNested(d): any).getData(), 3);
+  t.not(s.getState(d), undefined);
+  t.deepEqual((s.getState(d): any).getData(), 3);
 
   t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["snapshotRestore", { foo: { id: "foo", data: 3, params: 23, nested: {} } }]);
@@ -1020,7 +1020,7 @@ test("restoreSnapshot restores a snapshot with a differing name", t => {
 
   t.deepEqual(s.getSnapshot(), { foo: { id: "bar", data: 3, params: 23, nested: {} } });
 
-  t.not(s.getNested(d, "foo"), undefined);
+  t.not(s.getState(d, "foo"), undefined);
 
   t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["snapshotRestore", { foo: { id: "bar", data: 3, params: 23, nested: {} } }]);
@@ -1051,10 +1051,10 @@ test("restoreSnapshot restores nested snapshots", t => {
 
   t.deepEqual(s.getSnapshot(), { foo: { id: "foo", data: 3, params: 23, nested: { foo: { id: "foo", data: 5, params: 2, nested: {} } } } });
 
-  t.not(s.getNested(d), undefined);
-  t.deepEqual((s.getNested(d): any).getData(), 3);
-  t.not((s.getNested(d): any).getNested(d), undefined);
-  t.deepEqual(((s.getNested(d): any).getNested(d): any).getData(), 5);
+  t.not(s.getState(d), undefined);
+  t.deepEqual((s.getState(d): any).getData(), 3);
+  t.not((s.getState(d): any).getState(d), undefined);
+  t.deepEqual(((s.getState(d): any).getState(d): any).getData(), 5);
 
   t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["snapshotRestore", { foo: { id: "foo", data: 3, params: 23, nested: { foo: { id: "foo", data: 5, params: 2, nested: {} } } } }]);
@@ -1064,7 +1064,7 @@ test("restoreSnapshot restores nested snapshots", t => {
   t.is(subscribe.calls.length, 0);
 });
 
-test("Storage getNested, getNestedOrCreate, and removeNested, with a different name should not affect the existing", t => {
+test("Storage getState, createState, and removeState, with a different name should not affect the existing", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const init = t.context.stub(() => updateData(1));
@@ -1077,27 +1077,27 @@ test("Storage getNested, getNestedOrCreate, and removeNested, with a different n
     subscribe,
   };
 
-  t.is(s.getNested(d), undefined);
-  t.is(s.getNested(d, "foo"), undefined);
-  t.is(s.getNested(d, "bar"), undefined);
-  t.not(s.getNestedOrCreate(d), undefined);
+  t.is(s.getState(d), undefined);
+  t.is(s.getState(d, "foo"), undefined);
+  t.is(s.getState(d, "bar"), undefined);
+  t.not(s.createState(d), undefined);
 
   t.deepEqual(s.getSnapshot(), { foo: { id: "foo", data: 1, params: undefined, nested: {} } });
 
-  t.not(s.getNested(d), undefined);
-  t.is(s.getNested(d), s.getNested(d, "foo"));
-  t.is(s.getNestedOrCreate(d), s.getNestedOrCreate(d, undefined, "foo"));
-  t.is(s.getNested(d), s.getNested(d, "foo"));
-  t.is(s.getNested(d, "bar"), undefined);
-  t.not(s.getNestedOrCreate(d, null, "bar"), undefined);
+  t.not(s.getState(d), undefined);
+  t.is(s.getState(d), s.getState(d, "foo"));
+  t.is(s.createState(d), s.createState(d, undefined, "foo"));
+  t.is(s.getState(d), s.getState(d, "foo"));
+  t.is(s.getState(d, "bar"), undefined);
+  t.not(s.createState(d, null, "bar"), undefined);
 
   t.deepEqual(s.getSnapshot(), {
     foo: { id: "foo", data: 1, params: undefined, nested: {} },
     bar: { id: "foo", data: 1, params: null, nested: {} },
   });
 
-  const sFoo = s.getNestedOrCreate(d, undefined, "foo");
-  const sBar = s.getNestedOrCreate(d, null, "bar");
+  const sFoo = s.createState(d, undefined, "foo");
+  const sBar = s.createState(d, null, "bar");
 
   t.not(sFoo, undefined);
   t.not(sBar, undefined);
@@ -1110,45 +1110,45 @@ test("Storage getNested, getNestedOrCreate, and removeNested, with a different n
   t.deepEqual(sBar.getPath(), ["bar"]);
   t.is(sBar.getStorage(), s);
 
-  s.removeNested(d);
+  s.removeState(d);
 
   t.deepEqual(s.getSnapshot(), {
     bar: { id: "foo", data: 1, params: null, nested: {} },
   });
 
-  t.not(s.getNestedOrCreate(d, null, "baz"), undefined);
-
-  t.deepEqual(s.getSnapshot(), {
-    bar: { id: "foo", data: 1, params: null, nested: {} },
-    baz: { id: "foo", data: 1, params: null, nested: {} },
-  });
-
-  t.is(s.getNested(d), undefined);
-  t.is(s.getNested(d, "foo"), undefined);
-  t.not(s.getNested(d, "bar"), undefined);
-  t.not(s.getNested(d, "baz"), undefined);
-
-  s.removeNested(d);
+  t.not(s.createState(d, null, "baz"), undefined);
 
   t.deepEqual(s.getSnapshot(), {
     bar: { id: "foo", data: 1, params: null, nested: {} },
     baz: { id: "foo", data: 1, params: null, nested: {} },
   });
 
-  s.removeNested(d, "bar");
+  t.is(s.getState(d), undefined);
+  t.is(s.getState(d, "foo"), undefined);
+  t.not(s.getState(d, "bar"), undefined);
+  t.not(s.getState(d, "baz"), undefined);
+
+  s.removeState(d);
+
+  t.deepEqual(s.getSnapshot(), {
+    bar: { id: "foo", data: 1, params: null, nested: {} },
+    baz: { id: "foo", data: 1, params: null, nested: {} },
+  });
+
+  s.removeState(d, "bar");
 
   t.deepEqual(s.getSnapshot(), {
     baz: { id: "foo", data: 1, params: null, nested: {} },
   });
 
-  t.not(s.getNestedOrCreate(d), undefined);
+  t.not(s.createState(d), undefined);
 
   t.deepEqual(s.getSnapshot(), {
     foo: { id: "foo", data: 1, params: undefined, nested: {} },
     baz: { id: "foo", data: 1, params: null, nested: {} },
   });
 
-  s.removeNested(d, "foo");
+  s.removeState(d, "foo");
 
   t.deepEqual(s.getSnapshot(), {
     baz: { id: "foo", data: 1, params: null, nested: {} },
@@ -1167,7 +1167,7 @@ test("Storage getNested, getNestedOrCreate, and removeNested, with a different n
   t.is(subscribe.calls.length, 0);
 });
 
-test("State getNested, getNestedOrCreate, and removeNested, with a different name should not affect the existing", t => {
+test("State getState, createState, and removeState, with a different name should not affect the existing", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const init = t.context.stub(() => updateData(1));
@@ -1180,32 +1180,32 @@ test("State getNested, getNestedOrCreate, and removeNested, with a different nam
     subscribe,
   };
 
-  const nested = s.getNestedOrCreate(d, undefined, "bar");
+  const nested = s.createState(d, undefined, "bar");
 
-  t.is(nested.getNested(d), undefined);
-  t.is(nested.getNested(d, "foo"), undefined);
-  t.is(nested.getNested(d, "bar"), undefined);
-  t.not(nested.getNestedOrCreate(d), undefined);
+  t.is(nested.getState(d), undefined);
+  t.is(nested.getState(d, "foo"), undefined);
+  t.is(nested.getState(d, "bar"), undefined);
+  t.not(nested.createState(d), undefined);
 
   t.deepEqual(s.getSnapshot(), { bar: { id: "foo", data: 1, params: undefined, nested: {
     foo: { id: "foo", data: 1, params: undefined, nested: {} },
   } } });
 
-  t.not(nested.getNested(d), undefined);
-  t.not(nested.getNested(d), s.getNested(d));
-  t.is(nested.getNested(d), nested.getNested(d, "foo"));
-  t.is(nested.getNestedOrCreate(d), nested.getNestedOrCreate(d, undefined, "foo"));
-  t.is(nested.getNested(d), nested.getNested(d, "foo"));
-  t.is(nested.getNested(d, "bar"), undefined);
-  t.not(nested.getNestedOrCreate(d, null, "bar"), undefined);
+  t.not(nested.getState(d), undefined);
+  t.not(nested.getState(d), s.getState(d));
+  t.is(nested.getState(d), nested.getState(d, "foo"));
+  t.is(nested.createState(d), nested.createState(d, undefined, "foo"));
+  t.is(nested.getState(d), nested.getState(d, "foo"));
+  t.is(nested.getState(d, "bar"), undefined);
+  t.not(nested.createState(d, null, "bar"), undefined);
 
   t.deepEqual(s.getSnapshot(), { bar: { id: "foo", data: 1, params: undefined, nested: {
     foo: { id: "foo", data: 1, params: undefined, nested: {} },
     bar: { id: "foo", data: 1, params: null, nested: {} },
   } } });
 
-  const sFoo = nested.getNestedOrCreate(d, undefined, "foo");
-  const sBar = nested.getNestedOrCreate(d, null, "bar");
+  const sFoo = nested.createState(d, undefined, "foo");
+  const sBar = nested.createState(d, null, "bar");
 
   t.not(sFoo, undefined);
   t.not(sBar, undefined);
@@ -1218,45 +1218,45 @@ test("State getNested, getNestedOrCreate, and removeNested, with a different nam
   t.deepEqual(sBar.getPath(), ["bar", "bar"]);
   t.is(sBar.getStorage(), s);
 
-  nested.removeNested(d);
+  nested.removeState(d);
 
   t.deepEqual(s.getSnapshot(), { bar: { id: "foo", data: 1, params: undefined, nested: {
     bar: { id: "foo", data: 1, params: null, nested: {} },
   } } });
 
-  t.not(nested.getNestedOrCreate(d, null, "baz"), undefined);
-
-  t.deepEqual(s.getSnapshot(), { bar: { id: "foo", data: 1, params: undefined, nested: {
-    bar: { id: "foo", data: 1, params: null, nested: {} },
-    baz: { id: "foo", data: 1, params: null, nested: {} },
-  } } });
-
-  t.is(nested.getNested(d), undefined);
-  t.is(nested.getNested(d, "foo"), undefined);
-  t.not(nested.getNested(d, "bar"), undefined);
-  t.not(nested.getNested(d, "baz"), undefined);
-
-  nested.removeNested(d);
+  t.not(nested.createState(d, null, "baz"), undefined);
 
   t.deepEqual(s.getSnapshot(), { bar: { id: "foo", data: 1, params: undefined, nested: {
     bar: { id: "foo", data: 1, params: null, nested: {} },
     baz: { id: "foo", data: 1, params: null, nested: {} },
   } } });
 
-  nested.removeNested(d, "bar");
+  t.is(nested.getState(d), undefined);
+  t.is(nested.getState(d, "foo"), undefined);
+  t.not(nested.getState(d, "bar"), undefined);
+  t.not(nested.getState(d, "baz"), undefined);
+
+  nested.removeState(d);
+
+  t.deepEqual(s.getSnapshot(), { bar: { id: "foo", data: 1, params: undefined, nested: {
+    bar: { id: "foo", data: 1, params: null, nested: {} },
+    baz: { id: "foo", data: 1, params: null, nested: {} },
+  } } });
+
+  nested.removeState(d, "bar");
 
   t.deepEqual(s.getSnapshot(), { bar: { id: "foo", data: 1, params: undefined, nested: {
     baz: { id: "foo", data: 1, params: null, nested: {} },
   } } });
 
-  t.not(nested.getNestedOrCreate(d), undefined);
+  t.not(nested.createState(d), undefined);
 
   t.deepEqual(s.getSnapshot(), { bar: { id: "foo", data: 1, params: undefined, nested: {
     foo: { id: "foo", data: 1, params: undefined, nested: {} },
     baz: { id: "foo", data: 1, params: null, nested: {} },
   } } });
 
-  nested.removeNested(d, "foo");
+  nested.removeState(d, "foo");
 
   t.deepEqual(s.getSnapshot(), { bar: { id: "foo", data: 1, params: undefined, nested: {
     baz: { id: "foo", data: 1, params: null, nested: {} },
@@ -1276,7 +1276,7 @@ test("State getNested, getNestedOrCreate, and removeNested, with a different nam
   t.is(subscribe.calls.length, 0);
 });
 
-test("getNestedOrCreate with a different name should still work to send messages", t => {
+test("createState with a different name should still work to send messages", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const init = t.context.stub(() => updateData(1));
@@ -1289,10 +1289,10 @@ test("getNestedOrCreate with a different name should still work to send messages
     subscribe,
   };
 
-  const nested = s.getNestedOrCreate(d, undefined, "bar");
+  const nested = s.createState(d, undefined, "bar");
 
-  const sFoo = nested.getNestedOrCreate(d);
-  const sBar = nested.getNestedOrCreate(d, null, "bar");
+  const sFoo = nested.createState(d);
+  const sBar = nested.createState(d, null, "bar");
 
   sFoo.sendMessage({ tag: "AAA", testing: "foo" });
   sBar.sendMessage({ tag: "AAA", testing: "bar" });
