@@ -8,7 +8,7 @@
  */
 
 import type { Context } from "react";
-import type { Message, State, Storage, Supervisor } from "crustate";
+import type { Message, Model, Storage, Supervisor } from "crustate";
 
 import {
   createContext,
@@ -32,14 +32,14 @@ export type DataProvider<I> = React$ComponentType<DataProviderProps<I>>;
 
 /**
  * DataConsumer is a component which takes a function as children and will call
- * this function with the state instance data.
+ * this function with the state data.
  */
 export type DataConsumer<T> = React$ComponentType<{ children: DataFunction<T> }>;
 
 /**
  * TestProvider is a component which exposes a property for setting the
  * state-data value used in children, useful for testing components by
- * supplying the state-data without having to instantiate a state.
+ * supplying the state-data without having to create a state.
  */
 export type TestProvider<T> = React$ComponentType<{ value: T, children?: ?React$Node }>;
 
@@ -52,11 +52,9 @@ export type StateData<T, I, M> = {
    */
   _dataContext: React$Context<T | void>,
   /**
-   * The state-definition, exposed to be loaded for hydration and for testing.
-   *
-   * TODO: Rename to something better
+   * The model, exposed to be loaded for hydration and for testing.
    */
-  state: State<T, I, M>,
+  model: Model<T, I, M>,
   /**
    * A context provider allowing the state-data to be set to a constant value,
    * useful for testing.
@@ -70,7 +68,7 @@ type StorageProviderProps = { storage: Storage, children?: ?React$Node };
 
 /**
  * The basic state context where we will carry either a Storage, or a state
- * instance for the current nesting.
+ * for the current nesting.
  *
  * @suppress {checkTypes}
  */
@@ -128,7 +126,7 @@ function excludeChildren<T: { children?: ?React$Node, name?: string }>(
  * @suppress {checkTypes}
  * @return {!StateData}
  */
-export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T, I, M> {
+export function createStateData<T, I: {}, M>(model: Model<T, I, M>): StateData<T, I, M> {
   const Ctx = (createContext(undefined): React$Context<T | void>);
   const { Provider } = Ctx;
 
@@ -136,10 +134,10 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
     const context = useContext(StateContext);
 
     if( ! context) {
-      throw new Error(`<${state.name}.Provider /> must be used inside a <StorageProvider />`);
+      throw new Error(`<${model.name}.Provider /> must be used inside a <StorageProvider />`);
     }
 
-    const instance = context.getNestedOrCreate(state, excludeChildren(props), props.name);
+    const instance = context.getNestedOrCreate(model, excludeChildren(props), props.name);
     const [data, setData] = useState(instance.getData());
 
     useEffect((): (() => void) => {
@@ -157,9 +155,9 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
       return (): void => {
         instance.removeListener("stateNewData", setData);
 
-        // Drop the state instance if we were the last listener
+        // Drop the state if we were the last listener
         if(instance.listeners("stateNewData").length === 0) {
-          context.removeNested(state, instance.getName());
+          context.removeNested(model, instance.getName());
         }
       };
     /* eslint-disable react-hooks/exhaustive-deps */
@@ -175,7 +173,7 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
 
   return {
     _dataContext: Ctx,
-    state,
+    model,
     // We have to cheat here since the value must be possible to use as
     // undefined internally, but when testing it should not be possible to use
     // without a fully defined `T`:
@@ -186,17 +184,17 @@ export function createStateData<T, I: {}, M>(state: State<T, I, M>): StateData<T
 }
 
 /**
- * Returns the data in the topmost state-instance associated with the supplied
- * state-data. Will throw if a StateData.Provider is not a parent node.
+ * Returns the data in the topmost state associated with the supplied
+ * StateData. Will throw if a StateData.Provider is not a parent node.
  *
  * @suppress {checkTypes}
  */
 export function useData<T, I, M>(context: StateData<T, I, M>): T {
-  const { _dataContext, state } = context;
+  const { _dataContext, model } = context;
   const data = useContext(_dataContext);
 
   if(data === undefined) {
-    throw new Error(`useData(${state.name}) must be used inside a <${state.name}.Provider />`);
+    throw new Error(`useData(${model.name}) must be used inside a <${model.name}.Provider />`);
   }
 
   return data;

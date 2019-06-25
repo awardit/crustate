@@ -30,7 +30,7 @@ StateData.prototype.Provider;
 /**
  * @public
  */
-StateData.prototype.state;
+StateData.prototype.model;
 
 /**
  * @public

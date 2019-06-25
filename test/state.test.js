@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { State } from "../src/state";
+import type { Model } from "../src/state";
 import type { Message } from "../src/message";
 
 import test from "ava";
@@ -13,10 +13,10 @@ type MyMessage = { tag: "a" } | { tag: "b" };
   init: () => updateData("init"),
   update: () => NONE,
   subscribe: () => ({}),
-}: State<string, void, MyMessage>);
+}: Model<string, void, MyMessage>);
 
-test("State can be instantiated", t => {
-  const definition: State<string, void, Message> = {
+test("Model can be instantiated", t => {
+  const definition: Model<string, void, Message> = {
     name: "test",
     init: () => updateData("init"),
     update: (data, msg) => updateData(msg.tag),
