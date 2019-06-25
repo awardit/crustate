@@ -1,6 +1,6 @@
 /* @flow */
 
-import { NONE, updateData, Storage } from "crustate";
+import { updateData, Storage } from "crustate";
 import {
   StorageProvider,
   useData,
@@ -23,7 +23,7 @@ const CounterData = createStateData({
     case DECREMENT:
       return updateData(state - 1);
     default:
-      return NONE;
+      // Nothing
     }
   },
   subscribe: state => state < 0 ? {} : {

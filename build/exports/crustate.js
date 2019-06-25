@@ -30,6 +30,7 @@ var getStorage;
 var id;
 var init;
 var listeners;
+var messages;
 var name;
 var nested;
 var params;

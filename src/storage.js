@@ -4,12 +4,6 @@ import type { Model } from "./model";
 import type { InflightMessage, Message, Subscriptions } from "./message";
 
 import { debugAssert } from "./assert";
-import {
-  updateHasData,
-  updateStateData,
-  updateStateDataNoNone,
-  updateOutgoingMessages,
-} from "./update";
 import { findMatchingSubscription } from "./message";
 import { EventEmitter } from "./eventemitter";
 
@@ -443,9 +437,7 @@ export function newState<T, I, M>(
 
   tryAddModel(storage, model);
 
-  const update = init(initialData);
-  const data = updateStateDataNoNone(update);
-  const messages = updateOutgoingMessages(update);
+  const { data, messages } = init(initialData);
   const instance = new State(id, supervisor, initialData, data, name);
   const path = instance.getPath();
 
@@ -453,7 +445,7 @@ export function newState<T, I, M>(
 
   storage.emit("stateCreated", path, (initialData: any), data);
 
-  if(messages.length > 0) {
+  if(messages) {
     processInstanceMessages(
       storage,
       instance._supervisor,
@@ -535,16 +527,17 @@ export function processInstanceMessages(
 
         const updateRequest = update(instance._data, m);
 
-        if(updateHasData(updateRequest)) {
-          const data = updateStateData(updateRequest);
-          const outgoing = updateOutgoingMessages(updateRequest);
+        if(updateRequest) {
+          const { data, messages } = updateRequest;
 
           instance._data = data;
 
           storage.emit("stateNewData", data, sourcePath, m);
           instance.emit("stateNewData", data, sourcePath, m);
 
-          enqueueMessages(storage, sourcePath, inflight, outgoing);
+          if(messages) {
+            enqueueMessages(storage, sourcePath, inflight, messages);
+          }
 
           messageFilter = subscribe(instance._data);
         }

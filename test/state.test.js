@@ -4,14 +4,14 @@ import type { Model } from "../src/model";
 import type { Message } from "../src/message";
 
 import test from "ava";
-import { NONE, updateData } from "../src/update";
+import { updateData } from "../src/update";
 
 // Type tests
 type MyMessage = { tag: "a" } | { tag: "b" };
 ({
   name: "test",
   init: () => updateData("init"),
-  update: () => NONE,
+  update: () => null,
   subscribe: () => ({}),
 }: Model<string, void, MyMessage>);
 

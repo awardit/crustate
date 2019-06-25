@@ -1,18 +1,20 @@
 /* @flow */
 
-import type { Update, DataUpdate, MessageUpdate } from "./update";
+import type { Update } from "./update";
 import type { Subscriptions } from "./message";
 
 /**
  * Initialization function, called when the initial data is loaded into the
  * state.
  */
-export type ModelInit<T, I> = (init: I) => DataUpdate<T> | MessageUpdate<T>;
+export type ModelInit<T, I> = (init: I) => Update<T>;
+
 /**
  * Update function, receives messages for a state and produces a state-update
  * which can include messages sent to supervisors.
  */
-export type ModelUpdate<T, M> = (state: T, msg: M) => Update<T>;
+export type ModelUpdate<T, M> = (state: T, msg: M) => ?Update<T>;
+
 /**
  * A function returning a dictionary of subscriptions the state is interested
  * in.
