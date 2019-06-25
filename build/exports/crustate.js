@@ -19,7 +19,7 @@ var addSubscriber;
 var createState;
 var data;
 var emit;
-var filter;
+var matching;
 var getData;
 var getModel;
 var getName;

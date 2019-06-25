@@ -41,7 +41,7 @@ export const PostData = createStateData<PostDataState, { postId: number }, PostR
     updateData({ state: "ERROR", error: msg.error }),
   subscribe: state => state.state === "LOADING" ? {
     [POST_RESPONSE]: {
-      filter: resp => Boolean(resp.error || (resp.data && resp.data.id === state.postId)),
+      matching: resp => Boolean(resp.error || (resp.data && resp.data.id === state.postId)),
     },
   } : {},
 });
