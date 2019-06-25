@@ -50,8 +50,10 @@
     "prepack": "npm run clean && npm run test && npm run dist",
     "test": "npm-run-all test:*",
     "test:flow": "flow status",
+    "test:build": "npm run dist",
     "test:ava": "ava --verbose",
     "test:xo": "xo",
+    "test:bundlesize": "bundlesize",
     "watch": "nodemon -w src -w test -w react/src --exec \"npm run -q test || true\"",
     "watch:build": "rollup -c rollup.config.js -w",
     "watch:test": "nodemon -w src -w test -w react/src --exec \"npm run -q ava || true\"",
@@ -70,6 +72,7 @@
     "@testing-library/react": "8.0.4",
     "ava": "2.1.0",
     "babel-eslint": "10.0.2",
+    "bundlesize": "0.17.2",
     "classnames": "2.2.6",
     "cross-env": "5.2.0",
     "eslint-config-xo-flow": "0.1.0",
@@ -149,6 +152,14 @@
     ],
     "powerAssert": true
   },
+  "bundlesize": [
+    {
+      "path": "./dist/index.esm.js"
+    },
+    {
+      "path": "./react/dist/index.esm.js"
+    }
+  ],
   "xo": {
     "extends": [
       "xo-flow",
