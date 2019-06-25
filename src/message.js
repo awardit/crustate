@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { StatePath } from "./model";
+import type { StatePath } from "./storage";
 
 /**
  * Tag identifying the message, used to subscribe and match messages.
