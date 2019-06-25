@@ -53,8 +53,8 @@ Object.keys(events).forEach(eventName => {
 storage.addSubscriber(subscriber, { "effects/request": true });
 
 // Register the possible states we might restore when we call restoreSnapshot();
-storage.registerModel(PostListData.model);
-storage.registerModel(PostData.model);
+storage.addModel(PostListData.model);
+storage.addModel(PostData.model);
 
 if(window.appdata) {
   storage.restoreSnapshot(window.appdata);
