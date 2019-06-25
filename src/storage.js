@@ -167,30 +167,11 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   /**
    * Test
    */
-  registerModel<T, I, M>(model: Model<T, I, M>): void {
-    if( ! this.tryRegisterModel(model)) {
+  addModel<T, I, M>(model: Model<T, I, M>): void {
+    if( ! tryAddModel(this, model)) {
       // FIXME: Proper exception type
       throw new Error(`Duplicate model '${model.name}'.`);
     }
-  }
-
-  /**
-   * Loads the given model for use, ensures that it is not a new model with the
-   * same name if it is already loaded. `true` returned if it was new, `false`
-   * otherwise.
-   */
-  tryRegisterModel<T, I, M>(model: Model<T, I, M>): boolean {
-    const { name: id } = model;
-
-    if( ! this._defs[id]) {
-      this._defs[id] = model;
-
-      return true;
-    }
-
-    ensureModel(this, model);
-
-    return false;
   }
 
   getModel<T, I, M>(id: string): ?Model<T, I, M> {
@@ -290,6 +271,25 @@ export function restoreSnapshot(
   }
 
   supervisor._nested = newNested;
+}
+
+/**
+  * Loads the given model for use, ensures that it is not a new model with the
+  * same name if it is already loaded. `true` returned if it was new, `false`
+  * otherwise.
+  */
+export function tryAddModel<T, I, M>(storage: Storage, model: Model<T, I, M>): boolean {
+  const { name: id } = model;
+
+  if( ! storage._defs[id]) {
+    storage._defs[id] = model;
+
+    return true;
+  }
+
+  ensureModel(storage, model);
+
+  return false;
 }
 
 export function ensureModel<T, I, M>(storage: Storage, model: Model<T, I, M>): void {
@@ -439,7 +439,7 @@ export function newState<T, I, M>(
     name = id;
   }
 
-  storage.tryRegisterModel(model);
+  tryAddModel(storage, model);
 
   const update = init(initialData);
   const data = updateStateDataNoNone(update);

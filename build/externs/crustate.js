@@ -71,8 +71,7 @@ crustate.EventEmitter.prototype.emit = function() {};
  * @extends {crustate.EventEmitter}
  */
 crustate.Storage = function () {};
-crustate.Storage.prototype.registerModel;
-crustate.Storage.prototype.tryRegisterModel;
+crustate.Storage.prototype.addModel;
 crustate.Storage.prototype.sendMessage;
   /**
    * @export

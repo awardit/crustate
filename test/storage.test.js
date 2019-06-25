@@ -50,7 +50,7 @@ test("Storage can register state definitons", t => {
   const stub3 = t.context.stub();
   const state = { name: "test", init: stub1, update: stub2, subscribe: stub3 };
 
-  t.is(s.registerModel(state), undefined);
+  t.is(s.addModel(state), undefined);
   t.is(s.getModel("test"), state);
   t.is(s.getState(state), undefined);
   t.deepEqual(s.getSnapshot(), {});
@@ -72,8 +72,8 @@ test("Storage rejects duplicate state definitions", t => {
   const stub3 = t.context.stub();
   const state = { name: "test", init: stub1, update: stub2, subscribe: stub3 };
 
-  t.is(s.registerModel(state), undefined);
-  t.throws(() => s.registerModel(state), { instanceOf: Error, message: "Duplicate model 'test'." });
+  t.is(s.addModel(state), undefined);
+  t.throws(() => s.addModel(state), { instanceOf: Error, message: "Duplicate model 'test'." });
 
   t.is(s.getModel("test"), state);
   t.is(s.getState(state), undefined);
@@ -175,7 +175,7 @@ test("Storage createState throws when trying to use a new state definition with 
   const subscribe = t.context.stub(() => []);
   const state = { name: "test", init, update, subscribe };
   const state2 = { name: "test", init, update, subscribe };
-  s.registerModel(state);
+  s.addModel(state);
   t.throws(() => s.createState(state2), { instanceOf: Error, message: "Model mismatch for 'test'." });
 
   t.is(s.getModel("test"), state);
@@ -200,7 +200,7 @@ test("Storage getState on non-existing state instance should throw when using a 
   const subscribe = t.context.stub(() => []);
   const state = { name: "test", init, update, subscribe };
   const state2 = { name: "test", init, update, subscribe };
-  s.registerModel(state);
+  s.addModel(state);
   t.throws(() => s.getState(state2), { instanceOf: Error, message: "Model mismatch for 'test'." });
 
   t.is(s.getModel("test"), state);
@@ -230,7 +230,7 @@ test("Storage getState on non-existing state instance should return undefined wh
     const state = { name: "test", init, update, subscribe };
     const state2 = { name: "test", init, update, subscribe };
 
-    s.registerModel(state);
+    s.addModel(state);
     t.is(s.getState(state2), undefined);
 
     t.is(s.getModel("test"), state);
@@ -450,7 +450,7 @@ test("State getState throws when trying to use a new state definition with the s
   const subscribe = t.context.stub(() => ({}));
   const state = { name: "test", init, update, subscribe };
   const state2 = { name: "test", init, update, subscribe };
-  s.registerModel(state);
+  s.addModel(state);
   const inst = s.createState(state);
 
   t.throws(() => inst.getState(state2), { instanceOf: Error, message: "Model mismatch for 'test'." });
@@ -480,7 +480,7 @@ test("State getState on non-existing state instance should return undefined when
     const state = { name: "test", init, update, subscribe };
     const state2 = { name: "test", init, update, subscribe };
 
-    s.registerModel(state);
+    s.addModel(state);
 
     const inst = s.createState(state);
 
@@ -980,7 +980,7 @@ test("restoreSnapshot restores a snapshot", t => {
     subscribe,
   };
 
-  s.registerModel(d);
+  s.addModel(d);
 
   t.deepEqual(s.getSnapshot(), { });
 
@@ -1012,7 +1012,7 @@ test("restoreSnapshot restores a snapshot with a differing name", t => {
     subscribe,
   };
 
-  s.registerModel(d);
+  s.addModel(d);
 
   t.deepEqual(s.getSnapshot(), { });
 
@@ -1043,7 +1043,7 @@ test("restoreSnapshot restores nested snapshots", t => {
     subscribe,
   };
 
-  s.registerModel(d);
+  s.addModel(d);
 
   t.deepEqual(s.getSnapshot(), { });
 
