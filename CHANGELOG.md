@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `StateInstance` -> `State`
 - React `StateData`.`state` -> `model`
 
-### Removeed
+### Removed
 - `Storage`.`tryRegisterState`
 - `NONE`
 - `NoUpdate`
