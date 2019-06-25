@@ -1,7 +1,7 @@
 /* @flow */
 
-import type { State, StatePath } from "./state";
-import type { InflightMessage, Message, SubscriptionMap } from "./message";
+import type { Model, StatePath } from "./state";
+import type { InflightMessage, Message, Subscriptions } from "./message";
 
 import { debugAssert } from "./assert";
 import {
@@ -19,7 +19,7 @@ import { EventEmitter } from "./eventemitter";
  */
 export type Snapshot = { [instanceName: string]: StateSnapshot };
 export type StateSnapshot = {
-  // Name to use to find the state-definition when loading the snapshot
+  // Name to use to find the model when loading the snapshot
   id: string,
   data: mixed,
   params: mixed,
@@ -33,12 +33,12 @@ export type StateSnapshot = {
  * closed to make it possible to differentiate between the two types while
  * traversing the tree.
  */
-export type Supervisor = Storage | StateInstance<any, any>;
+export type Supervisor = Storage | State<any, any>;
 
 export type Sink<M: Message> = (message: M, sourcePath: StatePath) => mixed;
-export type Subscriber<M: Message> = { listener: Sink<M>, subscription: SubscriptionMap<M> };
+export type Subscriber<M: Message> = { listener: Sink<M>, subscriptions: Subscriptions<M> };
 
-export type StateInstanceMap = { [name: string]: StateInstance<any, any> };
+export type StateMap = { [name: string]: State<any, any> };
 
 export type StorageEvents = {
   /**
@@ -51,7 +51,7 @@ export type StorageEvents = {
    */
   unhandledMessage: [Message, StatePath],
   /**
-   * Emitted when a state-instance is created.
+   * Emitted when a state is created.
    *
    * Parameters:
    *
@@ -126,13 +126,13 @@ export type StateEvents<T> = {
 };
 
 interface AbstractSupervisor {
-  _nested: StateInstanceMap,
+  _nested: StateMap,
   getStorage(): Storage,
   getPath(): StatePath,
-  getNested<T, I, M>(state: State<T, I, M>, name?: string): ?StateInstance<T, I>,
-  getNestedOrCreate<T, I, M>(state: State<T, I, M>, params: I, name?: string): StateInstance<T, I>,
+  getNested<T, I, M>(model: Model<T, I, M>, name?: string): ?State<T, I>,
+  getNestedOrCreate<T, I, M>(model: Model<T, I, M>, params: I, name?: string): State<T, I>,
   sendMessage(message: Message, sourceName?: string): void,
-  removeNested<T, I, M>(state: State<T, I, M>, name?: string): void,
+  removeNested<T, I, M>(model: Model<T, I, M>, name?: string): void,
 }
 
 const ANONYMOUS_SOURCE = "$";
@@ -143,11 +143,11 @@ const REPLY_SOURCE = "<";
  */
 export class Storage extends EventEmitter<StorageEvents> implements AbstractSupervisor {
   _subscribers: Array<Subscriber<any>> = [];
-  _nested: StateInstanceMap = {};
+  _nested: StateMap = {};
   /**
-   * State-definitions, used for subscribers and messages.
+   * Models, used for subscribers, updates and messages.
    */
-  _defs: { [id: string]: State<any, any, any> } = {};
+  _defs: { [id: string]: Model<any, any, any> } = {};
 
   /* eslint-disable no-useless-constructor */
   // Explicit constructor results in shorter minified code
@@ -167,57 +167,57 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   /**
    * Test
    */
-  registerState<T, I, M>(state: State<T, I, M>): void {
-    if( ! this.tryRegisterState(state)) {
+  registerModel<T, I, M>(model: Model<T, I, M>): void {
+    if( ! this.tryRegisterModel(model)) {
       // FIXME: Proper exception type
-      throw new Error(`Duplicate state name ${state.name}`);
+      throw new Error(`Duplicate model '${model.name}'.`);
     }
   }
 
   /**
-   * Loads the given state-definition for use, ensures that it is not a new
-   * state with the same name if it is already loaded. `true` returned if it
-   * was new, `false` otherwise.
+   * Loads the given model for use, ensures that it is not a new model with the
+   * same name if it is already loaded. `true` returned if it was new, `false`
+   * otherwise.
    */
-  tryRegisterState<T, I, M>(state: State<T, I, M>): boolean {
-    const { name: id } = state;
+  tryRegisterModel<T, I, M>(model: Model<T, I, M>): boolean {
+    const { name: id } = model;
 
     if( ! this._defs[id]) {
-      this._defs[id] = state;
+      this._defs[id] = model;
 
       return true;
     }
 
-    ensureState(this, state);
+    ensureModel(this, model);
 
     return false;
   }
 
-  stateDefinition<T, I, M>(instanceId: string): ?State<T, I, M> {
-    return this._defs[instanceId];
+  getModel<T, I, M>(id: string): ?Model<T, I, M> {
+    return this._defs[id];
   }
 
-  getNested<T, I, M>(state: State<T, I, M>, name?: string): ?StateInstance<T, I> {
+  getNested<T, I, M>(model: Model<T, I, M>, name?: string): ?State<T, I> {
     if(process.env.NODE_ENV !== "production") {
-      ensureState(this, state);
+      ensureModel(this, model);
     }
 
-    const inst = this._nested[name || state.name];
+    const inst = this._nested[name || model.name];
 
     if(inst) {
-      debugAssert(inst._name === (name || state.name),
-        `State instance name '${inst._name}' does not match key name '${name || state.name}`);
+      debugAssert(inst._name === (name || model.name),
+        `State name '${inst._name}' does not match key name '${name || model.name}`);
     }
 
     return inst;
   }
 
-  getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J, name?: string): StateInstance<U, J> {
-    return getNestedOrCreate(this, state, params, name);
+  getNestedOrCreate<U, J, N>(model: Model<U, J, N>, params: J, name?: string): State<U, J> {
+    return getNestedOrCreate(this, model, params, name);
   }
 
-  removeNested<U, J, N>(state: State<U, J, N>, name?: string): void {
-    const inst = this.getNested(state, name);
+  removeNested<U, J, N>(model: Model<U, J, N>, name?: string): void {
+    const inst = this.getNested(model, name);
 
     if(inst) {
       delete this._nested[name || inst._name];
@@ -230,8 +230,8 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     processStorageMessage(this, createInflightMessage(this, [sourceName], message));
   }
 
-  addSubscriber<M: Message>(listener: Sink<M>, subscription: SubscriptionMap<M>): void {
-    this._subscribers.push({ listener, subscription });
+  addSubscriber<M: Message>(listener: Sink<M>, subscriptions: Subscriptions<M>): void {
+    this._subscribers.push({ listener, subscriptions });
   }
 
   removeSubscriber(listener: Sink<any>): void {
@@ -271,7 +271,7 @@ export function restoreSnapshot(
   supervisor: Supervisor,
   snapshot: Snapshot
 ): void {
-  const newNested: StateInstanceMap = {};
+  const newNested: StateMap = {};
 
   /* eslint-disable guard-for-in */
   // We trust that the user has not been poking around in globals
@@ -279,10 +279,10 @@ export function restoreSnapshot(
   /* eslint-enable guard-for-in */
     const { id, data, params, nested } = snapshot[k];
 
-    // Ensure the state definition exists when we restore
-    getStateDefinitionById(storage, id);
+    // Ensure the model exists when we restore
+    getModelById(storage, id);
 
-    const inst = new StateInstance(id, supervisor, params, data, k);
+    const inst = new State(id, supervisor, params, data, k);
 
     restoreSnapshot(storage, inst, nested);
 
@@ -292,30 +292,30 @@ export function restoreSnapshot(
   supervisor._nested = newNested;
 }
 
-export function ensureState<T, I, M>(storage: Storage, state: State<T, I, M>): void {
-  const { name: id } = state;
+export function ensureModel<T, I, M>(storage: Storage, model: Model<T, I, M>): void {
+  const { name: id } = model;
 
-  if(storage._defs[id] && storage._defs[id] !== state) {
+  if(storage._defs[id] && storage._defs[id] !== model) {
     // FIXME: Proper exception type
-    throw new Error(`State object mismatch for state ${id}`);
+    throw new Error(`Model mismatch for '${id}'.`);
   }
 }
 
-export function getStateDefinitionById<T, I, M: Message>(
+export function getModelById<T, I, M: Message>(
   storage: Storage,
   id: string
-): State<T, I, M> {
+): Model<T, I, M> {
   const spec = storage._defs[id];
 
   if( ! spec) {
     // TODO: Error type
-    throw new Error(`Missing state definition for state with name ${id}`);
+    throw new Error(`Missing model for state '${id}'.`);
   }
 
   return spec;
 }
 
-export class StateInstance<T, I>
+export class State<T, I>
   extends EventEmitter<StateEvents<T>>
   implements AbstractSupervisor {
   /**
@@ -329,7 +329,7 @@ export class StateInstance<T, I>
   _data: T;
   _params: I;
   _supervisor: Supervisor;
-  _nested: StateInstanceMap = {};
+  _nested: StateMap = {};
 
   constructor(id: string, supervisor: Supervisor, params: I, data: T, name: string): void {
     super();
@@ -352,7 +352,7 @@ export class StateInstance<T, I>
   getStorage(): Storage {
     let s = this._supervisor;
 
-    while(s instanceof StateInstance) {
+    while(s instanceof State) {
       s = s._supervisor;
     }
 
@@ -363,7 +363,7 @@ export class StateInstance<T, I>
     const path = [];
     let s = this;
 
-    while(s instanceof StateInstance) {
+    while(s instanceof State) {
       path.unshift(s._name);
 
       s = s._supervisor;
@@ -372,27 +372,27 @@ export class StateInstance<T, I>
     return path;
   }
 
-  getNested<U, J, N>(state: State<U, J, N>, name?: string): ?StateInstance<U, J> {
+  getNested<U, J, N>(model: Model<U, J, N>, name?: string): ?State<U, J> {
     if(process.env.NODE_ENV !== "production") {
-      ensureState(this.getStorage(), state);
+      ensureModel(this.getStorage(), model);
     }
 
-    const inst = this._nested[name || state.name];
+    const inst = this._nested[name || model.name];
 
     if(inst) {
-      debugAssert(inst._name === (name || state.name),
-        `State instance name '${inst._name}' does not match key name '${name || state.name}`);
+      debugAssert(inst._name === (name || model.name),
+        `State name '${inst._name}' does not match key name '${name || model.name}`);
     }
 
     return inst;
   }
 
-  getNestedOrCreate<U, J, N>(state: State<U, J, N>, params: J, name?: string): StateInstance<U, J> {
-    return getNestedOrCreate(this, state, params, name);
+  getNestedOrCreate<U, J, N>(model: Model<U, J, N>, params: J, name?: string): State<U, J> {
+    return getNestedOrCreate(this, model, params, name);
   }
 
-  removeNested<U, J, N>(state: State<U, J, N>, name?: string): void {
-    const inst = this.getNested(state, name);
+  removeNested<U, J, N>(model: Model<U, J, N>, name?: string): void {
+    const inst = this.getNested(model, name);
 
     if(inst) {
       delete this._nested[name || inst._name];
@@ -411,11 +411,11 @@ export class StateInstance<T, I>
 
 export function getNestedOrCreate<T, I, M>(
   supervisor: Supervisor,
-  state: State<T, I, M>,
+  model: Model<T, I, M>,
   params: I,
   name?: string
-): StateInstance<T, I> {
-  const child = supervisor.getNested(state, name);
+): State<T, I> {
+  const child = supervisor.getNested(model, name);
 
   if(child) {
     // TODO: Diff and send message if the params are different
@@ -423,28 +423,28 @@ export function getNestedOrCreate<T, I, M>(
     return child;
   }
 
-  return createState(supervisor, state, params, name);
+  return createState(supervisor, model, params, name);
 }
 
 export function createState<T, I, M>(
   supervisor: Supervisor,
-  state: State<T, I, M>,
+  model: Model<T, I, M>,
   initialData: I,
   name?: string
-): StateInstance<T, I> {
+): State<T, I> {
   const storage = supervisor.getStorage();
-  const { name: id, init } = state;
+  const { name: id, init } = model;
 
   if( ! name) {
     name = id;
   }
 
-  storage.tryRegisterState(state);
+  storage.tryRegisterModel(model);
 
   const update = init(initialData);
   const data = updateStateDataNoNone(update);
   const messages = updateOutgoingMessages(update);
-  const instance = new StateInstance(id, supervisor, initialData, data, name);
+  const instance = new State(id, supervisor, initialData, data, name);
   const path = instance.getPath();
 
   supervisor._nested[name] = instance;
@@ -506,8 +506,8 @@ export function processInstanceMessages(
 ): void {
   let sourcePath = instance.getPath();
 
-  while(instance instanceof StateInstance) {
-    const definition = getStateDefinitionById(storage, instance._id);
+  while(instance instanceof State) {
+    const definition = getModelById(storage, instance._id);
 
     // We are going to add to messages if any new messages are generated, save
     // length here
@@ -567,8 +567,8 @@ function processStorageMessage(storage: Storage, inflight: InflightMessage): voi
   let received = Boolean(inflight._received);
 
   for(let i = 0; i < s.length; i++) {
-    const { listener, subscription } = s[i];
-    const match = findMatchingSubscription(subscription, _message, Boolean(received));
+    const { listener, subscriptions } = s[i];
+    const match = findMatchingSubscription(subscriptions, _message, Boolean(received));
 
     if(match) {
       if( ! match.isPassive) {
@@ -586,7 +586,7 @@ function processStorageMessage(storage: Storage, inflight: InflightMessage): voi
   }
 }
 
-export function createStateSnapshot<T, I>(node: StateInstance<T, I>): StateSnapshot {
+export function createStateSnapshot<T, I>(node: State<T, I>): StateSnapshot {
   return {
     id: node._id,
     // We assume it is immutably updated

@@ -2,7 +2,7 @@
 
 import ninos from "ninos";
 import ava from "ava";
-import { Storage, StateInstance, findClosestSupervisor, processInstanceMessages } from "../src/storage";
+import { Storage, State, findClosestSupervisor, processInstanceMessages } from "../src/storage";
 import { NONE, updateData, updateAndSend } from "../src/update";
 
 // We redefine this here so we can test it
@@ -29,7 +29,7 @@ test("Storage is not modified when querying for state-instances or definitions",
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
 
-  t.is(s.stateDefinition("foo"), undefined);
+  t.is(s.getModel("foo"), undefined);
   // $ExpectError minimal State instance for this
   t.is(s.getNested({ name: "foo" }), undefined);
   // $ExpectError minimal State instance for this
@@ -50,8 +50,8 @@ test("Storage can register state definitons", t => {
   const stub3 = t.context.stub();
   const state = { name: "test", init: stub1, update: stub2, subscribe: stub3 };
 
-  t.is(s.registerState(state), undefined);
-  t.is(s.stateDefinition("test"), state);
+  t.is(s.registerModel(state), undefined);
+  t.is(s.getModel("test"), state);
   t.is(s.getNested(state), undefined);
   t.deepEqual(s.getSnapshot(), {});
   t.is(emit.calls.length, 0);
@@ -72,10 +72,10 @@ test("Storage rejects duplicate state definitions", t => {
   const stub3 = t.context.stub();
   const state = { name: "test", init: stub1, update: stub2, subscribe: stub3 };
 
-  t.is(s.registerState(state), undefined);
-  t.throws(() => s.registerState(state), { instanceOf: Error, message: "Duplicate state name test" });
+  t.is(s.registerModel(state), undefined);
+  t.throws(() => s.registerModel(state), { instanceOf: Error, message: "Duplicate model 'test'." });
 
-  t.is(s.stateDefinition("test"), state);
+  t.is(s.getModel("test"), state);
   t.is(s.getNested(state), undefined);
   t.deepEqual(s.getSnapshot(), {});
   t.is(emit.calls.length, 0);
@@ -98,8 +98,8 @@ test("Storage getNestedOrCreate creates a new state instance", t => {
   const state = { name: "test", init, update, subscribe };
   const instance = s.getNestedOrCreate(state);
 
-  t.is(instance instanceof StateInstance, true);
-  t.is(s.stateDefinition("test"), state);
+  t.is(instance instanceof State, true);
+  t.is(s.getModel("test"), state);
   t.is(s.getNested(state), instance);
   t.is(s.getNested(state, "bar"), undefined);
   t.deepEqual(s.getSnapshot(), { test: { id: "test", data: { name: "initData" }, params: undefined, nested: {} } });
@@ -175,10 +175,10 @@ test("Storage getNestedOrCreate throws when trying to use a new state definition
   const subscribe = t.context.stub(() => []);
   const state = { name: "test", init, update, subscribe };
   const state2 = { name: "test", init, update, subscribe };
-  s.registerState(state);
-  t.throws(() => s.getNestedOrCreate(state2), { instanceOf: Error, message: "State object mismatch for state test" });
+  s.registerModel(state);
+  t.throws(() => s.getNestedOrCreate(state2), { instanceOf: Error, message: "Model mismatch for 'test'." });
 
-  t.is(s.stateDefinition("test"), state);
+  t.is(s.getModel("test"), state);
   t.is(s.getNested(state), undefined);
   t.deepEqual(s.getSnapshot(), {});
   t.deepEqual(emit.calls.length, 0);
@@ -200,10 +200,10 @@ test("Storage getNested on non-existing state instance should throw when using a
   const subscribe = t.context.stub(() => []);
   const state = { name: "test", init, update, subscribe };
   const state2 = { name: "test", init, update, subscribe };
-  s.registerState(state);
-  t.throws(() => s.getNested(state2), { instanceOf: Error, message: "State object mismatch for state test" });
+  s.registerModel(state);
+  t.throws(() => s.getNested(state2), { instanceOf: Error, message: "Model mismatch for 'test'." });
 
-  t.is(s.stateDefinition("test"), state);
+  t.is(s.getModel("test"), state);
   t.is(s.getNested(state), undefined);
   t.deepEqual(s.getSnapshot(), {});
   t.deepEqual(emit.calls.length, 0);
@@ -230,10 +230,10 @@ test("Storage getNested on non-existing state instance should return undefined w
     const state = { name: "test", init, update, subscribe };
     const state2 = { name: "test", init, update, subscribe };
 
-    s.registerState(state);
+    s.registerModel(state);
     t.is(s.getNested(state2), undefined);
 
-    t.is(s.stateDefinition("test"), state);
+    t.is(s.getModel("test"), state);
     t.is(s.getNested(state), undefined);
     t.deepEqual(s.getSnapshot(), {});
     t.deepEqual(emit.calls.length, 0);
@@ -403,7 +403,7 @@ test("States can be nested", t => {
   const first = s.getNestedOrCreate(firstDef);
   const second = first.getNestedOrCreate(secondDef);
 
-  t.is(second instanceof StateInstance, true);
+  t.is(second instanceof State, true);
   t.is(second.getName(), "second");
   t.deepEqual(second.getPath(), ["first", "second"]);
   t.is(second.getData(), secondData);
@@ -430,7 +430,7 @@ test("States of the same definition can be nested", t => {
 
   const second = first.getNestedOrCreate(state);
 
-  t.is(second instanceof StateInstance, true);
+  t.is(second instanceof State, true);
   t.is(second.getName(), "test");
   t.deepEqual(second.getPath(), ["test", "test"]);
   t.is(second.getData(), initData);
@@ -441,7 +441,7 @@ test("States of the same definition can be nested", t => {
   t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["test", "test"], undefined, { name: "initData" }]);
 });
 
-test("StateInstance getNested throws when trying to use a new state definition with the same identifier", t => {
+test("State getNested throws when trying to use a new state definition with the same identifier", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const initData = { name: "initData" };
@@ -450,10 +450,10 @@ test("StateInstance getNested throws when trying to use a new state definition w
   const subscribe = t.context.stub(() => ({}));
   const state = { name: "test", init, update, subscribe };
   const state2 = { name: "test", init, update, subscribe };
-  s.registerState(state);
+  s.registerModel(state);
   const inst = s.getNestedOrCreate(state);
 
-  t.throws(() => inst.getNested(state2), { instanceOf: Error, message: "State object mismatch for state test" });
+  t.throws(() => inst.getNested(state2), { instanceOf: Error, message: "Model mismatch for 'test'." });
 
   t.deepEqual(s.getSnapshot(), { test: { id: "test", data: { name: "initData" }, params: undefined, nested: {} } });
   t.is(emit.calls.length, 1);
@@ -466,7 +466,7 @@ test("StateInstance getNested throws when trying to use a new state definition w
   t.is(subscribe.calls.length, 0);
 });
 
-test("StateInstance getNested on non-existing state instance should return undefined when using a mismatched state-definition of same name in dev-mode", t => {
+test("State getNested on non-existing state instance should return undefined when using a mismatched state-definition of same name in dev-mode", t => {
   const nodeEnv = process.env.NODE_ENV;
   process.env.NODE_ENV = "production";
 
@@ -480,15 +480,15 @@ test("StateInstance getNested on non-existing state instance should return undef
     const state = { name: "test", init, update, subscribe };
     const state2 = { name: "test", init, update, subscribe };
 
-    s.registerState(state);
+    s.registerModel(state);
 
     const inst = s.getNestedOrCreate(state);
 
-    t.is(inst instanceof StateInstance, true);
+    t.is(inst instanceof State, true);
 
     t.is(inst.getNested(state2), undefined);
 
-    t.is(s.stateDefinition("test"), state);
+    t.is(s.getModel("test"), state);
     t.is(inst.getNested(state), undefined);
     t.deepEqual(s.getSnapshot(), { test: { id: "test", data: { name: "initData" }, params: undefined, nested: {} } });
     t.is(init.calls.length, 1);
@@ -502,7 +502,7 @@ test("StateInstance getNested on non-existing state instance should return undef
   }
 });
 
-test("Messages sent on StateInstance should propagate upwards", t => {
+test("Messages sent on State should propagate upwards", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const firstData = { name: "firstData" };
@@ -526,7 +526,7 @@ test("Messages sent on StateInstance should propagate upwards", t => {
   t.deepEqual(emit.calls[2].arguments, ["unhandledMessage", { tag: "initMsg" }, ["first", "$"]]);
 });
 
-test("Messages with a sourceName sent on StateInstance should propagate upwards with that name", t => {
+test("Messages with a sourceName sent on State should propagate upwards with that name", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const firstData = { name: "firstData" };
@@ -550,7 +550,7 @@ test("Messages with a sourceName sent on StateInstance should propagate upwards 
   t.deepEqual(emit.calls[2].arguments, ["unhandledMessage", { tag: "initMsg" }, ["first", "thesource"]]);
 });
 
-test("StateInstance init is sent to parent instances", t => {
+test("State init is sent to parent instances", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const firstData = { name: "firstData" };
@@ -609,7 +609,7 @@ test("no message matches on nested states", t => {
   t.deepEqual(emit.calls[2].arguments, ["unhandledMessage", { tag: "nomatch" }, ["first", "$"]]);
 });
 
-test("StateInstance init is sent to parent instances, but not siblings", t => {
+test("State init is sent to parent instances, but not siblings", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const firstData = { name: "firstData" };
@@ -860,7 +860,7 @@ test("Storage.removeNested", t => {
 
   const a = s.getNestedOrCreate(defA);
 
-  t.is(a instanceof StateInstance, true);
+  t.is(a instanceof State, true);
   t.is(s.getNested(defA), a);
   t.is(s.removeNested(defB), undefined);
   t.is(s.getNested(defA), a);
@@ -871,7 +871,7 @@ test("Storage.removeNested", t => {
   t.deepEqual(emit.calls[1].arguments, ["stateRemoved", ["a"], {}]);
 });
 
-test("StateInstance.removeNested", t => {
+test("State.removeNested", t => {
   const s = new Storage();
   const defA = {
     name: "a",
@@ -900,7 +900,7 @@ test("StateInstance.removeNested", t => {
 
   const i = a.getNestedOrCreate(defA);
 
-  t.is(i instanceof StateInstance, true);
+  t.is(i instanceof State, true);
   t.is(a.getNested(defA), i);
   t.is(a.removeNested(defB), undefined);
   t.is(a.getNested(defA), i);
@@ -946,7 +946,7 @@ test("restoreSnapshot throws if it cannot find a matching state definition", t =
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
 
-  t.throws(() => s.restoreSnapshot({ foo: { id: "bar", data: null, params: null, nested: {} } }), { message: "Missing state definition for state with name bar" });
+  t.throws(() => s.restoreSnapshot({ foo: { id: "bar", data: null, params: null, nested: {} } }), { message: "Missing model for state 'bar'." });
 
   t.is(emit.calls.length, 1);
   t.deepEqual(emit.calls[0].arguments, ["snapshotRestore", { foo: { id: "bar", data: null, params: null, nested: {} } }]);
@@ -980,7 +980,7 @@ test("restoreSnapshot restores a snapshot", t => {
     subscribe,
   };
 
-  s.registerState(d);
+  s.registerModel(d);
 
   t.deepEqual(s.getSnapshot(), { });
 
@@ -1012,7 +1012,7 @@ test("restoreSnapshot restores a snapshot with a differing name", t => {
     subscribe,
   };
 
-  s.registerState(d);
+  s.registerModel(d);
 
   t.deepEqual(s.getSnapshot(), { });
 
@@ -1043,7 +1043,7 @@ test("restoreSnapshot restores nested snapshots", t => {
     subscribe,
   };
 
-  s.registerState(d);
+  s.registerModel(d);
 
   t.deepEqual(s.getSnapshot(), { });
 
@@ -1167,7 +1167,7 @@ test("Storage getNested, getNestedOrCreate, and removeNested, with a different n
   t.is(subscribe.calls.length, 0);
 });
 
-test("StateInstance getNested, getNestedOrCreate, and removeNested, with a different name should not affect the existing", t => {
+test("State getNested, getNestedOrCreate, and removeNested, with a different name should not affect the existing", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const init = t.context.stub(() => updateData(1));

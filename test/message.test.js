@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { Message, SubscriptionMap } from "../src/message";
+import type { Message, Subscriptions } from "../src/message";
 
 import ninos from "ninos";
 import ava from "ava";
@@ -13,10 +13,10 @@ type BMessage = { tag: string, foo: boolean };
 (({ tag: "a" }: AMessage): Message);
 (({ tag: "b", foo: true }: BMessage): Message);
 
-(({ a: true }): SubscriptionMap<AMessage>);
-(({ b: true }): SubscriptionMap<AMessage | BMessage>);
+(({ a: true }): Subscriptions<AMessage>);
+(({ b: true }): Subscriptions<AMessage | BMessage>);
 // $ExpectError
-(({ c: true }): SubscriptionMap<AMessage>);
+(({ c: true }): Subscriptions<AMessage>);
 
 const test = ninos(ava);
 

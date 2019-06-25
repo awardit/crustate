@@ -41,7 +41,7 @@ export type MessageFilter<M: Message> = (msg: M) => boolean;
  * A restricted map of message-key -> subscription-options for a given
  * message-type.
  */
-export type SubscriptionMap<M: Message> = {
+export type Subscriptions<M: Message> = {
   // TODO: Any way to just grab the message with the matching property?
   [tag: $PropertyType<M, "tag">]: Subscription<M>,
 };
@@ -66,21 +66,21 @@ export type Subscription<M: Message> = true | {
 };
 
 /**
- * @param {!Object} subscribers
+ * @param {!Object} subscriptions
  * @param {!crustate.Message} message
  * @param {!boolean} received
  */
 export function findMatchingSubscription<M: Message>(
-  subscribers: SubscriptionMap<M>,
+  subscriptions: Subscriptions<M>,
   message: M, received: boolean
 ): ?{ isPassive: boolean } {
   const { tag } = message;
 
-  if( ! subscribers[tag]) {
+  if( ! subscriptions[tag]) {
     return null;
   }
 
-  const subscriber = subscribers[tag];
+  const subscriber = subscriptions[tag];
   // We do not use object destructuring here since it would require us to
   // create a new object for the default value in the case of true
   const passive = subscriber === true ? false : Boolean(subscriber.passive);
