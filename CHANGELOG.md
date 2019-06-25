@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.3.0] - 2019-06-26
 ### Changed
 - `Update<T>` is now an object with `data` and `messages`
 - `update` now returns a nullable `Update`
