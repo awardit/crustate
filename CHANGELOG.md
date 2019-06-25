@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Subscribe` -> `ModelSubscribe`
 - `SubscriptionMap` -> `Subscriptions`
 - `StateInstance` -> `State`
+- `Supervisor`.`getNested` -> `getState`
+- `Supervisor`.`getNestedOrCreate` -> `createState`
+- `Supervisor`.`removeNested` -> `removeState`
 - `Storage`.`stateDefinition` -> `getModel`
 - React `StateData`.`state` -> `model`
 

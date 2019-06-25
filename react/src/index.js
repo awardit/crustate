@@ -104,7 +104,7 @@ export function useSendMessage(): (message: Message, sourceName?: string) => voi
 }
 
 /**
- * Exclude children and name properties when using getNestedOrCreate, children
+ * Exclude children and name properties when using createState, children
  * are always new objects and are most likely not of interest to the state, and
  * name is an external parameter.
  */
@@ -137,7 +137,7 @@ export function createStateData<T, I: {}, M>(model: Model<T, I, M>): StateData<T
       throw new Error(`<${model.name}.Provider /> must be used inside a <StorageProvider />`);
     }
 
-    const instance = context.getNestedOrCreate(model, excludeChildren(props), props.name);
+    const instance = context.createState(model, excludeChildren(props), props.name);
     const [data, setData] = useState(instance.getData());
 
     useEffect((): (() => void) => {
@@ -157,7 +157,7 @@ export function createStateData<T, I: {}, M>(model: Model<T, I, M>): StateData<T
 
         // Drop the state if we were the last listener
         if(instance.listeners("stateNewData").length === 0) {
-          context.removeNested(model, instance.getName());
+          context.removeState(model, instance.getName());
         }
       };
     /* eslint-disable react-hooks/exhaustive-deps */

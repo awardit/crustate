@@ -129,10 +129,10 @@ interface AbstractSupervisor {
   _nested: StateMap,
   getStorage(): Storage,
   getPath(): StatePath,
-  getNested<T, I, M>(model: Model<T, I, M>, name?: string): ?State<T, I>,
-  getNestedOrCreate<T, I, M>(model: Model<T, I, M>, params: I, name?: string): State<T, I>,
+  getState<T, I, M>(model: Model<T, I, M>, name?: string): ?State<T, I>,
+  createState<T, I, M>(model: Model<T, I, M>, params: I, name?: string): State<T, I>,
   sendMessage(message: Message, sourceName?: string): void,
-  removeNested<T, I, M>(model: Model<T, I, M>, name?: string): void,
+  removeState<T, I, M>(model: Model<T, I, M>, name?: string): void,
 }
 
 const ANONYMOUS_SOURCE = "$";
@@ -197,7 +197,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     return this._defs[id];
   }
 
-  getNested<T, I, M>(model: Model<T, I, M>, name?: string): ?State<T, I> {
+  getState<T, I, M>(model: Model<T, I, M>, name?: string): ?State<T, I> {
     if(process.env.NODE_ENV !== "production") {
       ensureModel(this, model);
     }
@@ -212,12 +212,12 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     return inst;
   }
 
-  getNestedOrCreate<U, J, N>(model: Model<U, J, N>, params: J, name?: string): State<U, J> {
-    return getNestedOrCreate(this, model, params, name);
+  createState<U, J, N>(model: Model<U, J, N>, params: J, name?: string): State<U, J> {
+    return createState(this, model, params, name);
   }
 
-  removeNested<U, J, N>(model: Model<U, J, N>, name?: string): void {
-    const inst = this.getNested(model, name);
+  removeState<U, J, N>(model: Model<U, J, N>, name?: string): void {
+    const inst = this.getState(model, name);
 
     if(inst) {
       delete this._nested[name || inst._name];
@@ -372,7 +372,7 @@ export class State<T, I>
     return path;
   }
 
-  getNested<U, J, N>(model: Model<U, J, N>, name?: string): ?State<U, J> {
+  getState<U, J, N>(model: Model<U, J, N>, name?: string): ?State<U, J> {
     if(process.env.NODE_ENV !== "production") {
       ensureModel(this.getStorage(), model);
     }
@@ -387,12 +387,12 @@ export class State<T, I>
     return inst;
   }
 
-  getNestedOrCreate<U, J, N>(model: Model<U, J, N>, params: J, name?: string): State<U, J> {
-    return getNestedOrCreate(this, model, params, name);
+  createState<U, J, N>(model: Model<U, J, N>, params: J, name?: string): State<U, J> {
+    return createState(this, model, params, name);
   }
 
-  removeNested<U, J, N>(model: Model<U, J, N>, name?: string): void {
-    const inst = this.getNested(model, name);
+  removeState<U, J, N>(model: Model<U, J, N>, name?: string): void {
+    const inst = this.getState(model, name);
 
     if(inst) {
       delete this._nested[name || inst._name];
@@ -409,13 +409,13 @@ export class State<T, I>
   }
 }
 
-export function getNestedOrCreate<T, I, M>(
+export function createState<T, I, M>(
   supervisor: Supervisor,
   model: Model<T, I, M>,
   params: I,
   name?: string
 ): State<T, I> {
-  const child = supervisor.getNested(model, name);
+  const child = supervisor.getState(model, name);
 
   if(child) {
     // TODO: Diff and send message if the params are different
@@ -423,10 +423,10 @@ export function getNestedOrCreate<T, I, M>(
     return child;
   }
 
-  return createState(supervisor, model, params, name);
+  return newState(supervisor, model, params, name);
 }
 
-export function createState<T, I, M>(
+export function newState<T, I, M>(
   supervisor: Supervisor,
   model: Model<T, I, M>,
   initialData: I,

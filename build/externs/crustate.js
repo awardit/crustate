@@ -25,24 +25,24 @@ crustate.Message.prototype.tag;
  * @public
  * @interface
  */
-crustate.StateDefinition = function() {}
+crustate.Model = function() {}
 /**
  * @public
  * @type {!string}
  */
-crustate.StateDefinition.prototype.name;
+crustate.Model.prototype.name;
 /**
  * @public
  */
-crustate.StateDefinition.prototype.init = function(initialData) {};
+crustate.Model.prototype.init = function(initialData) {};
 /**
  * @public
  */
-crustate.StateDefinition.prototype.update = function(state, message) {};
+crustate.Model.prototype.update = function(state, message) {};
 /**
  * @public
  */
-crustate.StateDefinition.prototype.subscribe = function(state) {};
+crustate.Model.prototype.subscribe = function(state) {};
 
 crustate.NONE = 0;
 crustate.updateData = function(data) {};
@@ -71,18 +71,18 @@ crustate.EventEmitter.prototype.emit = function() {};
  * @extends {crustate.EventEmitter}
  */
 crustate.Storage = function () {};
-crustate.Storage.prototype.registerState;
-crustate.Storage.prototype.ensureState;
+crustate.Storage.prototype.registerModel;
+crustate.Storage.prototype.tryRegisterModel;
 crustate.Storage.prototype.sendMessage;
   /**
    * @export
    */
 crustate.Storage.prototype.addSubscriber = function(listener, subscription) {};
-crustate.Storage.prototype.getNested;
-crustate.Storage.prototype.getNestedOrCreate = function(state, params) {};
+crustate.Storage.prototype.getState;
+crustate.Storage.prototype.createState = function(state, params) {};
 crustate.Storage.prototype.getPath;
 crustate.Storage.prototype.getStorage;
-crustate.Storage.prototype.removeNested;
+crustate.Storage.prototype.removeState;
 crustate.Storage.prototype.removeSubscriber;
 crustate.Storage.prototype.stateDefinition;
 
@@ -90,12 +90,12 @@ crustate.Storage.prototype.stateDefinition;
  * @constructor
  * @extends {crustate.EventEmitter}
  */
-crustate.StateInstance = function() {};
-crustate.StateInstance.prototype.getData;
-crustate.StateInstance.prototype.getName;
-crustate.StateInstance.prototype.getNested;
-crustate.StateInstance.prototype.getNestedOrCreate = function(state, params) {};
-crustate.StateInstance.prototype.getPath;
-crustate.StateInstance.prototype.getStorage;
-crustate.StateInstance.prototype.removeNested;
-crustate.StateInstance.prototype.sendMessage;
+crustate.State = function() {};
+crustate.State.prototype.getData;
+crustate.State.prototype.getName;
+crustate.State.prototype.getState;
+crustate.State.prototype.createState = function(state, params) {};
+crustate.State.prototype.getPath;
+crustate.State.prototype.getStorage;
+crustate.State.prototype.removeState;
+crustate.State.prototype.sendMessage;
