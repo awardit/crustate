@@ -14,7 +14,7 @@ const INCREMENT = "increment";
 const DECREMENT = "decrement";
 
 const CounterData = createStateData({
-  name: "counter",
+  id: "counter",
   init: ({ initial = 0 }: { initial?: number }) => updateData(initial),
   update: (state, msg) => {
     switch(msg.tag) {

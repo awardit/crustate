@@ -9,7 +9,7 @@ import { updateData } from "../src/update";
 // Type tests
 type MyMessage = { tag: "a" } | { tag: "b" };
 ({
-  name: "test",
+  id: "test",
   init: () => updateData("init"),
   update: () => null,
   subscribe: () => ({}),
@@ -17,7 +17,7 @@ type MyMessage = { tag: "a" } | { tag: "b" };
 
 test("Model can be instantiated", t => {
   const definition: Model<string, void, Message> = {
-    name: "test",
+    id: "test",
     init: () => updateData("init"),
     update: (data, msg) => updateData(msg.tag),
     subscribe: () => ({ any: true }),

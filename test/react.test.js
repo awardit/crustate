@@ -38,7 +38,7 @@ test.beforeEach(init);
 test.afterEach.always(cleanup);
 
 const MyData = createStateData<string, { test?: boolean, data: string }, UpdateMsg>({
-  name: "state",
+  id: "state",
   init: ({ data }) => updateData(data),
   update: (_, msg) => updateData(msg.data),
   subscribe: () => ({ data: true }),

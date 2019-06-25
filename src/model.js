@@ -26,7 +26,7 @@ export type ModelSubscribe<T, M> = (state: T) => Subscriptions<M>;
  * the initial data `I`.
  */
 export type Model<T, I, M> = {
-  name: string,
+  id: string,
   init: ModelInit<T, I>,
   update: ModelUpdate<T, M>,
   subscribe: ModelSubscribe<T, M>,

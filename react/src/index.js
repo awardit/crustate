@@ -134,7 +134,7 @@ export function createStateData<T, I: {}, M>(model: Model<T, I, M>): StateData<T
     const context = useContext(StateContext);
 
     if( ! context) {
-      throw new Error(`<${model.name}.Provider /> must be used inside a <StorageProvider />`);
+      throw new Error(`<${model.id}.Provider /> must be used inside a <StorageProvider />`);
     }
 
     const instance = context.createState(model, excludeChildren(props), props.name);
@@ -194,7 +194,7 @@ export function useData<T, I, M>(context: StateData<T, I, M>): T {
   const data = useContext(_dataContext);
 
   if(data === undefined) {
-    throw new Error(`useData(${model.name}) must be used inside a <${model.name}.Provider />`);
+    throw new Error(`useData(${model.id}) must be used inside a <${model.id}.Provider />`);
   }
 
   return data;
