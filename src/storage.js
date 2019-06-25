@@ -15,7 +15,9 @@ export type StatePath = Array<string>;
  */
 export type Snapshot = { [instanceName: string]: StateSnapshot };
 export type StateSnapshot = {
-  // Name to use to find the model when loading the snapshot
+  /**
+   * Name to use to find the model when loading the snapshot
+   */
   id: string,
   data: mixed,
   params: mixed,
@@ -166,7 +168,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   addModel<T, I, M>(model: Model<T, I, M>): void {
     if( ! tryAddModel(this, model)) {
       // FIXME: Proper exception type
-      throw new Error(`Duplicate model '${model.name}'.`);
+      throw new Error(`Duplicate model '${model.id}'.`);
     }
   }
 
@@ -175,18 +177,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   }
 
   getState<T, I, M>(model: Model<T, I, M>, name?: string): ?State<T, I> {
-    if(process.env.NODE_ENV !== "production") {
-      ensureModel(this, model);
-    }
-
-    const inst = this._nested[name || model.name];
-
-    if(inst) {
-      debugAssert(inst._name === (name || model.name),
-        `State name '${inst._name}' does not match key name '${name || model.name}`);
-    }
-
-    return inst;
+    return getState(this, model, name);
   }
 
   createState<U, J, N>(model: Model<U, J, N>, params: J, name?: string): State<U, J> {
@@ -194,7 +185,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   }
 
   removeState<U, J, N>(model: Model<U, J, N>, name?: string): void {
-    const inst = this.getState(model, name);
+    const inst = getState(this, model, name);
 
     if(inst) {
       delete this._nested[name || inst._name];
@@ -301,18 +292,7 @@ export class State<T, I>
   }
 
   getState<U, J, N>(model: Model<U, J, N>, name?: string): ?State<U, J> {
-    if(process.env.NODE_ENV !== "production") {
-      ensureModel(this.getStorage(), model);
-    }
-
-    const inst = this._nested[name || model.name];
-
-    if(inst) {
-      debugAssert(inst._name === (name || model.name),
-        `State name '${inst._name}' does not match key name '${name || model.name}`);
-    }
-
-    return inst;
+    return getState(this, model, name);
   }
 
   createState<U, J, N>(model: Model<U, J, N>, params: J, name?: string): State<U, J> {
@@ -320,7 +300,7 @@ export class State<T, I>
   }
 
   removeState<U, J, N>(model: Model<U, J, N>, name?: string): void {
-    const inst = this.getState(model, name);
+    const inst = getState(this, model, name);
 
     if(inst) {
       delete this._nested[name || inst._name];
@@ -335,6 +315,25 @@ export class State<T, I>
 
     processInstanceMessages(storage, this, [createInflightMessage(storage, msgPath, message)]);
   }
+}
+
+export function getState<T, I, M>(
+  supervisor: Supervisor,
+  model: Model<T, I, M>,
+  name?: string
+): ?State<T, I> {
+  if(process.env.NODE_ENV !== "production") {
+    ensureModel(supervisor.getStorage(), model);
+  }
+
+  const inst = supervisor._nested[name || model.id];
+
+  if(inst) {
+    debugAssert(inst._name === (name || model.id),
+      `State name '${inst._name}' does not match key name '${name || model.id}`);
+  }
+
+  return inst;
 }
 
 export function restoreSnapshot(
@@ -369,7 +368,7 @@ export function restoreSnapshot(
   * otherwise.
   */
 export function tryAddModel<T, I, M>(storage: Storage, model: Model<T, I, M>): boolean {
-  const { name: id } = model;
+  const { id } = model;
 
   if( ! storage._defs[id]) {
     storage._defs[id] = model;
@@ -383,7 +382,7 @@ export function tryAddModel<T, I, M>(storage: Storage, model: Model<T, I, M>): b
 }
 
 export function ensureModel<T, I, M>(storage: Storage, model: Model<T, I, M>): void {
-  const { name: id } = model;
+  const { id } = model;
 
   if(storage._defs[id] && storage._defs[id] !== model) {
     // FIXME: Proper exception type
@@ -411,7 +410,7 @@ export function createState<T, I, M>(
   params: I,
   name?: string
 ): State<T, I> {
-  const child = supervisor.getState(model, name);
+  const child = getState(supervisor, model, name);
 
   if(child) {
     // TODO: Diff and send message if the params are different
@@ -429,7 +428,7 @@ export function newState<T, I, M>(
   name?: string
 ): State<T, I> {
   const storage = supervisor.getStorage();
-  const { name: id, init } = model;
+  const { id, init } = model;
 
   if( ! name) {
     name = id;

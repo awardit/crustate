@@ -33,7 +33,7 @@ export const todoFilterPredicate = (filter: Filter) => (todo: Todo): boolean => 
 export const setFilter = (value: Filter): FilterMsg => ({ tag: SET, value });
 
 export const FilterState = createStateData<Filter, {}, FilterMsg>({
-  name: "filter",
+  id: "filter",
   init: () => updateData(SHOW_ALL),
   update: (_, msg) => updateData(msg.value),
   subscribe: () => ({ [SET]: true })

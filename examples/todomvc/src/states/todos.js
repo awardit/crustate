@@ -34,7 +34,7 @@ export const completeAll = () => ({ tag: COMPLETE_ALL });
 const maxId = (todos: Array<Todo>) => todos.reduce((a, t) => Math.max(a, t.id), 1);
 
 export const TodosState = createStateData<Array<Todo>, {}, TodoMsg>({
-  name: "todos",
+  id: "todos",
   init: () => updateData([]),
   update: (todos, msg) => {
     switch(msg.tag) {
