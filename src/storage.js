@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { Model, StatePath } from "./model";
+import type { Model } from "./model";
 import type { InflightMessage, Message, Subscriptions } from "./message";
 
 import { debugAssert } from "./assert";
@@ -12,6 +12,8 @@ import {
 } from "./update";
 import { findMatchingSubscription } from "./message";
 import { EventEmitter } from "./eventemitter";
+
+export type StatePath = Array<string>;
 
 /**
  * A snapshot of the state of the application, can be used to restore the state
@@ -35,8 +37,8 @@ export type StateSnapshot = {
  */
 export type Supervisor = Storage | State<any, any>;
 
-export type Sink<M: Message> = (message: M, sourcePath: StatePath) => mixed;
-export type Subscriber<M: Message> = { listener: Sink<M>, subscriptions: Subscriptions<M> };
+export type Listener<M: Message> = (message: M, sourcePath: StatePath) => mixed;
+export type Subscriber<M: Message> = { listener: Listener<M>, subscriptions: Subscriptions<M> };
 
 export type StateMap = { [name: string]: State<any, any> };
 
@@ -211,11 +213,11 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
     processStorageMessage(this, createInflightMessage(this, [sourceName], message));
   }
 
-  addSubscriber<M: Message>(listener: Sink<M>, subscriptions: Subscriptions<M>): void {
+  addSubscriber<M: Message>(listener: Listener<M>, subscriptions: Subscriptions<M>): void {
     this._subscribers.push({ listener, subscriptions });
   }
 
-  removeSubscriber(listener: Sink<any>): void {
+  removeSubscriber(listener: Listener<any>): void {
     const { _subscribers } = this;
 
     for(let i = 0; i < _subscribers.length; i++) {

@@ -3,8 +3,6 @@
 import type { Update, DataUpdate, MessageUpdate } from "./update";
 import type { Subscriptions } from "./message";
 
-export type StatePath = Array<string>;
-
 /**
  * Initialization function, called when the initial data is loaded into the
  * state.
