@@ -13,23 +13,24 @@ This library is based on the principles of message passing found in languages
 like Elm and Elixir/Erlang. The purpose is to be able to build modular state
 with controlled side-effects through messaging.
 
-## State
+## Model
 
 ```javascript
-type State<T, I, M: Message> = {
-  name:      string,
-  init:      (init: I)          => DataUpdate<T> | MessageUpdate<T>,
-  update:    (state: T, msg: M) => Update<T>,
-  subscribe: (state: T)         => SubscriptionMap<M>,
+type Model<T, I, M: Message> = {
+  id: string,
+  init: (init: I) => Update<T>,
+  update: (state: T, msg: M) => ?Update<T>,
+  subscribe: (state: T) => SubscriptionMap<M>,
 };
 ```
 
-States use messages to communicate with other state-instances and the runtime.
+A model represents how a state is initialized and updated, as well as which
+messages it will respond to at any given moment.
 
 ### Message
 
 ```javascript
-type Message = { tag: string };
+type Message = { +tag: string };
 ```
 
 A message is just plain data, a JavaScript object, with two mandatory properties
@@ -45,7 +46,7 @@ and other features.
 const ADD = "add";
 
 let msg = {
-  tag:   ADD,
+  tag: ADD,
   value: 2,
 };
 ```
@@ -53,10 +54,10 @@ let msg = {
 ### Init
 
 ```javascript
-type StateInit<T, I> = (init: I) => DataUpdate<T> | MessageUpdate<T>;
+type ModelInit<T, I> = (init: I) => Update<T>;
 ```
 
-The initial state of the state-instance, accepts an optional init-parameter.
+The initial data of the state, accepts an optional init-parameter.
 
 ```javascript
 import { updateData } from "crustate";
@@ -69,7 +70,7 @@ function init() {
 ### Update
 
 ```javascript
-type StateUpdate<T, M: Message> = (state: T, msg: M) => Update<T>;
+type ModelUpdate<T, M: Message> = (state: T, msg: M) => ?Update<T>;
 ```
 
 Conceptually `update` is responsible for receiving messages, interpreting
@@ -80,15 +81,11 @@ This is very similar to Redux's Reducer concept with the main difference
 being that the `update`-function can send new messages.
 
 ```javascript
-import { NONE } from "crustate";
-
 function update(state, message) {
   switch(message.tag) {
   case ADD:
     return updateData(state + message.value);
   }
-
-  return NONE;
 }
 ```
 
@@ -98,9 +95,9 @@ state-hierarchy and can be subscribed to in supervising states.
 ### Subscriber
 
 ```javascript
-type Subscribe<T, M: Message>    = (state: T) => SubscriptionMap<M>;
-type SubscriptionMap<M: Message> = { [tag: $PropertyType<M, "tag">]: Subscription };
-type Subscription<M: Message>    = true | { passive?: boolean, matching?: (msg: M) => bool };
+type ModelSubscribe<T, M: Message> = (state: T) => Subscriptions;
+type Subscriptions<M: Message> = { [tag: $PropertyType<M, "tag">]: Subscription };
+type Subscription<M: Message> = true | { passive?: boolean, matching?: (msg: M) => bool };
 ```
 
 For a state to actually receive messages it first needs to subscribe to
@@ -117,4 +114,6 @@ function subscribe(state) {
 ```
 
 By default subscriptions are active but can be turned into passive subscriptions
-by specifying the `passive` flag.
+by specifying the `passive` flag where they will receive all matching messages
+even if they already have been received by other child-states, `passive` will
+also not prevent any non-`passive` parent states from matching it.
