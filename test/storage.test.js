@@ -3,7 +3,7 @@
 import ninos from "ninos";
 import ava from "ava";
 import { Storage, State, findClosestSupervisor, processInstanceMessages } from "../src/storage";
-import { NONE, updateData, updateAndSend } from "../src/update";
+import { updateData, updateAndSend } from "../src/update";
 
 // We redefine this here so we can test it
 const MESSAGE_NEW_PARAMS = "crustate/stateNewParams";
@@ -366,7 +366,7 @@ test("States with init using updateAndSend should send messages to parent Storag
   const initData = { name: "initData" };
   const initMsg = { tag: "initMsg" };
   const init = t.context.stub(() => updateAndSend(initData, initMsg));
-  const update = t.context.stub(() => NONE);
+  const update = t.context.stub(() => null);
   // Should never receive this since messages are not self-referencing
   const subscribe = t.context.stub(() => ({ "initMsg": true }));
   const state = { name: "test", init, update, subscribe };
@@ -421,7 +421,7 @@ test("States of the same definition can be nested", t => {
   const emit = t.context.spy(s, "emit");
   const initData = { name: "initData" };
   const init = t.context.stub(() => updateData(initData));
-  const update = t.context.stub(() => NONE);
+  const update = t.context.stub(() => null);
   const subscribe = t.context.stub(() => ({}));
   const state = { name: "test", init, update, subscribe };
   const first = s.createState(state);
@@ -510,7 +510,7 @@ test("Messages sent on State should propagate upwards", t => {
   const firstDef = {
     name: "first",
     init: t.context.stub(() => updateData(firstData)),
-    update: t.context.stub(() => NONE),
+    update: t.context.stub(() => null),
     subscribe: t.context.stub(() => ({})),
   };
 
@@ -534,7 +534,7 @@ test("Messages with a sourceName sent on State should propagate upwards with tha
   const firstDef = {
     name: "first",
     init: t.context.stub(() => updateData(firstData)),
-    update: t.context.stub(() => NONE),
+    update: t.context.stub(() => null),
     subscribe: t.context.stub(() => ({})),
   };
 
@@ -557,7 +557,7 @@ test("State init is sent to parent instances", t => {
   const firstDef = {
     name: "first",
     init: t.context.stub(() => updateData(firstData)),
-    update: t.context.stub(() => NONE),
+    update: t.context.stub(() => null),
     // Passive, so we should get it but also passthrough
     subscribe: t.context.stub(() => ({ "secondInit": { passive: true } })),
   };
@@ -566,7 +566,7 @@ test("State init is sent to parent instances", t => {
   const secondDef = {
     name: "second",
     init: t.context.stub(() => updateAndSend(secondData, secondInit)),
-    update: t.context.stub(() => NONE),
+    update: t.context.stub(() => null),
     subscribe: t.context.stub(() => ({})),
   };
 
@@ -595,7 +595,7 @@ test("no message matches on nested states", t => {
   const firstDef = {
     name: "first",
     init: t.context.stub(() => updateData({})),
-    update: t.context.stub(() => NONE),
+    update: t.context.stub(() => null),
     // Passive, so we should get it but also passthrough
     subscribe: t.context.stub(() => ({ "never": true })),
   };
@@ -616,7 +616,7 @@ test("State init is sent to parent instances, but not siblings", t => {
   const firstDef = {
     name: "first",
     init: t.context.stub(() => updateData(firstData)),
-    update: t.context.stub(() => NONE),
+    update: t.context.stub(() => null),
     // Passive, so we should get it but also passthrough
     subscribe: t.context.stub(() => ({ "secondInit": { passive: true } })),
   };
@@ -625,7 +625,7 @@ test("State init is sent to parent instances, but not siblings", t => {
   const secondDef = {
     name: "second",
     init: t.context.stub(() => updateAndSend(secondData, secondInit)),
-    update: t.context.stub(() => NONE),
+    update: t.context.stub(() => null),
     subscribe: t.context.stub(() => ({})),
   };
 
@@ -757,13 +757,13 @@ test("findClosestSupervisor", t => {
   const defA = {
     name: "a",
     init: t.context.stub(() => updateData({})),
-    update: t.context.stub(() => NONE),
+    update: t.context.stub(() => null),
     subscribe: t.context.stub(() => ({})),
   };
   const defB = {
     name: "b",
     init: t.context.stub(() => updateData({})),
-    update: t.context.stub(() => NONE),
+    update: t.context.stub(() => null),
     subscribe: t.context.stub(() => ({})),
   };
   const s = new Storage();
@@ -796,13 +796,13 @@ test("Storage.replyMessage", t => {
   const defA = {
     name: "a",
     init: t.context.stub(() => updateData({})),
-    update: t.context.stub(() => NONE),
+    update: t.context.stub(() => null),
     subscribe: t.context.stub(() => ({})),
   };
   const defB = {
     name: "b",
     init: t.context.stub(() => updateData({})),
-    update: t.context.stub(() => NONE),
+    update: t.context.stub(() => null),
     subscribe: t.context.stub(() => ({})),
   };
   const s = new Storage();
@@ -840,13 +840,13 @@ test("Storage.removeState", t => {
   const defA = {
     name: "a",
     init: t.context.stub(() => updateData({})),
-    update: t.context.stub(() => NONE),
+    update: t.context.stub(() => null),
     subscribe: t.context.stub(() => ({})),
   };
   const defB = {
     name: "b",
     init: t.context.stub(() => updateData({})),
-    update: t.context.stub(() => NONE),
+    update: t.context.stub(() => null),
     subscribe: t.context.stub(() => ({})),
   };
   const emit = t.context.spy(s, "emit");
@@ -876,13 +876,13 @@ test("State.removeState", t => {
   const defA = {
     name: "a",
     init: t.context.stub(() => updateData({})),
-    update: t.context.stub(() => NONE),
+    update: t.context.stub(() => null),
     subscribe: t.context.stub(() => ({})),
   };
   const defB = {
     name: "b",
     init: t.context.stub(() => updateData({})),
-    update: t.context.stub(() => NONE),
+    update: t.context.stub(() => null),
     subscribe: t.context.stub(() => ({})),
   };
   const emit = t.context.spy(s, "emit");

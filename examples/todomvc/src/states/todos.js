@@ -1,7 +1,7 @@
 /* @flow */
 
 import { createStateData } from "crustate/react";
-import { NONE, updateData } from "crustate";
+import { updateData } from "crustate";
 
 export type Todo = {
   id: number,
@@ -57,7 +57,7 @@ export const TodosState = createStateData<Array<Todo>, {}, TodoMsg>({
     case CLEAR_ALL:
       return updateData(todos.map(t => ({ id: t.id, text: t.text, completed: false })));
     default:
-      return NONE;
+      // Nothing
     }
   },
   subscribe: () => ({

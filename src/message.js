@@ -6,6 +6,7 @@ import type { StatePath } from "./storage";
  * Tag identifying the message, used to subscribe and match messages.
  */
 export type MessageTag = string;
+
 /**
  * Messages are used to inform states of new events/data which are of interest,
  * these are passed to `StateUpdate` functions of matching states in the

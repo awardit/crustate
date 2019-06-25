@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
+- `Update<T>` is now an object with `data` and `messages`
+- `update` now returns a nullable `Update`
 - `State` -> `Model`
 - `Init` -> `ModelInit`
 - `StateUpdate` -> `ModelUpdate`
@@ -23,6 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removeed
 - `Storage`.`tryRegisterState`
+- `NONE`
+- `NoUpdate`
+- `DataUpdate<T>`
+- `MessageUpdate<T>`
 
 ## [0.2.0] - 2019-06-19
 ### Added
