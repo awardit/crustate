@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { Model } from "../src/state";
+import type { Model } from "../src/model";
 import type { Message } from "../src/message";
 
 import test from "ava";

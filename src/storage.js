@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { Model, StatePath } from "./state";
+import type { Model, StatePath } from "./model";
 import type { InflightMessage, Message, Subscriptions } from "./message";
 
 import { debugAssert } from "./assert";

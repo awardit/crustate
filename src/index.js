@@ -12,7 +12,7 @@ export type {
   Subscription
 } from "./message";
 export type { Update, NoUpdate, DataUpdate, MessageUpdate } from "./update";
-export type { ModelInit, ModelUpdate, ModelSubscribe, Model, StatePath } from "./state";
+export type { ModelInit, ModelUpdate, ModelSubscribe, Model, StatePath } from "./model";
 export type { Supervisor, Snapshot, StateSnapshot } from "./storage";
 
 export { NONE, updateData, updateAndSend } from "./update";
