@@ -76,7 +76,6 @@ export const StateContext: Context<?Supervisor> = createContext(null);
 
 const InstanceProvider = StateContext.Provider;
 
-// TODO: better handling of this, should probably have more stuff?
 /**
  * Provider for the Storage-instance to be used in all child-components.
  *

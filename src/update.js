@@ -5,11 +5,7 @@ import type { Message } from "./message";
 /**
  * Update containing new state-data if any, and any messages to send to
  * supervisors.
- *
- * NOTE: Cannot be opaque since that will prevent flow to use a subsection of
- *       updates
  */
-// TODO: Do we let updates just send messages?
 export type Update<T> = {| data: T, messages: ?Array<Message> |};
 
 /**
