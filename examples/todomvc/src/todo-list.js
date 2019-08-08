@@ -48,7 +48,7 @@ export const TodoItem = ({ todo: { id, text, completed } }: TodoItemProps) => {
     <li className={classnames({ completed, editing })}>
       {editing ? (
         <TodoTextInput
-          editing
+          isEditing
           text={text}
           onSave={handleSave}
         />

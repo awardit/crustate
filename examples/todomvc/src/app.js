@@ -14,7 +14,7 @@ export const Header = () => {
     <header className="header">
       <h1>todos</h1>
       <TodoTextInput
-        newTodo
+        isNewTodo
         placeholder="What needs to be done?"
         onSave={text => text.length !== 0 && sendMessage(add(text))}
       />
