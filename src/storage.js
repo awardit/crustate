@@ -697,7 +697,7 @@ export function handleBroadcast(
   /* eslint-enable guard-for-in */
     const instance = nested[key];
     const nestedPath = path.concat([key]);
-    const messages = handleBroadcast(storage, nestedPath, nested._nested, msg);
+    const messages = handleBroadcast(storage, nestedPath, instance._nested, msg);
     const hasBeenReceived = msg._received;
 
     if(messages.indexOf(msg) === -1) {
