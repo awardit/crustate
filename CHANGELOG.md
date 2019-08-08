@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2019-08-08
+### Added
+- Added `Storage`.`broadcastMessage` which sends a message to all its states.
+
 ## [0.3.0] - 2019-06-26
 ### Changed
 - `Update<T>` is now an object with `data` and `messages`
