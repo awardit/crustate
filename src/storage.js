@@ -134,6 +134,7 @@ interface AbstractSupervisor {
 }
 
 const ANONYMOUS_SOURCE = "$";
+const BROADCAST_SOURCE = "@";
 const REPLY_SOURCE = "<";
 
 /**
@@ -245,6 +246,19 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
         return;
       }
     }
+  }
+
+  /**
+   * Sends a message to all state-instances currently reachable from this
+   * Storage instance.
+   */
+  broadcastMessage(msg: Message, sourceName?: string = BROADCAST_SOURCE): void {
+    handleBroadcast(
+      this,
+      [],
+      this._nested,
+      createInflightMessage(this, [sourceName], msg)
+    ).forEach((m: InflightMessage): void => processStorageMessage(this, m));
   }
 
   /**
@@ -540,7 +554,7 @@ export function createInflightMessage(
   return {
     _message: message,
     _source: source,
-    _received: null,
+    _received: false,
   };
 }
 
@@ -575,50 +589,7 @@ export function processInstanceMessages(
   let sourcePath = instance.getPath();
 
   while(instance instanceof State) {
-    const definition = getModelById(storage, instance._id);
-
-    // We are going to add to messages if any new messages are generated, save
-    // length here
-    const currentLimit = inflight.length;
-    const { update, subscribe } = definition;
-
-    // We need to be able to update the filters if the data changes
-    let messageFilter = subscribe(instance._data);
-
-    // TODO: Emit event? that we are considering messags for state?
-
-    for(let i = 0; i < currentLimit; i++) {
-      const currentInflight = inflight[i];
-      const { _message: m } = currentInflight;
-      const match = findMatchingSubscription(messageFilter, m, Boolean(currentInflight._received));
-
-      if(match) {
-        if( ! match.isPassive) {
-          currentInflight._received = sourcePath;
-        }
-
-        storage.emit("messageMatched", m, sourcePath, match.isPassive);
-
-        const updateRequest = update(instance._data, m);
-
-        if(updateRequest) {
-          const { data, messages } = updateRequest;
-
-          instance._data = data;
-
-          storage.emit("stateNewData", data, sourcePath, m);
-          instance.emit("stateNewData", data, sourcePath, m);
-
-          if(messages) {
-            enqueueMessages(storage, sourcePath, inflight, messages);
-          }
-
-          messageFilter = subscribe(instance._data);
-        }
-      }
-
-      // No Match
-    }
+    processMessages(storage, instance, sourcePath, inflight);
 
     // Traverse down one level
     sourcePath = sourcePath.slice(0, -1);
@@ -630,14 +601,66 @@ export function processInstanceMessages(
   }
 }
 
-function processStorageMessage(storage: Storage, inflight: InflightMessage): void {
+export function processMessages(
+  storage: Storage,
+  instance: State<any, any>,
+  sourcePath: StatePath,
+  inflight: Array<InflightMessage>
+): void {
+  const definition = getModelById(storage, instance._id);
+
+  // We are going to add to messages if any new messages are generated, save
+  // length here
+  const currentLimit = inflight.length;
+  const { update, subscribe } = definition;
+
+  // We need to be able to update the filters if the data changes
+  let messageFilter = subscribe(instance._data);
+
+  // TODO: Emit event? that we are considering messags for state?
+
+  for(let i = 0; i < currentLimit; i++) {
+    const currentInflight = inflight[i];
+    const { _message: m } = currentInflight;
+    const match = findMatchingSubscription(messageFilter, m, currentInflight._received);
+
+    if(match) {
+      if( ! match.isPassive) {
+        currentInflight._received = true;
+      }
+
+      storage.emit("messageMatched", m, sourcePath, match.isPassive);
+
+      const updateRequest = update(instance._data, m);
+
+      if(updateRequest) {
+        const { data, messages } = updateRequest;
+
+        instance._data = data;
+
+        storage.emit("stateNewData", data, sourcePath, m);
+        instance.emit("stateNewData", data, sourcePath, m);
+
+        if(messages) {
+          enqueueMessages(storage, sourcePath, inflight, messages);
+        }
+
+        messageFilter = subscribe(instance._data);
+      }
+    }
+
+    // No Match
+  }
+}
+
+export function processStorageMessage(storage: Storage, inflight: InflightMessage): void {
   const { _subscribers: s } = storage;
   const { _message, _source } = inflight;
-  let received = Boolean(inflight._received);
+  let received = inflight._received;
 
   for(let i = 0; i < s.length; i++) {
     const { listener, subscriptions } = s[i];
-    const match = findMatchingSubscription(subscriptions, _message, Boolean(received));
+    const match = findMatchingSubscription(subscriptions, _message, received);
 
     if(match) {
       if( ! match.isPassive) {
@@ -653,6 +676,52 @@ function processStorageMessage(storage: Storage, inflight: InflightMessage): voi
   if( ! received) {
     storage.emit("unhandledMessage", _message, _source);
   }
+}
+
+/**
+ * Broadcasts msg to all state instances with a depth first algo.
+ *
+ * Mutates msg
+ */
+export function handleBroadcast(
+  storage: Storage,
+  path: StatePath,
+  nested: StateMap,
+  msg: InflightMessage
+): Array<InflightMessage> {
+  const returning = [];
+
+  /* eslint-disable guard-for-in */
+  // We trust that the user has not been poking around in globals
+  for(const key in nested) {
+  /* eslint-enable guard-for-in */
+    const instance = nested[key];
+    const nestedPath = path.concat([key]);
+    const messages = handleBroadcast(storage, nestedPath, nested._nested, msg);
+    const hasBeenReceived = msg._received;
+
+    if(messages.indexOf(msg) === -1) {
+      messages.push(msg);
+    }
+
+    msg._received = false;
+
+    // We modify messages
+    processMessages(storage, instance, nestedPath, messages);
+
+    // Propagate the received flag
+    msg._received = msg._received || hasBeenReceived;
+
+    // We have multiple instances of msg here now, one from each child
+    // deduplicate.
+    for(let i = 0; i < messages.length; i++) {
+      if(returning.indexOf(messages[i]) === -1) {
+        returning.push(messages[i]);
+      }
+    }
+  }
+
+  return returning;
 }
 
 export function createStateSnapshot<T, I>(node: State<T, I>): StateSnapshot {

@@ -925,10 +925,10 @@ test("Storage updates subscribe during processing when state data is updated", t
   const i = s.createState(def);
 
   processInstanceMessages(s, i, [
-    { _message: { tag: "b", __no: true }, _source: ["a", "test"], _received: null },
-    { _message: { tag: "a", __yes: true }, _source: ["a", "test"], _received: null },
-    { _message: { tag: "b", __yes: true }, _source: ["a", "test"], _received: null },
-    { _message: { tag: "a", __no: true }, _source: ["a", "test"], _received: null },
+    { _message: { tag: "b", __no: true }, _source: ["a", "test"], _received: false },
+    { _message: { tag: "a", __yes: true }, _source: ["a", "test"], _received: false },
+    { _message: { tag: "b", __yes: true }, _source: ["a", "test"], _received: false },
+    { _message: { tag: "a", __no: true }, _source: ["a", "test"], _received: false },
   ]);
 
   t.is(emit.calls.length, 7);

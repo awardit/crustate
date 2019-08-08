@@ -16,6 +16,7 @@ var exports = crustate;
 var addListener;
 var addModel;
 var addSubscriber;
+var broadcastMessage;
 var createState;
 var data;
 var emit;

@@ -29,7 +29,7 @@ export type InflightMessage = {
    * If an active subscription has received this message this is the state path
    * which received it.
    */
-  _received: ?StatePath,
+  _received: boolean,
 };
 
 /**

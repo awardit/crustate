@@ -340,6 +340,7 @@
           "beforeClosing": "never"
         }
       ],
+      "react/prefer-read-only-props": "off",
       "space-in-parens": "off",
       "space-unary-ops": [
         "error",
