@@ -1308,3 +1308,208 @@ test("createState with a different name should still work to send messages", t =
   t.is(update.calls.length, 0);
   t.is(subscribe.calls.length, 4);
 });
+
+test("broadcastMessage triggers unhandledMessage on empty", t => {
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+
+  t.is(s.broadcastMessage({ tag: "AAA" }), undefined);
+
+  t.is(emit.calls.length, 2);
+  t.deepEqual(emit.calls[0].arguments, ["messageQueued", { tag: "AAA"}, ["@"]]);
+  t.deepEqual(emit.calls[1].arguments, ["unhandledMessage", { tag: "AAA"}, ["@"]]);
+});
+
+test("broadcastMessage triggers attempts to send messages to all states", t => {
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+  const init = t.context.stub(() => updateData(1));
+  const update = t.context.stub(() => updateData(2));
+  const subscribe = t.context.stub(() => ({}));
+  const d = {
+    id: "foo",
+    init,
+    update,
+    subscribe,
+  };
+
+  const foo = s.createState(d);
+  const bar = foo.createState(d, undefined, "bar");
+
+  t.is(s.broadcastMessage({ tag: "AAA" }), undefined);
+
+  t.is(emit.calls.length, 4);
+  t.deepEqual(emit.calls[0].arguments[0], "stateCreated");
+  t.deepEqual(emit.calls[1].arguments[0], "stateCreated");
+  t.deepEqual(emit.calls[2].arguments, ["messageQueued", { tag: "AAA"}, ["@"]]);
+  t.deepEqual(emit.calls[3].arguments, ["unhandledMessage", { tag: "AAA"}, ["@"]]);
+  t.is(subscribe.calls.length, 2);
+  t.deepEqual(subscribe.calls[0].arguments, [1]);
+  t.deepEqual(subscribe.calls[1].arguments, [1]);
+  t.is(update.calls.length, 0);
+});
+
+test("broadcastMessage sends a message to all states with deepest first", t => {
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+  const init = t.context.stub(() => updateData(1));
+  const update = t.context.stub(() => updateData(2));
+  const subscribe = t.context.stub(() => ({ AAA: true }));
+  const d = {
+    id: "foo",
+    init,
+    update,
+    subscribe,
+  };
+
+  const foo = s.createState(d);
+  const foofoo = foo.createState(d);
+  const bar = foo.createState(d, undefined, "bar");
+
+  t.is(s.broadcastMessage({ tag: "AAA" }), undefined);
+
+  t.is(emit.calls.length, 10);
+  t.deepEqual(emit.calls[0].arguments[0], "stateCreated");
+  t.deepEqual(emit.calls[1].arguments[0], "stateCreated");
+  t.deepEqual(emit.calls[2].arguments[0], "stateCreated");
+  t.deepEqual(emit.calls[3].arguments, ["messageQueued", { tag: "AAA"}, ["@"]]);
+  t.deepEqual(emit.calls[4].arguments, ["messageMatched", { tag: "AAA"}, ["foo", "foo"], false]);
+  t.deepEqual(emit.calls[5].arguments, ["stateNewData", 2, ["foo", "foo"], { tag: "AAA"}]);
+  t.deepEqual(emit.calls[6].arguments, ["messageMatched", { tag: "AAA"}, ["foo", "bar"], false]);
+  t.deepEqual(emit.calls[7].arguments, ["stateNewData", 2, ["foo", "bar"], { tag: "AAA"}]);
+  t.deepEqual(emit.calls[8].arguments, ["messageMatched", { tag: "AAA"}, ["foo"], false]);
+  t.deepEqual(emit.calls[9].arguments, ["stateNewData", 2, ["foo"], { tag: "AAA"}]);
+  t.is(subscribe.calls.length, 6);
+  t.deepEqual(subscribe.calls[0].arguments, [1]);
+  t.deepEqual(subscribe.calls[1].arguments, [2]);
+  t.deepEqual(subscribe.calls[2].arguments, [1]);
+  t.deepEqual(subscribe.calls[3].arguments, [2]);
+  t.deepEqual(subscribe.calls[4].arguments, [1]);
+  t.deepEqual(subscribe.calls[5].arguments, [2]);
+  t.is(update.calls.length, 3);
+});
+
+test("broadcastMessage will still trigger unhandledMessage if only passive subscribers are used", t => {
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+  const init = t.context.stub(() => updateData(1));
+  const update = t.context.stub(() => updateData(2));
+  const subscribe = t.context.stub(() => ({ AAA: { passive: true } }));
+  const d = {
+    id: "foo",
+    init,
+    update,
+    subscribe,
+  };
+
+  const foo = s.createState(d);
+  const foofoo = foo.createState(d);
+  const bar = foo.createState(d, undefined, "bar");
+
+  t.is(s.broadcastMessage({ tag: "AAA" }), undefined);
+
+  t.is(emit.calls.length, 11);
+  t.deepEqual(emit.calls[0].arguments[0], "stateCreated");
+  t.deepEqual(emit.calls[1].arguments[0], "stateCreated");
+  t.deepEqual(emit.calls[2].arguments[0], "stateCreated");
+  t.deepEqual(emit.calls[3].arguments, ["messageQueued", { tag: "AAA"}, ["@"]]);
+  t.deepEqual(emit.calls[4].arguments, ["messageMatched", { tag: "AAA"}, ["foo", "foo"], true]);
+  t.deepEqual(emit.calls[5].arguments, ["stateNewData", 2, ["foo", "foo"], { tag: "AAA"}]);
+  t.deepEqual(emit.calls[6].arguments, ["messageMatched", { tag: "AAA"}, ["foo", "bar"], true]);
+  t.deepEqual(emit.calls[7].arguments, ["stateNewData", 2, ["foo", "bar"], { tag: "AAA"}]);
+  t.deepEqual(emit.calls[8].arguments, ["messageMatched", { tag: "AAA"}, ["foo"], true]);
+  t.deepEqual(emit.calls[9].arguments, ["stateNewData", 2, ["foo"], { tag: "AAA"}]);
+  t.deepEqual(emit.calls[10].arguments, ["unhandledMessage", { tag: "AAA"}, ["@"]]);
+  t.is(subscribe.calls.length, 6);
+  t.deepEqual(subscribe.calls[0].arguments, [1]);
+  t.deepEqual(subscribe.calls[1].arguments, [2]);
+  t.deepEqual(subscribe.calls[2].arguments, [1]);
+  t.deepEqual(subscribe.calls[3].arguments, [2]);
+  t.deepEqual(subscribe.calls[4].arguments, [1]);
+  t.deepEqual(subscribe.calls[5].arguments, [2]);
+  t.is(update.calls.length, 3);
+});
+
+test("broadcastMessage will not trigger unhandledMessage if at least one is a non-passive subscriber", t => {
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+  const init = t.context.stub(() => updateData(1));
+  const update = t.context.stub(() => updateData(2));
+  const subscribe = t.context.stub(() => ({ AAA: { passive: true } }));
+  const subscribe2 = t.context.stub(() => ({ AAA: true }));
+  const d = {
+    id: "foo",
+    init,
+    update,
+    subscribe,
+  };
+  const d2 = {
+    id: "bar",
+    init,
+    update,
+    subscribe: subscribe2,
+  };
+
+  const foo = s.createState(d);
+  const bar = s.createState(d2);
+
+  t.is(s.broadcastMessage({ tag: "AAA" }), undefined);
+
+  t.is(emit.calls.length, 7);
+  t.deepEqual(emit.calls[0].arguments[0], "stateCreated");
+  t.deepEqual(emit.calls[1].arguments[0], "stateCreated");
+  t.deepEqual(emit.calls[2].arguments, ["messageQueued", { tag: "AAA"}, ["@"]]);
+  t.deepEqual(emit.calls[3].arguments, ["messageMatched", { tag: "AAA"}, ["foo"], true]);
+  t.deepEqual(emit.calls[4].arguments, ["stateNewData", 2, ["foo"], { tag: "AAA"}]);
+  t.deepEqual(emit.calls[5].arguments, ["messageMatched", { tag: "AAA"}, ["bar"], false]);
+  t.deepEqual(emit.calls[6].arguments, ["stateNewData", 2, ["bar"], { tag: "AAA"}]);
+  t.is(subscribe.calls.length, 2);
+  t.deepEqual(subscribe.calls[0].arguments, [1]);
+  t.deepEqual(subscribe.calls[1].arguments, [2]);
+  t.is(subscribe2.calls.length, 2);
+  t.deepEqual(subscribe2.calls[0].arguments, [1]);
+  t.deepEqual(subscribe2.calls[1].arguments, [2]);
+  t.is(update.calls.length, 2);
+});
+
+test("broadcastMessage will not trigger unhandledMessage if at least one is a non-passive subscriber, nested variant", t => {
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+  const init = t.context.stub(() => updateData(1));
+  const update = t.context.stub(() => updateData(2));
+  const subscribe = t.context.stub(() => ({ AAA: { passive: true } }));
+  const subscribe2 = t.context.stub(() => ({ AAA: true }));
+  const d = {
+    id: "foo",
+    init,
+    update,
+    subscribe,
+  };
+  const d2 = {
+    id: "bar",
+    init,
+    update,
+    subscribe: subscribe2,
+  };
+
+  const foo = s.createState(d);
+  const bar = foo.createState(d2);
+
+  t.is(s.broadcastMessage({ tag: "AAA" }), undefined);
+
+  t.is(emit.calls.length, 7);
+  t.deepEqual(emit.calls[0].arguments[0], "stateCreated");
+  t.deepEqual(emit.calls[1].arguments[0], "stateCreated");
+  t.deepEqual(emit.calls[2].arguments, ["messageQueued", { tag: "AAA"}, ["@"]]);
+  t.deepEqual(emit.calls[3].arguments, ["messageMatched", { tag: "AAA"}, ["foo", "bar"], false]);
+  t.deepEqual(emit.calls[4].arguments, ["stateNewData", 2, ["foo", "bar"], { tag: "AAA"}]);
+  t.deepEqual(emit.calls[5].arguments, ["messageMatched", { tag: "AAA"}, ["foo"], true]);
+  t.deepEqual(emit.calls[6].arguments, ["stateNewData", 2, ["foo"], { tag: "AAA"}]);
+  t.is(subscribe.calls.length, 2);
+  t.deepEqual(subscribe.calls[0].arguments, [1]);
+  t.deepEqual(subscribe.calls[1].arguments, [2]);
+  t.is(subscribe2.calls.length, 2);
+  t.deepEqual(subscribe2.calls[0].arguments, [1]);
+  t.deepEqual(subscribe2.calls[1].arguments, [2]);
+  t.is(update.calls.length, 2);
+});
