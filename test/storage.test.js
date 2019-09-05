@@ -1513,3 +1513,47 @@ test("broadcastMessage will not trigger unhandledMessage if at least one is a no
   t.deepEqual(subscribe2.calls[1].arguments, [2]);
   t.is(update.calls.length, 2);
 });
+
+test("broadcastMessage propagates messages in order", t => {
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+  const init = t.context.stub(() => updateData(1));
+  const update = t.context.stub(m => updateAndSend(2, { tag: "BBB" }));
+  const subscribe = t.context.stub(() => ({ AAA: true, BBB: true }));
+  const d = {
+    id: "foo",
+    init,
+    update,
+    subscribe,
+  };
+
+  const foo = s.createState(d);
+  const foofoo = foo.createState(d);
+  const bar = foo.createState(d, undefined, "bar");
+
+  t.is(s.broadcastMessage({ tag: "AAA" }), undefined);
+
+  t.is(emit.calls.length, 22);
+  t.deepEqual(emit.calls[0].arguments[0], "stateCreated");
+  t.deepEqual(emit.calls[1].arguments[0], "stateCreated");
+  t.deepEqual(emit.calls[2].arguments[0], "stateCreated");
+  t.deepEqual(emit.calls[3].arguments, ["messageQueued", { tag: "AAA"}, ["@"]]);
+  t.deepEqual(emit.calls[4].arguments, ["messageMatched", { tag: "AAA"}, ["foo", "foo"], false]);
+  t.deepEqual(emit.calls[5].arguments, ["stateNewData", 2, ["foo", "foo"], { tag: "AAA"}]);
+  t.deepEqual(emit.calls[6].arguments, ["messageQueued", { tag: "BBB"}, ["foo", "foo"]]);
+  t.deepEqual(emit.calls[7].arguments, ["messageMatched", { tag: "AAA"}, ["foo", "bar"], false]);
+  t.deepEqual(emit.calls[8].arguments, ["stateNewData", 2, ["foo", "bar"], { tag: "AAA"}]);
+  t.deepEqual(emit.calls[9].arguments, ["messageQueued", { tag: "BBB"}, ["foo", "bar"]]);
+  t.deepEqual(emit.calls[10].arguments, ["messageMatched", { tag: "AAA"}, ["foo"], false]);
+  t.deepEqual(emit.calls[11].arguments, ["stateNewData", 2, ["foo"], { tag: "AAA"}]);
+  t.deepEqual(emit.calls[12].arguments, ["messageQueued", { tag: "BBB"}, ["foo"]]);
+  t.deepEqual(emit.calls[13].arguments, ["messageMatched", { tag: "BBB"}, ["foo"], false]);
+  t.deepEqual(emit.calls[14].arguments, ["stateNewData", 2, ["foo"], { tag: "BBB"}]);
+  t.deepEqual(emit.calls[15].arguments, ["messageQueued", { tag: "BBB"}, ["foo"]]);
+  t.deepEqual(emit.calls[16].arguments, ["messageMatched", { tag: "BBB"}, ["foo"], false]);
+  t.deepEqual(emit.calls[17].arguments, ["stateNewData", 2, ["foo"], { tag: "BBB"}]);
+  t.deepEqual(emit.calls[18].arguments, ["messageQueued", { tag: "BBB"}, ["foo"]]);
+  t.deepEqual(emit.calls[19].arguments, ["unhandledMessage", { tag: "BBB"}, ["foo"]]);
+  t.deepEqual(emit.calls[20].arguments, ["unhandledMessage", { tag: "BBB"}, ["foo"]]);
+  t.deepEqual(emit.calls[21].arguments, ["unhandledMessage", { tag: "BBB"}, ["foo"]]);
+});
