@@ -7,9 +7,11 @@ export default config({
   output:   "preact/dist/index",
   plugins:  [
     alias({
-      "crustate/react": path.join(__dirname, "./react/src/index"),
-      "react":          path.join(__dirname, "./preact/src/react-shim"),
-      "react-dom":      path.join(__dirname, "./preact/src/react-shim"),
+      entries: [
+        { find: "crustate/react", replacement: path.join(__dirname, "./react/src/index") },
+        { find: "react", replacement: path.join(__dirname, "./preact/src/react-shim") },
+        { find: "react-dom", replacement: path.join(__dirname, "./preact/src/react-shim") },
+      ]
     }),
   ],
   external: ["crustate", "preact", "preact/hooks"],
