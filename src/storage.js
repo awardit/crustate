@@ -502,6 +502,7 @@ export function createState<T, I, M>(
   const child = getState(supervisor, model, name);
 
   if(child) {
+    // TODO: Probably just move this to the react adapter
     // TODO: Diff and send message if the params are different
 
     return child;
@@ -645,6 +646,7 @@ export function processMessages(
           enqueueMessages(storage, sourcePath, inflight, messages);
         }
 
+        // TODO: Skip on last iteration?
         messageFilter = subscribe(instance._data);
       }
     }
@@ -689,7 +691,7 @@ export function handleBroadcast(
   nested: StateMap,
   msg: InflightMessage
 ): Array<InflightMessage> {
-  const returning = [];
+  const returning = [msg];
 
   /* eslint-disable guard-for-in */
   // We trust that the user has not been poking around in globals
@@ -699,10 +701,6 @@ export function handleBroadcast(
     const nestedPath = path.concat([key]);
     const messages = handleBroadcast(storage, nestedPath, instance._nested, msg);
     const hasBeenReceived = msg._received;
-
-    if(messages.indexOf(msg) === -1) {
-      messages.push(msg);
-    }
 
     msg._received = false;
 
