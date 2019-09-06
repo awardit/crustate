@@ -33,7 +33,7 @@ messages it will respond to at any given moment.
 type Message = { +tag: string };
 ```
 
-A message is just plain data, a JavaScript object, with two mandatory properties
+A message is just plain data, a JavaScript object, with a mandatory property
 named `tag`. The `tag` is supposed to work as a discriminator, informing the
 receivers of what type of message it is, what possible data it contains, and
 what it means.
