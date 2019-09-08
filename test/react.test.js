@@ -4,7 +4,7 @@ import ava from "ava";
 import ninos from "ninos";
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { JSDOM } from "jsdom";
-import React, { useState } from "react";
+import React from "react";
 import { Storage, updateData } from "../src";
 import {
   StorageProvider,
@@ -195,36 +195,22 @@ test("sendMessage should be able to set a path", t => {
 });
 
 test("State is removed when the Provider is unmounted", t => {
-  const DoUnmount = ({ children }: { children: React$Node }) => {
-    const [show, setShow] = useState(true);
-
-    return (
-      <>
-        <button type="button" onClick={() => setShow( ! show)}>Toggle</button>
-        {show ? children : <p>No render</p>}
-      </>
-    );
-  };
-
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
 
-  const { container, getByText } = render(
+  const { container, rerender } = render(
     <StorageProvider storage={s}>
-      <DoUnmount>
-        <MyData.Provider data="my initial"></MyData.Provider>
-      </DoUnmount>
+      <MyData.Provider data="my initial"></MyData.Provider>
     </StorageProvider>);
 
-  t.is(container.outerHTML, `<div><button type="button">Toggle</button></div>`);
+  t.is(container.outerHTML, `<div></div>`);
   t.deepEqual(s.getSnapshot(), { state: { data: "my initial", id: "state", nested: {}, params: { data: "my initial" } } });
 
-  const btn = getByText("Toggle");
-  t.not(btn, undefined);
+  rerender(
+    <StorageProvider storage={s} />
+  );
 
-  fireEvent.click(btn);
-
-  t.is(container.outerHTML, `<div><button type="button">Toggle</button><p>No render</p></div>`);
+  t.is(container.outerHTML, `<div></div>`);
   t.deepEqual(s.getSnapshot(), {});
   t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "my initial" }, "my initial"]);
@@ -278,51 +264,32 @@ test("State updates during rendering are respected", t => {
 });
 
 test("State is removed when the Provider is the last to be unmounted", t => {
-  const DoUnmount = ({ children, text }: { children: React$Node, text: string }) => {
-    const [show, setShow] = useState(true);
-
-    return (
-      <>
-        <button type="button" onClick={() => setShow( ! show)}>{text}</button>
-        {show ? children : <p>No render</p>}
-      </>
-    );
-  };
-
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
 
-  const { container, getByText } = render(
+  const { container, rerender } = render(
     <StorageProvider storage={s}>
-      <DoUnmount text="first">
-        <MyData.Provider data="my initial"></MyData.Provider>
-      </DoUnmount>
-      <DoUnmount text="second">
-        <MyData.Provider data="second initial"></MyData.Provider>
-      </DoUnmount>
+      <MyData.Provider data="my initial"></MyData.Provider>
+      <MyData.Provider data="second initial"></MyData.Provider>
     </StorageProvider>);
 
   t.is(container.outerHTML,
-    `<div><button type="button">first</button><button type="button">second</button></div>`);
+    `<div></div>`);
   t.deepEqual(s.getSnapshot(),
     { state: { data: "my initial", id: "state", nested: {}, params: { data: "my initial" } } });
 
-  const btnFirst = getByText("first");
-  t.not(btnFirst, undefined);
-  const btnSecond = getByText("second");
-  t.not(btnSecond, undefined);
+  rerender(
+    <StorageProvider storage={s}>
+      <MyData.Provider data="second initial"></MyData.Provider>
+    </StorageProvider>);
 
-  fireEvent.click(btnFirst);
-
-  t.is(container.outerHTML,
-    `<div><button type="button">first</button><p>No render</p><button type="button">second</button></div>`);
+  t.is(container.outerHTML, `<div></div>`);
   t.deepEqual(s.getSnapshot(),
     { state: { data: "my initial", id: "state", nested: {}, params: { data: "my initial" } } });
 
-  fireEvent.click(btnSecond);
+  rerender(<StorageProvider storage={s} />);
 
-  t.is(container.outerHTML,
-    `<div><button type="button">first</button><p>No render</p><button type="button">second</button><p>No render</p></div>`);
+  t.is(container.outerHTML, `<div></div>`);
   t.deepEqual(s.getSnapshot(), {});
   t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "my initial" }, "my initial"]);
@@ -332,32 +299,24 @@ test("State is removed when the Provider is the last to be unmounted", t => {
 test("Rerender should not do anything with the same parameters", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
-  const RerenderComponent = ({ children }: { children: React$Node }) => {
-    const [a, setA] = useState(0);
 
-    return (
-      <>
-        <a onClick={() => setA(a + 1)}>Click</a>
-        <MyData.Provider data="the initial">
-          {children}
-        </MyData.Provider>
-      </>
-    );
-  };
-
-  const { container, getByText } = render(
+  const { container, rerender } = render(
     <StorageProvider storage={s}>
-      <RerenderComponent><MyDataUseDataComponent /></RerenderComponent>
+      <MyData.Provider data="the initial">
+        <MyDataUseDataComponent />
+      </MyData.Provider>
     </StorageProvider>);
 
-  t.is(container.outerHTML, `<div><a>Click</a><p>the initial</p></div>`);
+  t.is(container.outerHTML, `<div><p>the initial</p></div>`);
 
-  const btn = getByText("Click");
-  t.not(btn, undefined);
+  rerender(
+    <StorageProvider storage={s}>
+      <MyData.Provider data="the initial">
+        <MyDataUseDataComponent />
+      </MyData.Provider>
+    </StorageProvider>);
 
-  fireEvent.click(btn);
-
-  t.is(container.outerHTML, `<div><a>Click</a><p>the initial</p></div>`);
+  t.is(container.outerHTML, `<div><p>the initial</p></div>`);
   t.is(emit.calls.length, 1);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "the initial" }, "the initial"]);
 });
@@ -365,27 +324,23 @@ test("Rerender should not do anything with the same parameters", t => {
 test("Rerender without storage should throw", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
-  const RerenderComponent = ({ children }: { children: React$Node }) => {
-    const [localS, setStorage] = useState(s);
 
-    return (
-      <StateContext.Provider value={localS}>
-        <a onClick={() => setStorage(null)}>Click</a>
-        <MyData.Provider data="the initial">
-          {children}
-        </MyData.Provider>
-      </StateContext.Provider>
-    );
-  };
+  const { container, rerender } = render(
+    <StateContext.Provider value={s}>
+      <MyData.Provider data="the initial">
+        <MyDataUseDataComponent />
+      </MyData.Provider>
+    </StateContext.Provider>);
 
-  const { container, getByText } = render(<RerenderComponent><MyDataUseDataComponent /></RerenderComponent>);
+  t.is(container.outerHTML, `<div><p>the initial</p></div>`);
 
-  t.is(container.outerHTML, `<div><a>Click</a><p>the initial</p></div>`);
+  t.throws(() => rerender(
+    <StateContext.Provider value={null}>
+      <MyData.Provider data="the initial">
+        <MyDataUseDataComponent />
+      </MyData.Provider>
+    </StateContext.Provider>), { message: "<state.Provider /> must be used inside a <StorageProvider />" });
 
-  const btn = getByText("Click");
-  t.not(btn, undefined);
-
-  t.throws(() => fireEvent.click(btn), { message: "<state.Provider /> must be used inside a <StorageProvider />" });
   t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "the initial" }, "the initial"]);
   // More of an implementation detail of React in that it unmounts the components that threw
@@ -397,29 +352,24 @@ test("Rerender with new storage should recreate the state instance in the new st
   const sB = new Storage();
   const emitA = t.context.spy(sA, "emit");
   const emitB = t.context.spy(sB, "emit");
-  const RerenderComponent = ({ children }: { children: React$Node }) => {
-    const [localS, setStorage] = useState(sA);
 
-    return (
-      <StateContext.Provider value={localS}>
-        <a onClick={() => setStorage(sB)}>Click</a>
-        <MyData.Provider data="the initial">
-          {children}
-        </MyData.Provider>
-      </StateContext.Provider>
-    );
-  };
+  const { container, rerender } = render(
+    <StateContext.Provider value={sA}>
+      <MyData.Provider data="the initial">
+        <MyDataUseDataComponent />
+      </MyData.Provider>
+    </StateContext.Provider>);
 
-  const { container, getByText } = render(<RerenderComponent><MyDataUseDataComponent /></RerenderComponent>);
+  t.is(container.outerHTML, `<div><p>the initial</p></div>`);
 
-  t.is(container.outerHTML, `<div><a>Click</a><p>the initial</p></div>`);
+  rerender(
+    <StateContext.Provider value={sB}>
+      <MyData.Provider data="the initial">
+        <MyDataUseDataComponent />
+      </MyData.Provider>
+    </StateContext.Provider>);
 
-  const btn = getByText("Click");
-  t.not(btn, undefined);
-
-  fireEvent.click(btn);
-
-  t.is(container.outerHTML, `<div><a>Click</a><p>the initial</p></div>`);
+  t.is(container.outerHTML, `<div><p>the initial</p></div>`);
   t.is(emitA.calls.length, 2);
   t.deepEqual(emitA.calls[0].arguments, ["stateCreated", ["state"], { data: "the initial" }, "the initial"]);
   t.deepEqual(emitA.calls[1].arguments, ["stateRemoved", ["state"], "the initial"]);
@@ -430,32 +380,27 @@ test("Rerender with new storage should recreate the state instance in the new st
 test("Varying name property will recreate the state instance", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
-  const Wrapper = ({ children }: { children: React$Node }) => {
-    const [key, setKey] = useState("a");
 
-    return (
-      <StateContext.Provider value={s}>
-        <a onClick={() => setKey("b")}>Click</a>
-        <MyData.Provider name={key} data={key}>
-          {children}
-        </MyData.Provider>
-      </StateContext.Provider>
-    );
-  };
+  const { container, rerender } = render(
+    <StateContext.Provider value={s}>
+      <MyData.Provider name="a" data="aData">
+        <MyDataUseDataComponent />
+      </MyData.Provider>
+    </StateContext.Provider>);
 
-  const { container, getByText } = render(<Wrapper><MyDataUseDataComponent /></Wrapper>);
+  t.is(container.outerHTML, `<div><p>aData</p></div>`);
 
-  t.is(container.outerHTML, `<div><a>Click</a><p>a</p></div>`);
+  rerender(
+    <StateContext.Provider value={s}>
+      <MyData.Provider name="b" data="bData">
+        <MyDataUseDataComponent />
+      </MyData.Provider>
+    </StateContext.Provider>);
 
-  const btn = getByText("Click");
-  t.not(btn, undefined);
-
-  fireEvent.click(btn);
-
-  t.is(container.outerHTML, `<div><a>Click</a><p>b</p></div>`);
+  t.is(container.outerHTML, `<div><p>bData</p></div>`);
 
   t.is(emit.calls.length, 3);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["a"], { data: "a" }, "a"]);
-  t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["b"], { data: "b" }, "b"]);
-  t.deepEqual(emit.calls[2].arguments, ["stateRemoved", ["a"], "a"]);
+  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["a"], { data: "aData" }, "aData"]);
+  t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["b"], { data: "bData" }, "bData"]);
+  t.deepEqual(emit.calls[2].arguments, ["stateRemoved", ["a"], "aData"]);
 });
