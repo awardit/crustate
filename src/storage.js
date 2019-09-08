@@ -722,19 +722,17 @@ export function handleBroadcast(
   return returning;
 }
 
-export function createStateSnapshot<T, I>(node: State<T, I>): StateSnapshot {
-  return {
-    id: node._id,
-    // We assume it is immutably updated
-    data: node._data,
-    params: node._params,
-    nested: createSnapshot(node),
-  };
-}
-
 export function createSnapshot(node: Supervisor): Snapshot {
   return Object.keys(node._nested).reduce((a: Snapshot, key: string): Snapshot => {
-    a[key] = createStateSnapshot(node._nested[key]);
+    const nested = node._nested[key];
+
+    a[key] = {
+      id: nested._id,
+      // We assume it is immutably updated
+      data: nested._data,
+      params: nested._params,
+      nested: createSnapshot(nested),
+    };
 
     return a;
   }, {});
