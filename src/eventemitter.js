@@ -1,47 +1,34 @@
 /* @flow */
 
-type MaybeArray<T> = T | Array<T>;
+export type Listener<Events, Name: $Keys<Events>> = (...args: $ElementType<Events, Name>) => mixed;
+export type Listeners<Events> = { [eventName: string]: ?Array<Listener<Events, *>> };
 
-export type Listener<Events, Name> = (...args: $ElementType<Events, Name>) => mixed;
-export type Listeners = { [eventName: string]: MaybeArray<Listener<{}, any>> };
-
-// TODO: Convenience API with returning a function which will remove the
-//       callback?
 export class EventEmitter<Events: {}> {
-  // TODO: Maybe follow the example of EventEmitter and make the whole property
-  //       optional?
-  _eventListeners: Listeners = {};
+  _eventListeners: Listeners<Events> = {};
 
   addListener<K: $Keys<Events>>(eventName: K, listener: Listener<Events, K>): void {
-    const existing: MaybeArray<Listener<Events, K>> = this._eventListeners[eventName];
+    const existing = this._eventListeners[(eventName: string)];
 
     if(existing) {
-      if(typeof existing === "function") {
-        this._eventListeners[eventName] = [existing, listener];
-      }
-      else {
-        existing.push(listener);
-      }
+      existing.push(listener);
     }
     else {
-      this._eventListeners[eventName] = listener;
+      this._eventListeners[(eventName: string)] = [listener];
     }
   }
 
   removeListener<K: $Keys<Events>>(eventName: K, listener: Listener<Events, K>): void {
-    const existing: MaybeArray<Listener<Events, K>> = this._eventListeners[eventName];
+    const existing: ?Array<Listener<Events, K>> = this._eventListeners[(eventName: string)];
 
-    if(existing === listener) {
-      delete this._eventListeners[eventName];
-    }
-    else if(existing && typeof existing !== "function") {
+    if(existing) {
       const i = existing.indexOf(listener);
 
       if(i >= 0) {
-        existing.splice(i, 1);
-
-        if(existing.length === 1) {
-          this._eventListeners[eventName] = existing[0];
+        if(existing.length > 1) {
+          existing.splice(i, 1);
+        }
+        else {
+          delete this._eventListeners[(eventName: string)];
         }
       }
     }
@@ -49,7 +36,7 @@ export class EventEmitter<Events: {}> {
 
   removeAllListeners(eventName?: string): void {
     if(eventName) {
-      delete this._eventListeners[eventName];
+      delete this._eventListeners[(eventName: string)];
     }
     else {
       this._eventListeners = {};
@@ -57,24 +44,17 @@ export class EventEmitter<Events: {}> {
   }
 
   listeners<K: $Keys<Events>>(eventName: K): Array<Listener<Events, K>> {
-    const existing: MaybeArray<Listener<Events, K>> = this._eventListeners[eventName];
-
-    return existing ? typeof existing === "function" ? [existing] : existing : [];
+    return this._eventListeners[(eventName: string)] || [];
   }
 
   emit<K: $Keys<Events>>(eventName: K, ...args: $ElementType<Events, K>): void {
-    const handler: MaybeArray<Listener<Events, K>> = this._eventListeners[eventName];
+    const handler = this._eventListeners[(eventName: string)];
 
-    // Manually used apply since it avoids an iterator shim
-    /* eslint-disable prefer-spread */
-    if(typeof handler === "function") {
-      handler.apply(null, args);
-    }
-    else if(handler) {
+    if(handler) {
+      // Manually used apply since it avoids an iterator shim
       for(let i = 0; i < handler.length; i++) {
         handler[i].apply(null, args);
       }
     }
-    /* eslint-enable prefer-spread */
   }
 }

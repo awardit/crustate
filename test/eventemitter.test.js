@@ -33,7 +33,7 @@ test("emit() does nothing on undefined", t => {
 
 test("emit() calls a single listener", t => {
   const stub = t.context.stub();
-  const emitter = new TestEmitter({ "foo": stub });
+  const emitter = new TestEmitter({ "foo": [stub] });
 
   emitter.emit("foo");
 
@@ -44,7 +44,7 @@ test("emit() calls a single listener", t => {
 
 test("emit() calls a single listener with all arguments", t => {
   const stub = t.context.stub();
-  const emitter = new TestEmitter({ "foo": stub });
+  const emitter = new TestEmitter({ "foo": [stub] });
 
   emitter.emit("foo", "arg1");
   emitter.emit("foo", "arg1", "arg2");
@@ -59,11 +59,11 @@ test("emit() calls a single listener with all arguments", t => {
 
 test("emit() does not call unrelated events", t => {
   const noCall = t.context.stub();
-  const emitter = new TestEmitter({ "bar": noCall });
+  const emitter = new TestEmitter({ "bar": [noCall] });
 
   emitter.emit("foo");
 
-  t.deepEqual(emitter, new TestEmitter({ "bar": noCall }));
+  t.deepEqual(emitter, new TestEmitter({ "bar": [noCall] }));
   t.deepEqual(noCall.calls, []);
 });
 
@@ -89,7 +89,7 @@ test("addListener() adds listeners", t => {
   const emitter = new TestEmitter({});
 
   emitter.addListener("foo", stub1);
-  t.deepEqual(emitter, new TestEmitter({ "foo": stub1 }));
+  t.deepEqual(emitter, new TestEmitter({ "foo": [stub1] }));
 
   emitter.addListener("foo", stub2);
   t.deepEqual(emitter, new TestEmitter({ "foo": [stub1, stub2] }));
@@ -108,11 +108,11 @@ test("addListener() adds different listeners", t => {
   const emitter = new TestEmitter({});
 
   emitter.addListener("foo", stub1);
-  t.deepEqual(emitter, new TestEmitter({ "foo": stub1 }));
+  t.deepEqual(emitter, new TestEmitter({ "foo": [stub1] }));
 
   // $ExpectError
   emitter.addListener("bar", stub2);
-  t.deepEqual(emitter, new TestEmitter({ "foo": stub1, "bar": stub2 }));
+  t.deepEqual(emitter, new TestEmitter({ "foo": [stub1], "bar": [stub2] }));
 
   t.deepEqual(stub1.calls, []);
   t.deepEqual(stub2.calls, []);
@@ -121,13 +121,13 @@ test("addListener() adds different listeners", t => {
 test("removeListener() removes a listener", t => {
   const stub1 = t.context.stub();
   const stub2 = t.context.stub();
-  const emitter = new TestEmitter({ "foo": stub1, "bar": stub2 });
+  const emitter = new TestEmitter({ "foo": [stub1], "bar": [stub2] });
 
   emitter.removeListener("foo", stub1);
-  t.deepEqual(emitter, new TestEmitter({ "bar": stub2 }));
+  t.deepEqual(emitter, new TestEmitter({ "bar": [stub2] }));
 
   emitter.removeListener("foo", stub1);
-  t.deepEqual(emitter, new TestEmitter({ "bar": stub2 }));
+  t.deepEqual(emitter, new TestEmitter({ "bar": [stub2] }));
 
   // $ExpectError
   emitter.removeListener("bar", stub2);
@@ -151,7 +151,7 @@ test("removeListener() removes a listener when we have multiple", t => {
   t.deepEqual(emitter, new TestEmitter({ "foo": [stub1, stub3] }));
 
   emitter.removeListener("foo", stub1);
-  t.deepEqual(emitter, new TestEmitter({ "foo": stub3 }));
+  t.deepEqual(emitter, new TestEmitter({ "foo": [stub3] }));
 
   emitter.removeListener("foo", stub3);
   t.deepEqual(emitter, new TestEmitter({}));
@@ -161,13 +161,13 @@ test("removeAllListeners(eventName) removes all listeners for a specific event",
   const stub1 = t.context.stub();
   const stub2 = t.context.stub();
   const stub3 = t.context.stub();
-  const emitter = new TestEmitter({ "foo": [stub1, stub2], "bar": stub3 });
+  const emitter = new TestEmitter({ "foo": [stub1, stub2], "bar": [stub3] });
 
   emitter.removeAllListeners("foo");
-  t.deepEqual(emitter, new TestEmitter({ "bar": stub3 }));
+  t.deepEqual(emitter, new TestEmitter({ "bar": [stub3] }));
 
   emitter.removeAllListeners("foo");
-  t.deepEqual(emitter, new TestEmitter({ "bar": stub3 }));
+  t.deepEqual(emitter, new TestEmitter({ "bar": [stub3] }));
 
   emitter.removeAllListeners("bar");
   t.deepEqual(emitter, new TestEmitter({}));
@@ -177,7 +177,7 @@ test("removeAllListeners() removes all listeners for all events", t => {
   const stub1 = t.context.stub();
   const stub2 = t.context.stub();
   const stub3 = t.context.stub();
-  const emitter = new TestEmitter({ "foo": [stub1, stub2], "bar": stub3 });
+  const emitter = new TestEmitter({ "foo": [stub1, stub2], "bar": [stub3] });
 
   emitter.removeAllListeners();
   t.deepEqual(emitter, new TestEmitter({}));
@@ -193,7 +193,7 @@ test("listeners() returns all listeners for a specific event", t => {
   const stub1 = t.context.stub();
   const stub2 = t.context.stub();
   const stub3 = t.context.stub();
-  const emitter = new TestEmitter({ "foo": [stub1, stub2], "bar": stub3 });
+  const emitter = new TestEmitter({ "foo": [stub1, stub2], "bar": [stub3] });
 
   t.deepEqual(emitter.listeners("foo"), [stub1, stub2]);
   // $ExpectError
