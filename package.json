@@ -366,6 +366,7 @@
           "name": "e"
         }
       ],
+      "unicorn/prefer-includes": "off",
       "valid-jsdoc": "off"
     },
     "space": 2
