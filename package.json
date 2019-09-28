@@ -191,14 +191,7 @@
           "flowtype/require-return-type": "off",
           "flowtype/no-unused-expressions": "off",
           "no-unused-expressions": "off",
-          "quote-props": "off",
-          "max-len": [
-            "warn",
-            140,
-            {
-              "ignoreStrings": true
-            }
-          ]
+          "quote-props": "off"
         }
       },
       {
@@ -222,34 +215,11 @@
       "comma-dangle": [
         "error",
         {
-          "arrays": "only-multiline",
-          "objects": "only-multiline",
-          "imports": "only-multiline",
-          "exports": "only-multiline",
+          "arrays": "always-multiline",
+          "objects": "always-multiline",
+          "imports": "always-multiline",
+          "exports": "always-multiline",
           "functions": "never"
-        }
-      ],
-      "keyword-spacing": [
-        "error",
-        {
-          "after": true,
-          "overrides": {
-            "catch": {
-              "after": false
-            },
-            "if": {
-              "after": false
-            },
-            "for": {
-              "after": false
-            },
-            "switch": {
-              "after": false
-            },
-            "while": {
-              "after": false
-            }
-          }
         }
       ],
       "flowtype/array-style-simple-type": [
@@ -258,7 +228,7 @@
       ],
       "flowtype/delimiter-dangle": [
         "error",
-        "only-multiline"
+        "always-multiline"
       ],
       "flowtype/newline-after-flow-annotation": [
         "error",
@@ -302,13 +272,6 @@
       ],
       "import/no-unresolved": "off",
       "import/order": "off",
-      "indent": [
-        "error",
-        2,
-        {
-          "SwitchCase": 0
-        }
-      ],
       "lines-between-class-members": [
         "error",
         "always",
@@ -320,7 +283,8 @@
         "error",
         {
           "code": 100,
-          "comments": 80
+          "comments": 80,
+          "ignoreStrings": true
         }
       ],
       "no-case-declarations": "off",
@@ -351,15 +315,6 @@
         }
       ],
       "react/prefer-read-only-props": "off",
-      "space-in-parens": "off",
-      "space-unary-ops": [
-        "error",
-        {
-          "overrides": {
-            "!": true
-          }
-        }
-      ],
       "unicorn/catch-error-name": [
         "error",
         {
