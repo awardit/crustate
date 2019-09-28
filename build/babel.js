@@ -1,14 +1,16 @@
+/* @flow */
+
 // Common Babel configuration for building and unit-testing
 
 module.exports = {
   compiler: {
-    babelrc:         false,
-    presets:         [
+    babelrc: false,
+    presets: [
       ["@babel/preset-react"],
     ],
     plugins: [
-      // We cannot use the preset since this must go before class-properties to avoid
-      // emitting `this.propertyName = void 0;` for typed class properties
+      // We cannot use the preset since this must go before class-properties to
+      // avoid emitting `this.propertyName = void 0;` for typed class properties
       ["@babel/plugin-transform-flow-strip-types"],
       // Loose mode for smaller and faster code
       ["@babel/plugin-proposal-class-properties", { loose: true }],
@@ -21,26 +23,27 @@ module.exports = {
     ],
   },
   test: {
-    babelrc:         false,
-    presets:         [
+    babelrc: false,
+    presets: [
       ["@babel/preset-react"],
       ["@babel/preset-env", {
-        loose:            true,
+        loose: true,
         shippedProposals: true,
         targets: {
-          node:    8,
+          node: 8,
           firefox: 50,
-          ie:      11,
+          ie: 11,
         },
-        exclude: [ "transform-typeof-symbol" ]
+        exclude: ["transform-typeof-symbol"],
       }],
     ],
     plugins: [
-      // We cannot use the preset since this must go before class-properties to avoid
-      // emitting `this.propertyName = void 0;` for typed class properties
+      // We cannot use the preset since this must go before class-properties to
+      // avoid emitting `this.propertyName = void 0;` for typed class properties
       ["@babel/plugin-transform-flow-strip-types"],
       // Loose mode for smaller and faster code
       ["@babel/plugin-proposal-class-properties", { loose: true }],
     ],
   },
 };
+

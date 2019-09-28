@@ -1,9 +1,9 @@
-import resolvePlugin  from "rollup-plugin-node-resolve";
+import resolvePlugin from "rollup-plugin-node-resolve";
 import commonjsPlugin from "rollup-plugin-commonjs";
-import babelPlugin    from "rollup-plugin-babel";
-import replacePlugin  from "rollup-plugin-replace";
-import aliasPlugin    from "rollup-plugin-alias";
-import postcssPlugin  from "rollup-plugin-postcss";
+import babelPlugin from "rollup-plugin-babel";
+import replacePlugin from "rollup-plugin-replace";
+import aliasPlugin from "rollup-plugin-alias";
+import postcssPlugin from "rollup-plugin-postcss";
 
 export const alias = aliasPlugin({
   entries: [
@@ -15,21 +15,21 @@ export const alias = aliasPlugin({
 });
 
 export const babel = babelPlugin({
-  exclude:         "node_modules/**",
-  babelrc:         false,
+  exclude: "node_modules/**",
+  babelrc: false,
   externalHelpers: false,
-  runtimeHelpers:  true,
-  presets:         [
+  runtimeHelpers: true,
+  presets: [
     ["@babel/preset-react"],
     ["@babel/preset-env", {
-      loose:            true,
+      loose: true,
       shippedProposals: true,
       targets: {
-        node:    8,
+        node: 8,
         firefox: 50,
-        ie:      11,
+        ie: 11,
       },
-      exclude: [ "transform-typeof-symbol" ]
+      exclude: ["transform-typeof-symbol"],
     }],
   ],
   plugins: [
@@ -40,7 +40,7 @@ export const babel = babelPlugin({
 
 export const commonjs = commonjsPlugin({
   namedExports: {
-    "react": [
+    react: [
       "Component",
       "Children",
       "Fragment",
@@ -80,8 +80,8 @@ export const resolve = resolvePlugin({ mainFields: ["browser", "module", "main"]
 export const config = path => ({
   input: `${path}/src/index.js`,
   output: {
-    file:      `${path}/dist/index.js`,
-    format:    "iife",
+    file: `${path}/dist/index.js`,
+    format: "iife",
     sourcemap: true,
   },
   plugins: [

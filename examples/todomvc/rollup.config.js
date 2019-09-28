@@ -1,3 +1,4 @@
-import { config } from "../../build/example.js";
+import { config } from "../../build/example";
 
 export default config("examples/todomvc");
+
