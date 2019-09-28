@@ -174,7 +174,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
    * using restoreSnapshot(). Throws if a model with the same id already exist.
    */
   addModel<T, I, M>(model: Model<T, I, M>): void {
-    if( ! tryAddModel(this, model)) {
+    if (!tryAddModel(this, model)) {
       // FIXME: Proper exception type
       throw new Error(`Duplicate model '${model.id}'.`);
     }
@@ -210,7 +210,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   removeState<U, J, N>(model: Model<U, J, N>, name?: string): void {
     const inst = getState(this, model, name);
 
-    if(inst) {
+    if (inst) {
       delete this._nested[name || inst._name];
 
       this.emit("stateRemoved", inst.getPath(), inst._data);
@@ -239,8 +239,8 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
   removeSubscriber(listener: Listener<any>): void {
     const { _subscribers } = this;
 
-    for(let i = 0; i < _subscribers.length; i++) {
-      if(_subscribers[i].listener === listener) {
+    for (let i = 0; i < _subscribers.length; i++) {
+      if (_subscribers[i].listener === listener) {
         _subscribers.splice(i, 1);
 
         return;
@@ -341,7 +341,7 @@ export class State<T, I>
   getStorage(): Storage {
     let s = this._supervisor;
 
-    while(s instanceof State) {
+    while (s instanceof State) {
       s = s._supervisor;
     }
 
@@ -355,7 +355,7 @@ export class State<T, I>
     const path = [];
     let s = this;
 
-    while(s instanceof State) {
+    while (s instanceof State) {
       path.unshift(s._name);
 
       s = s._supervisor;
@@ -387,7 +387,7 @@ export class State<T, I>
   removeState<U, J, N>(model: Model<U, J, N>, name?: string): void {
     const inst = getState(this, model, name);
 
-    if(inst) {
+    if (inst) {
       delete this._nested[name || inst._name];
 
       this.getStorage().emit("stateRemoved", inst.getPath(), inst._data);
@@ -411,13 +411,13 @@ export function getState<T, I, M>(
   model: Model<T, I, M>,
   name?: string
 ): ?State<T, I> {
-  if(process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV !== "production") {
     ensureModel(supervisor.getStorage(), model);
   }
 
   const inst = supervisor._nested[name || model.id];
 
-  if(inst) {
+  if (inst) {
     debugAssert(inst._name === (name || model.id),
       `State name '${inst._name}' does not match key name '${name || model.id}`);
   }
@@ -434,7 +434,7 @@ export function restoreSnapshot(
 
   /* eslint-disable guard-for-in */
   // We trust that the user has not been poking around in globals
-  for(const k in snapshot) {
+  for (const k in snapshot) {
   /* eslint-enable guard-for-in */
     const { id, data, params, nested } = snapshot[k];
 
@@ -459,7 +459,7 @@ export function restoreSnapshot(
 export function tryAddModel<T, I, M>(storage: Storage, model: Model<T, I, M>): boolean {
   const { id } = model;
 
-  if( ! storage._defs[id]) {
+  if (!storage._defs[id]) {
     storage._defs[id] = model;
 
     return true;
@@ -473,7 +473,7 @@ export function tryAddModel<T, I, M>(storage: Storage, model: Model<T, I, M>): b
 export function ensureModel<T, I, M>(storage: Storage, model: Model<T, I, M>): void {
   const { id } = model;
 
-  if(storage._defs[id] && storage._defs[id] !== model) {
+  if (storage._defs[id] && storage._defs[id] !== model) {
     // FIXME: Proper exception type
     throw new Error(`Model mismatch for '${id}'.`);
   }
@@ -485,7 +485,7 @@ export function getModelById<T, I, M: Message>(
 ): Model<T, I, M> {
   const spec = storage._defs[id];
 
-  if( ! spec) {
+  if (!spec) {
     // TODO: Error type
     throw new Error(`Missing model for state '${id}'.`);
   }
@@ -501,7 +501,7 @@ export function createState<T, I, M>(
 ): State<T, I> {
   const child = getState(supervisor, model, name);
 
-  if(child) {
+  if (child) {
     // TODO: Probably just move this to the react adapter
     // TODO: Diff and send message if the params are different
 
@@ -520,7 +520,7 @@ export function newState<T, I, M>(
   const storage = supervisor.getStorage();
   const { id, init } = model;
 
-  if( ! name) {
+  if (!name) {
     name = id;
   }
 
@@ -534,7 +534,7 @@ export function newState<T, I, M>(
 
   storage.emit("stateCreated", path, (initialData: any), data);
 
-  if(messages) {
+  if (messages) {
     processInstanceMessages(
       storage,
       instance._supervisor,
@@ -560,8 +560,8 @@ export function createInflightMessage(
 }
 
 export function findClosestSupervisor(supervisor: Supervisor, path: StatePath): Supervisor {
-  for(const p of path) {
-    if( ! supervisor._nested[p]) {
+  for (const p of path) {
+    if (!supervisor._nested[p]) {
       return supervisor;
     }
 
@@ -577,7 +577,7 @@ export function enqueueMessages(
   inflight: Array<InflightMessage>,
   messages: Array<Message>
 ): void {
-  for(const m of messages) {
+  for (const m of messages) {
     inflight.push(createInflightMessage(storage, source, m));
   }
 }
@@ -589,7 +589,7 @@ export function processInstanceMessages(
 ): void {
   let sourcePath = instance.getPath();
 
-  while(instance instanceof State) {
+  while (instance instanceof State) {
     processMessages(storage, instance, sourcePath, inflight);
 
     // Traverse down one level
@@ -597,7 +597,7 @@ export function processInstanceMessages(
     instance = instance._supervisor;
   }
 
-  for(const i of inflight) {
+  for (const i of inflight) {
     processStorageMessage(storage, i);
   }
 }
@@ -620,13 +620,13 @@ export function processMessages(
 
   // TODO: Emit event? that we are considering messags for state?
 
-  for(let i = 0; i < currentLimit; i++) {
+  for (let i = 0; i < currentLimit; i++) {
     const currentInflight = inflight[i];
     const { _message: m } = currentInflight;
     const match = findMatchingSubscription(messageFilter, m, currentInflight._received);
 
-    if(match) {
-      if( ! match.isPassive) {
+    if (match) {
+      if (!match.isPassive) {
         currentInflight._received = true;
       }
 
@@ -634,7 +634,7 @@ export function processMessages(
 
       const updateRequest = update(instance._data, m);
 
-      if(updateRequest) {
+      if (updateRequest) {
         const { data, messages } = updateRequest;
 
         instance._data = data;
@@ -642,7 +642,7 @@ export function processMessages(
         storage.emit("stateNewData", data, sourcePath, m);
         instance.emit("stateNewData", data, sourcePath, m);
 
-        if(messages) {
+        if (messages) {
           enqueueMessages(storage, sourcePath, inflight, messages);
         }
 
@@ -660,11 +660,11 @@ export function processStorageMessage(storage: Storage, inflight: InflightMessag
   const { _message, _source } = inflight;
   let received = inflight._received;
 
-  for(const { listener, subscriptions } of s) {
+  for (const { listener, subscriptions } of s) {
     const match = findMatchingSubscription(subscriptions, _message, received);
 
-    if(match) {
-      if( ! match.isPassive) {
+    if (match) {
+      if (!match.isPassive) {
         received = true;
       }
 
@@ -674,7 +674,7 @@ export function processStorageMessage(storage: Storage, inflight: InflightMessag
     }
   }
 
-  if( ! received) {
+  if (!received) {
     storage.emit("unhandledMessage", _message, _source);
   }
 }
@@ -694,7 +694,7 @@ export function handleBroadcast(
 
   /* eslint-disable guard-for-in */
   // We trust that the user has not been poking around in globals
-  for(const key in nested) {
+  for (const key in nested) {
   /* eslint-enable guard-for-in */
     const instance = nested[key];
     const nestedPath = path.concat([key]);
@@ -711,8 +711,8 @@ export function handleBroadcast(
 
     // We have multiple instances of msg here now, one from each child
     // deduplicate.
-    for(const m of messages) {
-      if(returning.indexOf(m) === -1) {
+    for (const m of messages) {
+      if (returning.indexOf(m) === -1) {
         returning.push(m);
       }
     }

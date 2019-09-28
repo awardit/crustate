@@ -241,7 +241,7 @@ test("State updates during rendering are respected", t => {
     const data = useData(MyData);
     const send = useSendMessage();
 
-    if(data !== "updated") {
+    if (data !== "updated") {
       // Trigger update while we are rendering
       send({ tag: "data", data: "updated" });
     }

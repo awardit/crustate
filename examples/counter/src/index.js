@@ -17,12 +17,12 @@ const CounterData = createStateData({
   id: "counter",
   init: ({ initial = 0 }: { initial?: number }) => updateData(initial),
   update: (state, msg) => {
-    switch(msg.tag) {
-    case INCREMENT:
-      return updateData(state + 1);
-    case DECREMENT:
-      return updateData(state - 1);
-    default:
+    switch (msg.tag) {
+      case INCREMENT:
+        return updateData(state + 1);
+      case DECREMENT:
+        return updateData(state - 1);
+      default:
       // Nothing
     }
   },
@@ -65,7 +65,7 @@ const storage = new Storage();
 
 const el = document.querySelector("#app");
 
-if( ! el) {
+if (!el) {
   throw new Error(`Missing <div id="app />`);
 }
 

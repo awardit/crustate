@@ -51,5 +51,5 @@ export default [
       "react-dom",
       "react-dom/server",
     ],
-  }
+  },
 ];

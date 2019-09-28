@@ -37,26 +37,26 @@ export const TodosState = createStateData<Array<Todo>, {}, TodoMsg>({
   id: "todos",
   init: () => updateData([]),
   update: (todos, msg) => {
-    switch(msg.tag) {
-    case ADD:
-      return updateData([...todos, { id: maxId(todos) + 1, text: msg.text, completed: false }]);
-    case EDIT:
-      return updateData(todos.map(t => t.id === msg.id ?
-        { id: t.id, text: msg.text, completed: t.completed } :
-        t));
-    case REMOVE:
-      return updateData(todos.filter(t => t.id !== msg.id));
-    case COMPLETE:
-      return updateData(todos.map(t => t.id === msg.id ?
-        { id: t.id, text: t.text, completed: ! t.completed } :
-        t));
-    case COMPLETE_ALL:
-      const allMarked = todos.every(t => t.completed);
+    switch (msg.tag) {
+      case ADD:
+        return updateData([...todos, { id: maxId(todos) + 1, text: msg.text, completed: false }]);
+      case EDIT:
+        return updateData(todos.map(t => t.id === msg.id ?
+          { id: t.id, text: msg.text, completed: t.completed } :
+          t));
+      case REMOVE:
+        return updateData(todos.filter(t => t.id !== msg.id));
+      case COMPLETE:
+        return updateData(todos.map(t => t.id === msg.id ?
+          { id: t.id, text: t.text, completed: !t.completed } :
+          t));
+      case COMPLETE_ALL:
+        const allMarked = todos.every(t => t.completed);
 
-      return updateData(todos.map(t => ({ id: t.id, text: t.text, completed: ! allMarked })));
-    case CLEAR_ALL:
-      return updateData(todos.map(t => ({ id: t.id, text: t.text, completed: false })));
-    default:
+        return updateData(todos.map(t => ({ id: t.id, text: t.text, completed: !allMarked })));
+      case CLEAR_ALL:
+        return updateData(todos.map(t => ({ id: t.id, text: t.text, completed: false })));
+      default:
       // Nothing
     }
   },

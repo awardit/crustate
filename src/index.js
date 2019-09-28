@@ -9,7 +9,7 @@ export type {
   MessageTag,
   MessageFilter,
   Subscriptions,
-  Subscription
+  Subscription,
 } from "./message";
 export type { Update } from "./update";
 export type { ModelInit, ModelUpdate, ModelSubscribe, Model } from "./model";

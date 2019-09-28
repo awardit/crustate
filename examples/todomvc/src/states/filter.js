@@ -19,11 +19,11 @@ export const SHOW_ALL = "ALL";
 export const SHOW_COMPLETED = "COMPLETED";
 
 export const todoFilterPredicate = (filter: Filter) => (todo: Todo): boolean => {
-  if(filter === SHOW_ACTIVE) {
-    return ! todo.completed;
+  if (filter === SHOW_ACTIVE) {
+    return !todo.completed;
   }
 
-  if(filter === SHOW_COMPLETED) {
+  if (filter === SHOW_COMPLETED) {
     return todo.completed;
   }
 
@@ -36,5 +36,5 @@ export const FilterState = createStateData<Filter, {}, FilterMsg>({
   id: "filter",
   init: () => updateData(SHOW_ALL),
   update: (_, msg) => updateData(msg.value),
-  subscribe: () => ({ [SET]: true })
+  subscribe: () => ({ [SET]: true }),
 });

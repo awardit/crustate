@@ -8,7 +8,7 @@ import { requestList, requestPost, LIST_RESPONSE, POST_RESPONSE } from "./effect
 
 export type PostHeading = {
   id: number,
-  title: string
+  title: string,
 };
 
 export type Post = {

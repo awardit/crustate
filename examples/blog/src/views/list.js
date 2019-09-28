@@ -14,7 +14,7 @@ const PostItem = ({ id, title }: { id: number, title: string }): React$Node => (
 export const ListPostsView = (): React$Node => {
   const items = useData(PostListData);
 
-  if( ! Array.isArray(items)) {
+  if (!Array.isArray(items)) {
     return (
       <section>
         {items ? <p>Error: {items}</p> : <p>Loading...</p>}

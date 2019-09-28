@@ -94,7 +94,7 @@ export function StorageProvider({ storage, children }: StorageProviderProps): Re
 export function useSendMessage(): (message: Message, sourceName?: string) => void {
   const supervisor = useContext(StateContext);
 
-  if( ! supervisor) {
+  if (!supervisor) {
     throw new Error("useSendMessage() must be used inside a <State.Provider />.");
   }
 
@@ -132,7 +132,7 @@ export function createStateData<T, I: {}, M>(model: Model<T, I, M>): StateData<T
   function DataProvider(props: DataProviderProps<I>): React$Node {
     const context = useContext(StateContext);
 
-    if( ! context) {
+    if (!context) {
       throw new Error(`<${model.id}.Provider /> must be used inside a <StorageProvider />`);
     }
 
@@ -146,7 +146,7 @@ export function createStateData<T, I: {}, M>(model: Model<T, I, M>): StateData<T
       // after render()
       const newData = instance.getData();
 
-      if(data !== newData) {
+      if (data !== newData) {
         // Force re-render immediately
         setData(newData);
       }
@@ -155,7 +155,7 @@ export function createStateData<T, I: {}, M>(model: Model<T, I, M>): StateData<T
         instance.removeListener("stateNewData", setData);
 
         // Drop the state if we were the last listener
-        if(instance.listeners("stateNewData").length === 0) {
+        if (instance.listeners("stateNewData").length === 0) {
           context.removeState(model, instance.getName());
         }
       };
@@ -192,7 +192,7 @@ export function useData<T, I, M>(context: StateData<T, I, M>): T {
   const { _dataContext, model } = context;
   const data = useContext(_dataContext);
 
-  if(data === undefined) {
+  if (data === undefined) {
     throw new Error(`useData(${model.id}) must be used inside a <${model.id}.Provider />`);
   }
 

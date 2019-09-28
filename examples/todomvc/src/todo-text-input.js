@@ -32,10 +32,10 @@ export function TodoTextInput({
   const handleKeyDown = e => {
     const text = e.target.value.trim();
 
-    if(e.which === 13) {
+    if (e.which === 13) {
       onSave(text);
 
-      if(isNewTodo) {
+      if (isNewTodo) {
         setText("");
       }
     }

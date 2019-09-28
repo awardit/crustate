@@ -22,7 +22,7 @@ const storage = new Storage();
 
 const el = document.querySelector("#app");
 
-if( ! el) {
+if (!el) {
   throw new Error(`Missing <div id="app />`);
 }
 

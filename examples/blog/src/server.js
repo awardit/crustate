@@ -21,25 +21,25 @@ function listPosts(cb: (error: boolean, posts: Array<PostHeading>) => mixed) {
 
 function getPost(id: number, cb: ((error: true) => mixed) & (error: false, post: Post) => mixed) {
   // TODO: Implement
-  switch(id) {
-  case 1:
-    return cb(false, {
-      id: 1,
-      title: "Post one",
-      body: "This is the first post",
-      author: "Test",
-      date: new Date(),
-    });
-  case 2:
-    return cb(false, {
-      id: 2,
-      title: "Post B",
-      body: "This is another post",
-      author: "Martin",
-      date: new Date(),
-    });
-  default:
-    return cb(true);
+  switch (id) {
+    case 1:
+      return cb(false, {
+        id: 1,
+        title: "Post one",
+        body: "This is the first post",
+        author: "Test",
+        date: new Date(),
+      });
+    case 2:
+      return cb(false, {
+        id: 2,
+        title: "Post B",
+        body: "This is another post",
+        author: "Martin",
+        date: new Date(),
+      });
+    default:
+      return cb(true);
   }
 }
 
@@ -52,48 +52,48 @@ function createRequestHandler(storage: Storage) {
   const finish = () => {
     waiting -= 1;
 
-    if(waiting === 0) {
-      while(resolvers.length) {
+    if (waiting === 0) {
+      while (resolvers.length) {
         resolvers.pop()();
       }
     }
   };
 
   const subscriber = (msg: DataRequest, source: StatePath) => {
-    switch(msg.resource) {
-    case "list":
+    switch (msg.resource) {
+      case "list":
       // TODO: Generalize
-      waiting += 1;
+        waiting += 1;
 
-      listPosts((error, data) => {
-        if(error) {
+        listPosts((error, data) => {
+          if (error) {
           // TODO: How can we type this to ensure we reply with the correct
           //       message type?
-          storage.replyMessage({ tag: "effects/response/list", error }, source);
-        }
-        else {
-          storage.replyMessage({ tag: "effects/response/list", data }, source);
-        }
+            storage.replyMessage({ tag: "effects/response/list", error }, source);
+          }
+          else {
+            storage.replyMessage({ tag: "effects/response/list", data }, source);
+          }
 
-        finish();
-      });
-      break;
-    case "post":
-      waiting += 1;
+          finish();
+        });
+        break;
+      case "post":
+        waiting += 1;
 
-      getPost(msg.id, (error, data) => {
-        if(error) {
-          storage.replyMessage({ tag: "effects/response/post", error }, source);
-        }
-        else {
-          storage.replyMessage({ tag: "effects/response/post", data }, source);
-        }
+        getPost(msg.id, (error, data) => {
+          if (error) {
+            storage.replyMessage({ tag: "effects/response/post", error }, source);
+          }
+          else {
+            storage.replyMessage({ tag: "effects/response/post", data }, source);
+          }
 
-        finish();
-      });
-      break;
-    default:
-      throw new Error(`Unknown resource '${msg.resource}'.`);
+          finish();
+        });
+        break;
+      default:
+        throw new Error(`Unknown resource '${msg.resource}'.`);
     }
   };
 
@@ -139,7 +139,7 @@ app.use((req, res) => {
 
   renderApp(req, res, context);
 
-  if(context.url) {
+  if (context.url) {
     res.writeHead(302, { location: context.url });
 
     return res.end();
@@ -148,7 +148,7 @@ app.use((req, res) => {
   res.locals.effects.waitForAll().then(() => {
     const html = renderApp(req, res, context);
 
-    if(context.url) {
+    if (context.url) {
       res.writeHead(302, { location: context.url });
 
       return res.end();

@@ -11,7 +11,7 @@ export default config({
         { find: "crustate/react", replacement: path.join(__dirname, "./react/src/index") },
         { find: "react", replacement: path.join(__dirname, "./preact/src/react-shim") },
         { find: "react-dom", replacement: path.join(__dirname, "./preact/src/react-shim") },
-      ]
+      ],
     }),
   ],
   external: ["crustate", "preact", "preact/hooks"],

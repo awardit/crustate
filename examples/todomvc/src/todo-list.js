@@ -34,7 +34,7 @@ export const TodoItem = ({ todo: { id, text, completed } }: TodoItemProps) => {
   const sendMessage = useSendMessage();
   const handleDoubleClick = () => setEditing(true);
   const handleSave = text => {
-    if(text.length === 0) {
+    if (text.length === 0) {
       sendMessage(remove(id));
     }
     else {

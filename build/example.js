@@ -52,7 +52,7 @@ export const commonjs = commonjsPlugin({
       "useState",
     ],
     "react-dom": [
-      "render"
+      "render",
     ],
     "react-is": [
       "isValidElementType",

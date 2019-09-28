@@ -9,7 +9,7 @@ export class EventEmitter<Events: {}> {
   addListener<K: $Keys<Events>>(eventName: K, listener: Listener<Events, K>): void {
     const existing = this._eventListeners[(eventName: string)];
 
-    if(existing) {
+    if (existing) {
       existing.push(listener);
     }
     else {
@@ -20,11 +20,11 @@ export class EventEmitter<Events: {}> {
   removeListener<K: $Keys<Events>>(eventName: K, listener: Listener<Events, K>): void {
     const existing: ?Array<Listener<Events, K>> = this._eventListeners[(eventName: string)];
 
-    if(existing) {
+    if (existing) {
       const i = existing.indexOf(listener);
 
-      if(i >= 0) {
-        if(existing.length > 1) {
+      if (i >= 0) {
+        if (existing.length > 1) {
           existing.splice(i, 1);
         }
         else {
@@ -35,7 +35,7 @@ export class EventEmitter<Events: {}> {
   }
 
   removeAllListeners(eventName?: string): void {
-    if(eventName) {
+    if (eventName) {
       delete this._eventListeners[(eventName: string)];
     }
     else {
@@ -50,8 +50,8 @@ export class EventEmitter<Events: {}> {
   emit<K: $Keys<Events>>(eventName: K, ...args: $ElementType<Events, K>): void {
     const handler = this._eventListeners[(eventName: string)];
 
-    if(handler) {
-      for(const i of handler) {
+    if (handler) {
+      for (const i of handler) {
         i(...args);
       }
     }

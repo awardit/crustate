@@ -13,22 +13,22 @@ import { PostData, PostListData } from "./state";
 const basename = window.routerBasename;
 const storage = new Storage();
 const subscriber = (msg: DataRequest, source: StatePath) => {
-  switch(msg.resource) {
-  case "list":
+  switch (msg.resource) {
+    case "list":
     // TODO: Generalize this:
-    fetch(`${basename}/api/posts`).then(r => r.json()).then(
+      fetch(`${basename}/api/posts`).then(r => r.json()).then(
       // TODO: How can we type this to ensure we reply with the correct
       //       message type?
-      data => storage.replyMessage({ tag: "effects/response/list", data }, source),
-      e => storage.replyMessage({ tag: "effects/response/list", error: String(e) }, source));
-    break;
-  case "post":
-    fetch(`${basename}/api/posts/${msg.id}`).then(r => r.json()).then(
-      data => storage.replyMessage({ tag: "effects/response/post", data }, source),
-      e => storage.replyMessage({ tag: "effects/response/post", error: String(e) }, source));
-    break;
-  default:
-    throw new Error(`Unknown resource '${msg.resource}'.`);
+        data => storage.replyMessage({ tag: "effects/response/list", data }, source),
+        e => storage.replyMessage({ tag: "effects/response/list", error: String(e) }, source));
+      break;
+    case "post":
+      fetch(`${basename}/api/posts/${msg.id}`).then(r => r.json()).then(
+        data => storage.replyMessage({ tag: "effects/response/post", data }, source),
+        e => storage.replyMessage({ tag: "effects/response/post", error: String(e) }, source));
+      break;
+    default:
+      throw new Error(`Unknown resource '${msg.resource}'.`);
   }
 };
 
@@ -56,7 +56,7 @@ storage.addSubscriber(subscriber, { "effects/request": true });
 storage.addModel(PostListData.model);
 storage.addModel(PostData.model);
 
-if(window.appdata) {
+if (window.appdata) {
   storage.restoreSnapshot(window.appdata);
 }
 
@@ -65,7 +65,7 @@ window.appState = storage;
 
 const element = document.querySelector("#app");
 
-if( ! element) {
+if (!element) {
   throw new Error("Example: #app element was not found");
 }
 
