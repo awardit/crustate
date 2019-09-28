@@ -51,9 +51,8 @@ export class EventEmitter<Events: {}> {
     const handler = this._eventListeners[(eventName: string)];
 
     if(handler) {
-      // Manually used apply since it avoids an iterator shim
-      for(let i = 0; i < handler.length; i++) {
-        handler[i].apply(null, args);
+      for(const i of handler) {
+        i(...args);
       }
     }
   }

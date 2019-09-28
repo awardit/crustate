@@ -560,12 +560,12 @@ export function createInflightMessage(
 }
 
 export function findClosestSupervisor(supervisor: Supervisor, path: StatePath): Supervisor {
-  for(let i = 0; i < path.length; i++) {
-    if( ! supervisor._nested[path[i]]) {
+  for(const p of path) {
+    if( ! supervisor._nested[p]) {
       return supervisor;
     }
 
-    supervisor = supervisor._nested[path[i]];
+    supervisor = supervisor._nested[p];
   }
 
   return supervisor;
@@ -577,8 +577,8 @@ export function enqueueMessages(
   inflight: Array<InflightMessage>,
   messages: Array<Message>
 ): void {
-  for(let i = 0; i < messages.length; i++) {
-    inflight.push(createInflightMessage(storage, source, messages[i]));
+  for(const m of messages) {
+    inflight.push(createInflightMessage(storage, source, m));
   }
 }
 
@@ -597,8 +597,8 @@ export function processInstanceMessages(
     instance = instance._supervisor;
   }
 
-  for(let i = 0; i < inflight.length; i++) {
-    processStorageMessage(storage, inflight[i]);
+  for(const i of inflight) {
+    processStorageMessage(storage, i);
   }
 }
 
@@ -660,8 +660,7 @@ export function processStorageMessage(storage: Storage, inflight: InflightMessag
   const { _message, _source } = inflight;
   let received = inflight._received;
 
-  for(let i = 0; i < s.length; i++) {
-    const { listener, subscriptions } = s[i];
+  for(const { listener, subscriptions } of s) {
     const match = findMatchingSubscription(subscriptions, _message, received);
 
     if(match) {
@@ -712,9 +711,9 @@ export function handleBroadcast(
 
     // We have multiple instances of msg here now, one from each child
     // deduplicate.
-    for(let i = 0; i < messages.length; i++) {
-      if(returning.indexOf(messages[i]) === -1) {
-        returning.push(messages[i]);
+    for(const m of messages) {
+      if(returning.indexOf(m) === -1) {
+        returning.push(m);
       }
     }
   }
