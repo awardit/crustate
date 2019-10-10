@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.4.0] - 2019-10-10
 ### Added
 - Helper types `ModelDataType<M>` and `ModelInitType<M>` which resolve to the
   model `M`'s data-type and init-type.
