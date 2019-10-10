@@ -345,7 +345,8 @@ test("Rerender without storage should throw", t => {
 
   t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "the initial" }, "the initial"]);
-  // More of an implementation detail of React in that it unmounts the components that threw
+  // More of an implementation detail of React in that it unmounts the
+  // components that threw
   t.deepEqual(emit.calls[1].arguments, ["stateRemoved", ["state"], "the initial"]);
 });
 
