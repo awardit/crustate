@@ -1,6 +1,7 @@
 /* @flow */
 
 import type { Todo } from "./todos";
+import type { Model } from "crustate";
 
 import { createStateData } from "crustate/react";
 import { updateData } from "crustate";
@@ -32,7 +33,7 @@ export const todoFilterPredicate = (filter: Filter) => (todo: Todo): boolean => 
 
 export const setFilter = (value: Filter): FilterMsg => ({ tag: SET, value });
 
-export const FilterState = createStateData<Filter, {}, FilterMsg>({
+export const FilterState = createStateData<Model<Filter, {}, FilterMsg>>({
   id: "filter",
   init: () => updateData(SHOW_ALL),
   update: (_, msg) => updateData(msg.value),

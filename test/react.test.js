@@ -1,5 +1,7 @@
 /* @flow */
 
+import type { Model } from "../src";
+
 import ava from "ava";
 import ninos from "ninos";
 import { cleanup, fireEvent, render } from "@testing-library/react";
@@ -37,7 +39,7 @@ function init() {
 test.beforeEach(init);
 test.afterEach.always(cleanup);
 
-const MyData = createStateData<string, { test?: boolean, data: string }, UpdateMsg>({
+const MyData = createStateData<Model<string, { test?: boolean, data: string }, UpdateMsg>>({
   id: "state",
   init: ({ data }) => updateData(data),
   update: (_, msg) => updateData(msg.data),

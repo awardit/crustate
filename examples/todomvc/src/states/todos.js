@@ -1,5 +1,7 @@
 /* @flow */
 
+import type { Model } from "crustate";
+
 import { createStateData } from "crustate/react";
 import { updateData } from "crustate";
 
@@ -33,7 +35,7 @@ export const completeAll = () => ({ tag: COMPLETE_ALL });
 
 const maxId = (todos: Array<Todo>) => todos.reduce((a, t) => Math.max(a, t.id), 1);
 
-export const TodosState = createStateData<Array<Todo>, {}, TodoMsg>({
+export const TodosState = createStateData<Model<Array<Todo>, {}, TodoMsg>>({
   id: "todos",
   init: () => updateData([]),
   update: (todos, msg) => {

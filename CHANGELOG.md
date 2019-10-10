@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Helper types `ModelDataType<M>` and `ModelInitType<M>` which resolve to the
   model `M`'s data-type and init-type.
+### Changed
+- `StateData` now takes a `Model`-type as its single type-parameter instead of
+  the previous three types model-data, model-init, and model-message.
 ### Fixed
 - Do not mangle `id` property of model when minifying the React adapter.
 

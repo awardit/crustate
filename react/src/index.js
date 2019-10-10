@@ -8,7 +8,14 @@
  */
 
 import type { Context } from "react";
-import type { Message, Model, Storage, Supervisor } from "crustate";
+import type {
+  Message,
+  Model,
+  ModelDataType,
+  ModelInitType,
+  Storage,
+  Supervisor,
+} from "crustate";
 
 import {
   createContext,
@@ -19,6 +26,8 @@ import {
 } from "react";
 
 type DataProviderProps<T> = T & { name?: string, children?: ?React$Node };
+
+type AnyModel = Model<any, any, any>;
 
 // FIXME: Redefine this so it throws when undefined
 export type DataFunction<T> = (data: T | void) => ?React$Node;
@@ -46,22 +55,22 @@ export type TestProvider<T> = React$ComponentType<{ value: T, children?: ?React$
 /**
  * React-wrapper for a crustate-state.
  */
-export type StateData<T, I, M> = {
+export type StateData<M: AnyModel> = {
   /**
    * Internal: Reference to the data-context.
    */
-  _dataContext: React$Context<T | void>,
+  +_dataContext: React$Context<ModelDataType<M> | void>,
   /**
    * The model, exposed to be loaded for hydration and for testing.
    */
-  model: Model<T, I, M>,
+  +model: M,
   /**
    * A context provider allowing the state-data to be set to a constant value,
    * useful for testing.
    */
-  TestProvider: TestProvider<T>,
-  Provider: DataProvider<I>,
-  Consumer: DataConsumer<T>,
+  +TestProvider: TestProvider<ModelDataType<M>>,
+  +Provider: DataProvider<ModelInitType<M>>,
+  +Consumer: DataConsumer<ModelDataType<M>>,
 };
 
 type StorageProviderProps = { storage: Storage, children?: ?React$Node };
@@ -125,11 +134,11 @@ function excludeChildren<T: { children?: ?React$Node, name?: string }>(
  * @suppress {checkTypes}
  * @return {!StateData}
  */
-export function createStateData<T, I: {}, M>(model: Model<T, I, M>): StateData<T, I, M> {
-  const Ctx = (createContext(undefined): React$Context<T | void>);
+export function createStateData<+M: AnyModel>(model: M): StateData<M> {
+  const Ctx = (createContext(undefined): React$Context<ModelDataType<M> | void>);
   const { Provider } = Ctx;
 
-  function DataProvider(props: DataProviderProps<I>): React$Node {
+  function DataProvider(props: DataProviderProps<ModelInitType<M>>): React$Node {
     const context = useContext(StateContext);
 
     if (!context) {
@@ -188,7 +197,7 @@ export function createStateData<T, I: {}, M>(model: Model<T, I, M>): StateData<T
  *
  * @suppress {checkTypes}
  */
-export function useData<T, I, M>(context: StateData<T, I, M>): T {
+export function useData<M: AnyModel>(context: StateData<M>): ModelDataType<M> {
   const { _dataContext, model } = context;
   const data = useContext(_dataContext);
 
