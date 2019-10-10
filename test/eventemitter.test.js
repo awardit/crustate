@@ -38,7 +38,7 @@ test("emit() calls a single listener", t => {
   emitter.emit("foo");
 
   t.deepEqual(stub.calls, [
-    { this: null, arguments: [], return: undefined },
+    { this: undefined, arguments: [], return: undefined },
   ]);
 });
 
@@ -51,9 +51,9 @@ test("emit() calls a single listener with all arguments", t => {
   emitter.emit("foo", "arg1", "arg2", "arg3");
 
   t.deepEqual(stub.calls, [
-    { this: null, arguments: ["arg1"], return: undefined },
-    { this: null, arguments: ["arg1", "arg2"], return: undefined },
-    { this: null, arguments: ["arg1", "arg2", "arg3"], return: undefined },
+    { this: undefined, arguments: ["arg1"], return: undefined },
+    { this: undefined, arguments: ["arg1", "arg2"], return: undefined },
+    { this: undefined, arguments: ["arg1", "arg2", "arg3"], return: undefined },
   ]);
 });
 
@@ -75,10 +75,10 @@ test("emit() calls all listeners", t => {
   emitter.emit("foo", "arg1");
 
   t.deepEqual(stub1.calls, [
-    { this: null, arguments: ["arg1"], return: undefined },
+    { this: undefined, arguments: ["arg1"], return: undefined },
   ]);
   t.deepEqual(stub2.calls, [
-    { this: null, arguments: ["arg1"], return: undefined },
+    { this: undefined, arguments: ["arg1"], return: undefined },
   ]);
 });
 
