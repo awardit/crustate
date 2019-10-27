@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { Model } from "./model";
+import type { Model, TypeofModelData, TypeofModelInit } from "./model";
 import type { InflightMessage, Message, Subscriptions } from "./message";
 
 import { debugAssert } from "./assert";
@@ -23,19 +23,10 @@ export type StateSnapshot = {
   nested: Snapshot,
 };
 
-/**
- * Supervisor is a parent state or a storage instance.
- *
- * NOTE: Essentially the same as AbstractSupervisor, just that this type is
- * closed to make it possible to differentiate between the two types while
- * traversing the tree.
- */
-export type Supervisor = Storage | State<any, any>;
-
 export type Listener<M: Message> = (message: M, sourcePath: StatePath) => mixed;
 export type Subscriber<M: Message> = { listener: Listener<M>, subscriptions: Subscriptions<M> };
 
-export type StateMap = { [name: string]: State<any, any> };
+export type StateMap = { [name: string]: State<any> };
 
 export type StorageEvents = {
   /**
@@ -109,7 +100,7 @@ export type StorageEvents = {
   snapshotRestored: [],
 };
 
-export type StateEvents<T> = {
+export type StateEvents<M: UntypedModel> = {
   /**
    * Emitted when a state-instance updates its data.
    *
@@ -119,29 +110,120 @@ export type StateEvents<T> = {
    *  * Path to the new state
    *  * Message which caused the update
    */
-  stateNewData: [T, StatePath, Message],
+  stateNewData: [TypeofModelData<M>, StatePath, Message],
 };
 
-interface AbstractSupervisor {
-  _nested: StateMap,
-  getStorage(): Storage,
-  getPath(): StatePath,
-  getState<T, I, M>(model: Model<T, I, M>, name?: string): ?State<T, I>,
-  createState<T, I, M>(model: Model<T, I, M>, params: I, name?: string): State<T, I>,
-  sendMessage(message: Message, sourceName?: string): void,
-  removeState<T, I, M>(model: Model<T, I, M>, name?: string): void,
-}
+type UntypedModel = Model<any, any, any>;
 
 const ANONYMOUS_SOURCE = "$";
 const BROADCAST_SOURCE = "@";
 const REPLY_SOURCE = "<";
 
+class Supervisor<+E: {}> extends EventEmitter<E> {
+  _nested: StateMap = {};
+
+  // TODO: Mark this as private
+  +getStorage: () => Storage;
+  +getPath: () => StatePath;
+
+  /* eslint-disable no-useless-constructor */
+  // Explicit constructor results in shorter minified code
+  constructor(): void {
+    super();
+  }
+  /* eslint-enable no-useless-constructor */
+
+  /**
+   * Returns the nested State for the given model and name if it
+   * exists, name defaults to model id.
+   */
+  getState<M: UntypedModel>(m: M, name?: string): ?State<M> {
+    if (process.env.NODE_ENV !== "production") {
+      ensureModel(this.getStorage(), m);
+    }
+
+    const inst = this._nested[name || m.id];
+
+    if (inst) {
+      debugAssert(inst._name === (name || m.id),
+        `State name '${inst._name}' does not match key name '${name || m.id}`);
+    }
+
+    return inst;
+  }
+
+  /**
+   * Attempts to retrieve the nested State for the given model and name,
+   * if it does not exist it will be created, name defaults to model id.
+   */
+  createState<M: UntypedModel>(m: M, params: TypeofModelInit<M>, name?: string): State<M> {
+    const i = this.getState(m, name);
+
+    if (i) {
+      return i;
+    }
+
+    const storage = this.getStorage();
+    const { id, init } = m;
+
+    if (!name) {
+      name = id;
+    }
+
+    tryAddModel(storage, m);
+
+    const { data, messages } = init(params);
+
+    debugAssert(
+      this instanceof Storage || this instanceof State,
+      "this is not an instance of Storage or State"
+    );
+
+    const instance = new State(id, (this: any), data, name);
+    const path = instance.getPath();
+
+    this._nested[name] = instance;
+
+    storage.emit("stateCreated", path, (params: any), data);
+
+    if (messages) {
+      processInstanceMessages(
+        storage,
+        instance._supervisor,
+        messages.map((m: Message): InflightMessage => createInflightMessage(storage, path, m))
+      );
+    }
+
+    return instance;
+  }
+
+  removeState<M: UntypedModel>(m: M, name?: string): void {
+    const inst = this.getState(m, name);
+
+    if (inst) {
+      delete this._nested[name || inst._name];
+
+      this.getStorage().emit("stateRemoved", inst.getPath(), inst._data);
+    }
+  }
+
+  /**
+   * Sends the given message to any matching State or Subscriber in the
+   * state-tree.
+   */
+  sendMessage(msg: Message, srcName?: string = ANONYMOUS_SOURCE): void {
+    const storage = this.getStorage();
+    const msgPath = this.getPath().concat([srcName]);
+
+    processInstanceMessages(storage, this, [createInflightMessage(storage, msgPath, msg)]);
+  }
+}
+
 /**
  * Base node in a state-tree, anchors all states and carries all data.
  */
-export class Storage extends EventEmitter<StorageEvents> implements AbstractSupervisor {
+export class Storage extends Supervisor<StorageEvents> {
   _subscribers: Array<Subscriber<any>> = [];
-  _nested: StateMap = {};
   /**
    * Models, used for subscribers, updates and messages.
    */
@@ -184,44 +266,6 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
    */
   getModel<T, I, M>(id: string): ?Model<T, I, M> {
     return this._defs[id];
-  }
-
-  /**
-   * Returns the nested State for the given model and name if it
-   * exists, name defaults to model id.
-   */
-  getState<T, I, M>(model: Model<T, I, M>, name?: string): ?State<T, I> {
-    return getState(this, model, name);
-  }
-
-  /**
-   * Attempts to retrieve the nested State for the given model and name,
-   * if it does not exist it will be created, name defaults to model id.
-   */
-  createState<U, J, N>(model: Model<U, J, N>, params: J, name?: string): State<U, J> {
-    return createState(this, model, params, name);
-  }
-
-  /**
-   * Removes the nested State for the given model and name if it exists,
-   * name defaults to model id.
-   */
-  removeState<U, J, N>(model: Model<U, J, N>, name?: string): void {
-    const inst = getState(this, model, name);
-
-    if (inst) {
-      delete this._nested[name || inst._name];
-
-      this.emit("stateRemoved", inst.getPath(), inst._data);
-    }
-  }
-
-  /**
-   * Sends the given message to any matching State or Subscriber in the
-   * state-tree.
-   */
-  sendMessage(message: Message, sourceName?: string = ANONYMOUS_SOURCE): void {
-    processStorageMessage(this, createInflightMessage(this, [sourceName], message));
   }
 
   /**
@@ -294,9 +338,7 @@ export class Storage extends EventEmitter<StorageEvents> implements AbstractSupe
 /**
  * Object representing an instance of a Model.
  */
-export class State<T, I>
-  extends EventEmitter<StateEvents<T>>
-  implements AbstractSupervisor {
+export class State<M: UntypedModel> extends Supervisor<StateEvents<M>> {
   /**
    * Matches the Storage _defs collection.
    */
@@ -305,11 +347,15 @@ export class State<T, I>
    * Matches the key used in the supervisor's `_nested` collection.
    */
   _name: string;
-  _data: T;
-  _supervisor: Supervisor;
-  _nested: StateMap = {};
+  _data: TypeofModelData<M>;
+  _supervisor: Storage | State<any>;
 
-  constructor(id: string, supervisor: Supervisor, data: TypeofModelData<M>, name: string): void {
+  constructor(
+    id: string,
+    supervisor: Storage | State<any>,
+    data: TypeofModelData<M>,
+    name: string
+  ): void {
     super();
 
     this._id = id;
@@ -328,7 +374,7 @@ export class State<T, I>
   /**
    * Returns the data contained in this State.
    */
-  getData(): T {
+  getData(): TypeofModelData<M> {
     return this._data;
   }
 
@@ -360,71 +406,11 @@ export class State<T, I>
 
     return path;
   }
-
-  /**
-   * Returns the nested State for the given model and name if it
-   * exists, name defaults to model id.
-   */
-  getState<U, J, N>(model: Model<U, J, N>, name?: string): ?State<U, J> {
-    return getState(this, model, name);
-  }
-
-  /**
-   * Attempts to retrieve the nested State for the given model and name,
-   * if it does not exist it will be created, name defaults to model id.
-   */
-  createState<U, J, N>(model: Model<U, J, N>, params: J, name?: string): State<U, J> {
-    return createState(this, model, params, name);
-  }
-
-  /**
-   * Removes the nested State for the given model and name if it exists,
-   * name defaults to model id.
-   */
-  removeState<U, J, N>(model: Model<U, J, N>, name?: string): void {
-    const inst = getState(this, model, name);
-
-    if (inst) {
-      delete this._nested[name || inst._name];
-
-      this.getStorage().emit("stateRemoved", inst.getPath(), inst._data);
-    }
-  }
-
-  /**
-   * Sends the given message to any matching State or Subscriber in the
-   * state-tree.
-   */
-  sendMessage(message: Message, sourceName?: string = ANONYMOUS_SOURCE): void {
-    const storage = this.getStorage();
-    const msgPath = this.getPath().concat([sourceName]);
-
-    processInstanceMessages(storage, this, [createInflightMessage(storage, msgPath, message)]);
-  }
-}
-
-export function getState<T, I, M>(
-  supervisor: Supervisor,
-  model: Model<T, I, M>,
-  name?: string
-): ?State<T, I> {
-  if (process.env.NODE_ENV !== "production") {
-    ensureModel(supervisor.getStorage(), model);
-  }
-
-  const inst = supervisor._nested[name || model.id];
-
-  if (inst) {
-    debugAssert(inst._name === (name || model.id),
-      `State name '${inst._name}' does not match key name '${name || model.id}`);
-  }
-
-  return inst;
 }
 
 export function restoreSnapshot(
   storage: Storage,
-  supervisor: Supervisor,
+  supervisor: Storage | State<any>,
   snapshot: Snapshot
 ): void {
   const newNested: StateMap = {};
@@ -490,58 +476,6 @@ export function getModelById<T, I, M: Message>(
   return spec;
 }
 
-export function createState<T, I, M>(
-  supervisor: Supervisor,
-  model: Model<T, I, M>,
-  params: I,
-  name?: string
-): State<T, I> {
-  const child = getState(supervisor, model, name);
-
-  if (child) {
-    // TODO: Probably just move this to the react adapter
-    // TODO: Diff and send message if the params are different
-
-    return child;
-  }
-
-  return newState(supervisor, model, params, name);
-}
-
-export function newState<T, I, M>(
-  supervisor: Supervisor,
-  model: Model<T, I, M>,
-  initialData: I,
-  name?: string
-): State<T, I> {
-  const storage = supervisor.getStorage();
-  const { id, init } = model;
-
-  if (!name) {
-    name = id;
-  }
-
-  tryAddModel(storage, model);
-
-  const { data, messages } = init(initialData);
-  const instance = new State(id, supervisor, data, name);
-  const path = instance.getPath();
-
-  supervisor._nested[name] = instance;
-
-  storage.emit("stateCreated", path, (initialData: any), data);
-
-  if (messages) {
-    processInstanceMessages(
-      storage,
-      instance._supervisor,
-      messages.map((m: Message): InflightMessage => createInflightMessage(storage, path, m))
-    );
-  }
-
-  return instance;
-}
-
 export function createInflightMessage(
   storage: Storage,
   source: StatePath,
@@ -556,7 +490,7 @@ export function createInflightMessage(
   };
 }
 
-export function findClosestSupervisor(supervisor: Supervisor, path: StatePath): Supervisor {
+export function findClosestSupervisor(supervisor: Supervisor<{}>, path: StatePath): Supervisor<{}> {
   for (const p of path) {
     if (!supervisor._nested[p]) {
       return supervisor;
@@ -581,7 +515,7 @@ export function enqueueMessages(
 
 export function processInstanceMessages(
   storage: Storage,
-  instance: Supervisor,
+  instance: Supervisor<{}>,
   inflight: Array<InflightMessage>
 ): void {
   let sourcePath = instance.getPath();
@@ -601,7 +535,7 @@ export function processInstanceMessages(
 
 export function processMessages(
   storage: Storage,
-  instance: State<any, any>,
+  instance: State<any>,
   sourcePath: StatePath,
   inflight: Array<InflightMessage>
 ): void {
@@ -718,7 +652,7 @@ export function handleBroadcast(
   return returning;
 }
 
-export function createSnapshot(node: Supervisor): Snapshot {
+export function createSnapshot(node: Supervisor<{}>): Snapshot {
   return Object.keys(node._nested).reduce((a: Snapshot, key: string): Snapshot => {
     const nested = node._nested[key];
 
