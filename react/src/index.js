@@ -12,7 +12,7 @@ import type {
   Message,
   Model,
   Storage,
-  Supervisor,
+  State,
   TypeofModelData,
   TypeofModelInit,
 } from "crustate";
@@ -81,7 +81,7 @@ type StorageProviderProps = { storage: Storage, children?: ?React$Node };
  *
  * @suppress {checkTypes}
  */
-export const StateContext: Context<?Supervisor> = createContext(null);
+export const StateContext: Context<?State<any> | Storage> = createContext(null);
 
 const InstanceProvider = StateContext.Provider;
 
