@@ -157,6 +157,7 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
    * if it does not exist it will be created, name defaults to model id.
    */
   createState<M: UntypedModel>(m: M, params: TypeofModelInit<M>, name?: string): State<M> {
+    // TODO: Should probably throw since it can have sideeffects or not
     const i = this.getState(m, name);
 
     if (i) {
@@ -194,10 +195,12 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
       );
     }
 
+    // FIXME: Return a promise or an object with a promise and the instance, or
+    // make the instance possible to await?
     return instance;
   }
 
-  removeState<M: UntypedModel>(m: M, name?: string): void {
+  removeState<M: UntypedModel>(m: M, name?: string): Promise<void> {
     const inst = this.getState(m, name);
 
     if (inst) {
@@ -205,17 +208,23 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
 
       this.getStorage().emit("stateRemoved", inst.getPath(), inst._data);
     }
+
+    // FIXME: Implement
+    return Promise.resolve(undefined);
   }
 
   /**
    * Sends the given message to any matching State or Subscriber in the
    * state-tree.
    */
-  sendMessage(msg: Message, srcName?: string = ANONYMOUS_SOURCE): void {
+  sendMessage(msg: Message, srcName?: string = ANONYMOUS_SOURCE): Promise<void> {
     const storage = this.getStorage();
     const msgPath = this.getPath().concat([srcName]);
 
     processInstanceMessages(storage, this, [createInflightMessage(storage, msgPath, msg)]);
+
+    // FIXME: Implement
+    return Promise.resolve(undefined);
   }
 }
 
@@ -295,13 +304,16 @@ export class Storage extends Supervisor<StorageEvents> {
    * Sends a message to all state-instances currently reachable from this
    * Storage instance.
    */
-  broadcastMessage(msg: Message, sourceName?: string = BROADCAST_SOURCE): void {
+  broadcastMessage(msg: Message, sourceName?: string = BROADCAST_SOURCE): Promise<void> {
     handleBroadcast(
       this,
       [],
       this._nested,
       createInflightMessage(this, [sourceName], msg)
     ).forEach((m: InflightMessage): void => processStorageMessage(this, m));
+
+    // FIXME: Implement
+    return Promise.resolve(undefined);
   }
 
   /**

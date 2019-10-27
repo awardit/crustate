@@ -107,8 +107,9 @@ export function useSendMessage(): (message: Message, sourceName?: string) => voi
     throw new Error("useSendMessage() must be used inside a <State.Provider />.");
   }
 
-  return (message: Message, sourceName?: string): void =>
+  return (message: Message, sourceName?: string): void => {
     supervisor.sendMessage(message, sourceName);
+  };
 }
 
 /**
