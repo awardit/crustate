@@ -20,7 +20,7 @@ export type {
   TypeofModelData,
   TypeofModelInit,
 } from "./model";
-export type { Snapshot, Supervisor, StatePath, StateSnapshot } from "./storage";
+export type { Snapshot, StatePath, StateSnapshot } from "./storage";
 
 export { updateData, updateAndSend } from "./update";
 export { State, Storage } from "./storage";
