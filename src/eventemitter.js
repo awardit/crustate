@@ -1,24 +1,31 @@
 /* @flow */
 
-export type Listener<Events, Name: $Keys<Events>> = (...args: $ElementType<Events, Name>) => mixed;
-export type Listeners<Events> = { [eventName: string]: ?Array<Listener<Events, *>> };
+export type Listener<+E, K> = (...args: $ElementType<E, K>) => mixed;
+export type Listeners = { [k: string]: Array<(...args: any) => mixed> };
 
-export class EventEmitter<Events: {}> {
-  _eventListeners: Listeners<Events> = {};
+export class EventEmitter<+E: {}> {
+  _eventListeners: Listeners = {};
 
-  addListener<K: $Keys<Events>>(eventName: K, listener: Listener<Events, K>): void {
-    const existing = this._eventListeners[(eventName: string)];
+  addListener<K: $Keys<E>>(
+    eventName: K,
+    // Using inline Listener here since E is not allowed in an input position
+    listener: (...args: $ElementType<E, K>) => mixed
+  ): void {
+    const existing: ?Array<Listener<E, K>> = this._eventListeners[eventName];
 
     if (existing) {
       existing.push(listener);
     }
     else {
-      this._eventListeners[(eventName: string)] = [listener];
+      this._eventListeners[eventName] = [listener];
     }
   }
 
-  removeListener<K: $Keys<Events>>(eventName: K, listener: Listener<Events, K>): void {
-    const existing: ?Array<Listener<Events, K>> = this._eventListeners[(eventName: string)];
+  removeListener<K: $Keys<E>>(
+    eventName: K,
+    listener: (...args: $ElementType<E, K>) => mixed
+  ): void {
+    const existing: ?Array<Listener<E, K>> = this._eventListeners[eventName];
 
     if (existing) {
       const i = existing.indexOf(listener);
@@ -28,7 +35,7 @@ export class EventEmitter<Events: {}> {
           existing.splice(i, 1);
         }
         else {
-          delete this._eventListeners[(eventName: string)];
+          delete this._eventListeners[eventName];
         }
       }
     }
@@ -36,19 +43,19 @@ export class EventEmitter<Events: {}> {
 
   removeAllListeners(eventName?: string): void {
     if (eventName) {
-      delete this._eventListeners[(eventName: string)];
+      delete this._eventListeners[eventName];
     }
     else {
       this._eventListeners = {};
     }
   }
 
-  listeners<K: $Keys<Events>>(eventName: K): Array<Listener<Events, K>> {
-    return this._eventListeners[(eventName: string)] || [];
+  listeners<K: $Keys<E>>(eventName: K): Array<(...args: $ElementType<E, K>) => mixed> {
+    return this._eventListeners[eventName] || [];
   }
 
-  emit<K: $Keys<Events>>(eventName: K, ...args: $ElementType<Events, K>): void {
-    const handler = this._eventListeners[(eventName: string)];
+  emit<K: $Keys<E>>(eventName: K, ...args: $ElementType<E, K>): void {
+    const handler = this._eventListeners[eventName];
 
     if (handler) {
       for (const i of handler) {

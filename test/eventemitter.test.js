@@ -26,6 +26,10 @@ test("emit() does nothing on empty", t => {
 test("emit() does nothing on undefined", t => {
   const emitter = new TestEmitter({ "foo": undefined });
 
+  (emitter: EventEmitter<{}>);
+  // $ExpectError
+  (emitter: EventEmitter<{ bar: [string] }>);
+
   emitter.emit("foo");
 
   t.deepEqual(emitter, new TestEmitter({ "foo": undefined }));
