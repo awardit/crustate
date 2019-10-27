@@ -20,7 +20,6 @@ export type StateSnapshot = {
    */
   id: string,
   data: mixed,
-  params: mixed,
   nested: Snapshot,
 };
 
@@ -307,17 +306,15 @@ export class State<T, I>
    */
   _name: string;
   _data: T;
-  _params: I;
   _supervisor: Supervisor;
   _nested: StateMap = {};
 
-  constructor(id: string, supervisor: Supervisor, params: I, data: T, name: string): void {
+  constructor(id: string, supervisor: Supervisor, data: TypeofModelData<M>, name: string): void {
     super();
 
     this._id = id;
     this._name = name;
     this._supervisor = supervisor;
-    this._params = params;
     this._data = data;
   }
 
@@ -436,12 +433,12 @@ export function restoreSnapshot(
   // We trust that the user has not been poking around in globals
   for (const k in snapshot) {
   /* eslint-enable guard-for-in */
-    const { id, data, params, nested } = snapshot[k];
+    const { id, data, nested } = snapshot[k];
 
     // Ensure the model exists when we restore
     getModelById(storage, id);
 
-    const inst = new State(id, supervisor, params, data, k);
+    const inst = new State(id, supervisor, data, k);
 
     restoreSnapshot(storage, inst, nested);
 
@@ -527,7 +524,7 @@ export function newState<T, I, M>(
   tryAddModel(storage, model);
 
   const { data, messages } = init(initialData);
-  const instance = new State(id, supervisor, initialData, data, name);
+  const instance = new State(id, supervisor, data, name);
   const path = instance.getPath();
 
   supervisor._nested[name] = instance;
@@ -729,7 +726,6 @@ export function createSnapshot(node: Supervisor): Snapshot {
       id: nested._id,
       // We assume it is immutably updated
       data: nested._data,
-      params: nested._params,
       nested: createSnapshot(nested),
     };
 
