@@ -3,21 +3,21 @@
 const babel = require("./build/babel");
 
 export default {
-  "babel": {
-    "testOptions": {
+  babel: {
+    testOptions: {
       ...babel.test,
       ignore: [],
-    }
+    },
   },
-  "files": [
-    "**/*.test.js"
+  files: [
+    "**/*.test.js",
   ],
-  "sources": [
+  sources: [
     "src/**/*.js",
-    "**/src/**/*.js"
+    "**/src/**/*.js",
   ],
-  "require": [
-    "./test/_register"
+  require: [
+    "./test/_register",
   ],
-  "powerAssert": true,
+  powerAssert: true,
 };

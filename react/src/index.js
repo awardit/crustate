@@ -135,7 +135,7 @@ function excludeChildren<T: { children?: ?React$Node, name?: string }>(
  * @return {!StateData}
  */
 export function createStateData<+M: AnyModel>(model: M): StateData<M> {
-  const Ctx = (createContext(undefined): React$Context<ModelDataType<M> | void>);
+  const Ctx = (createContext(undefined): React$Context<TypeofModelData<M> | void>);
   const { Provider } = Ctx;
 
   function DataProvider(props: DataProviderProps<TypeofModelInit<M>>): React$Node {
@@ -197,7 +197,7 @@ export function createStateData<+M: AnyModel>(model: M): StateData<M> {
  *
  * @suppress {checkTypes}
  */
-export function useData<M: AnyModel>(context: StateData<M>): ModelDataType<M> {
+export function useData<M: AnyModel>(context: StateData<M>): TypeofModelData<M> {
   const { _dataContext, model } = context;
   const data = useContext(_dataContext);
 
