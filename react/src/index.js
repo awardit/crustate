@@ -11,10 +11,10 @@ import type { Context } from "react";
 import type {
   Message,
   Model,
-  ModelDataType,
-  ModelInitType,
   Storage,
   Supervisor,
+  TypeofModelData,
+  TypeofModelInit,
 } from "crustate";
 
 import {
@@ -59,7 +59,7 @@ export type StateData<M: AnyModel> = {
   /**
    * Internal: Reference to the data-context.
    */
-  +_dataContext: React$Context<ModelDataType<M> | void>,
+  +_dataContext: React$Context<TypeofModelData<M> | void>,
   /**
    * The model, exposed to be loaded for hydration and for testing.
    */
@@ -68,9 +68,9 @@ export type StateData<M: AnyModel> = {
    * A context provider allowing the state-data to be set to a constant value,
    * useful for testing.
    */
-  +TestProvider: TestProvider<ModelDataType<M>>,
-  +Provider: DataProvider<ModelInitType<M>>,
-  +Consumer: DataConsumer<ModelDataType<M>>,
+  +TestProvider: TestProvider<TypeofModelData<M>>,
+  +Provider: DataProvider<TypeofModelInit<M>>,
+  +Consumer: DataConsumer<TypeofModelData<M>>,
 };
 
 type StorageProviderProps = { storage: Storage, children?: ?React$Node };
@@ -138,7 +138,7 @@ export function createStateData<+M: AnyModel>(model: M): StateData<M> {
   const Ctx = (createContext(undefined): React$Context<ModelDataType<M> | void>);
   const { Provider } = Ctx;
 
-  function DataProvider(props: DataProviderProps<ModelInitType<M>>): React$Node {
+  function DataProvider(props: DataProviderProps<TypeofModelInit<M>>): React$Node {
     const context = useContext(StateContext);
 
     if (!context) {

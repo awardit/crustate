@@ -14,11 +14,11 @@ export type {
 export type { Update } from "./update";
 export type {
   Model,
-  ModelDataType,
   ModelInit,
-  ModelInitType,
   ModelSubscribe,
   ModelUpdate,
+  TypeofModelData,
+  TypeofModelInit,
 } from "./model";
 export type { Snapshot, Supervisor, StatePath, StateSnapshot } from "./storage";
 

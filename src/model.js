@@ -36,12 +36,12 @@ export type Model<T, I, M> = {
  * Utility type resolving the data-type of a model with unspecified
  * type-parameters.
  */
-export type ModelDataType<+M: Model<any, any, any>> =
+export type TypeofModelData<+M: Model<any, any, any>> =
   $Call<<T, N: Model<T, any, any>>(N) => T, M>;
 
 /**
  * Utility type resolving the init-type of a model with unspecified
  * type-parameters.
  */
-export type ModelInitType<+M: Model<any, any, any>> =
+export type TypeofModelInit<+M: Model<any, any, any>> =
   $Call<<T, N: Model<any, T, any>>(N) => T, M>;
