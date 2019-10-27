@@ -31,6 +31,10 @@ module.exports = {
   },
   test: {
     babelrc: false,
+    ignore: [
+      "**/*.test.js",
+      "node_modules/**/*.js",
+    ],
     presets: [
       ["@babel/preset-react"],
       ["@babel/preset-env", {

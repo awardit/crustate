@@ -105,54 +105,6 @@
     "todomvc-app-css": "2.3.0",
     "xo": "0.25.3"
   },
-  "ava": {
-    "babel": {
-      "testOptions": {
-        "presets": [
-          [
-            "@babel/preset-react"
-          ],
-          [
-            "@babel/preset-env",
-            {
-              "loose": true,
-              "shippedProposals": true,
-              "targets": {
-                "node": "current",
-                "firefox": "50",
-                "ie": "11"
-              },
-              "exclude": [
-                "transform-typeof-symbol"
-              ]
-            }
-          ]
-        ],
-        "plugins": [
-          [
-            "@babel/plugin-transform-flow-strip-types"
-          ],
-          [
-            "@babel/plugin-proposal-class-properties",
-            {
-              "loose": true
-            }
-          ]
-        ]
-      }
-    },
-    "files": [
-      "**/*.test.js"
-    ],
-    "sources": [
-      "src/**/*.js",
-      "**/src/**/*.js"
-    ],
-    "require": [
-      "./test/_register"
-    ],
-    "powerAssert": true
-  },
   "bundlesize": [
     {
       "path": "./dist/index.esm.js"
