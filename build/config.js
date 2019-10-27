@@ -19,7 +19,8 @@ const compiler = externs => closureCompiler({
   assume_function_wrapper: true,
   warning_level: "VERBOSE",
   language_in: "ECMASCRIPT_2018",
-  language_out: "ECMASCRIPT_2015",
+  language_out: "ECMASCRIPT5_STRICT",
+  rewrite_polyfills: "false",
   // Custom environment since we do not always run in browser
   env: "CUSTOM",
   // We must have externs to be able to build using CUSTOM
