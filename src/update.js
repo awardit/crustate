@@ -10,8 +10,6 @@ export type Update<T> = {| data: T, messages: ?Array<Message> |};
 
 /**
  * Creates an update replacing the data of the state.
- *
- * @export
  */
 export function updateData<T>(data: T): Update<T> {
   return { data, messages: null };
@@ -20,8 +18,6 @@ export function updateData<T>(data: T): Update<T> {
 /**
  * Creates an update replacing the data of the state, and sends a list o
  * messages to supervisoring states.
- *
- * @export
  */
 export function updateAndSend<T>(data: T, ...messages: Array<Message>): Update<T> {
   return { data, messages };
