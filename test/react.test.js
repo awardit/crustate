@@ -20,6 +20,7 @@ type UpdateMsg = { tag: "data", data: string };
 
 // We need to make sure we cleanup after each test, so serial
 const test = ninos(ava).serial;
+const args = f => f.calls.map(c => c.arguments);
 
 function init() {
   cleanup();
@@ -145,11 +146,12 @@ test("State renders correctly and updates when modified", t => {
   t.is(container.outerHTML, "<div><p>the new one</p><a>Foo</a></div>");
   t.is(link.outerHTML, "<a>Foo</a>");
   t.deepEqual(s.getSnapshot(), { state: { data: "the new one", id: "state", nested: {} } });
-  t.is(emit.calls.length, 4);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "initial" }, "initial"]);
-  t.deepEqual(emit.calls[1].arguments, ["messageQueued", { tag: "data", data: "the new one" }, ["state", "$"]]);
-  t.deepEqual(emit.calls[2].arguments, ["messageMatched", { tag: "data", data: "the new one" }, ["state"], false]);
-  t.deepEqual(emit.calls[3].arguments, ["stateNewData", "the new one", ["state"], { tag: "data", data: "the new one" }]);
+  t.deepEqual(args(emit), [
+    ["stateCreated", ["state"], { data: "initial" }, "initial"],
+    ["messageQueued", { tag: "data", data: "the new one" }, ["state", "$"]],
+    ["messageMatched", { tag: "data", data: "the new one" }, ["state"], false],
+    ["stateNewData", "the new one", ["state"], { tag: "data", data: "the new one" }],
+  ]);
 });
 
 test("sendMessage should have a path", t => {
@@ -169,9 +171,10 @@ test("sendMessage should have a path", t => {
   // Click is synchronous and will trigger the sendMessage call
   fireEvent.click(link);
 
-  t.is(emit.calls.length, 2);
-  t.deepEqual(emit.calls[0].arguments, ["messageQueued", { tag: "data", data: "whatevs" }, ["$"]]);
-  t.deepEqual(emit.calls[1].arguments, ["unhandledMessage", { tag: "data", data: "whatevs" }, ["$"]]);
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "data", data: "whatevs" }, ["$"]],
+    ["unhandledMessage", { tag: "data", data: "whatevs" }, ["$"]],
+  ]);
 });
 
 test("sendMessage should be able to set a path", t => {
@@ -191,9 +194,10 @@ test("sendMessage should be able to set a path", t => {
   // Click is synchronous and will trigger the sendMessage call
   fireEvent.click(link);
 
-  t.is(emit.calls.length, 2);
-  t.deepEqual(emit.calls[0].arguments, ["messageQueued", { tag: "data", data: "whatevs" }, ["aaaaa"]]);
-  t.deepEqual(emit.calls[1].arguments, ["unhandledMessage", { tag: "data", data: "whatevs" }, ["aaaaa"]]);
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "data", data: "whatevs" }, ["aaaaa"]],
+    ["unhandledMessage", { tag: "data", data: "whatevs" }, ["aaaaa"]],
+  ]);
 });
 
 test("State is removed when the Provider is unmounted", t => {
@@ -214,9 +218,10 @@ test("State is removed when the Provider is unmounted", t => {
 
   t.is(container.outerHTML, `<div></div>`);
   t.deepEqual(s.getSnapshot(), {});
-  t.is(emit.calls.length, 2);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "my initial" }, "my initial"]);
-  t.deepEqual(emit.calls[1].arguments, ["stateRemoved", ["state"], "my initial"]);
+  t.deepEqual(args(emit), [
+    ["stateCreated", ["state"], { data: "my initial" }, "my initial"],
+    ["stateRemoved", ["state"], "my initial"],
+  ]);
 });
 
 test("State is reused at the same level", t => {
@@ -231,8 +236,9 @@ test("State is reused at the same level", t => {
 
   t.is(container.outerHTML, `<div><p>my initial</p><p>my initial</p></div>`);
   t.deepEqual(s.getSnapshot(), { state: { data: "my initial", id: "state", nested: {} } });
-  t.is(emit.calls.length, 1);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "my initial" }, "my initial"]);
+  t.deepEqual(args(emit), [
+    ["stateCreated", ["state"], { data: "my initial" }, "my initial"],
+  ]);
 });
 
 test("State updates during rendering are respected", t => {
@@ -258,11 +264,12 @@ test("State updates during rendering are respected", t => {
 
   t.is(container.outerHTML, `<div><p>updated</p></div>`);
   t.deepEqual(s.getSnapshot(), { state: { data: "updated", id: "state", nested: {} } });
-  t.is(emit.calls.length, 4);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "my initial" }, "my initial"]);
-  t.deepEqual(emit.calls[1].arguments, ["messageQueued", { tag: "data", data: "updated" }, ["state", "$"]]);
-  t.deepEqual(emit.calls[2].arguments, ["messageMatched", { tag: "data", data: "updated" }, ["state"], false]);
-  t.deepEqual(emit.calls[3].arguments, ["stateNewData", "updated", ["state"], { tag: "data", data: "updated" }]);
+  t.deepEqual(args(emit), [
+    ["stateCreated", ["state"], { data: "my initial" }, "my initial"],
+    ["messageQueued", { tag: "data", data: "updated" }, ["state", "$"]],
+    ["messageMatched", { tag: "data", data: "updated" }, ["state"], false],
+    ["stateNewData", "updated", ["state"], { tag: "data", data: "updated" }],
+  ]);
 });
 
 test("State is removed when the Provider is the last to be unmounted", t => {
@@ -293,9 +300,10 @@ test("State is removed when the Provider is the last to be unmounted", t => {
 
   t.is(container.outerHTML, `<div></div>`);
   t.deepEqual(s.getSnapshot(), {});
-  t.is(emit.calls.length, 2);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "my initial" }, "my initial"]);
-  t.deepEqual(emit.calls[1].arguments, ["stateRemoved", ["state"], "my initial"]);
+  t.deepEqual(args(emit), [
+    ["stateCreated", ["state"], { data: "my initial" }, "my initial"],
+    ["stateRemoved", ["state"], "my initial"],
+  ]);
 });
 
 test("Rerender should not do anything with the same parameters", t => {
@@ -319,8 +327,9 @@ test("Rerender should not do anything with the same parameters", t => {
     </StorageProvider>);
 
   t.is(container.outerHTML, `<div><p>the initial</p></div>`);
-  t.is(emit.calls.length, 1);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "the initial" }, "the initial"]);
+  t.deepEqual(args(emit), [
+    ["stateCreated", ["state"], { data: "the initial" }, "the initial"],
+  ]);
 });
 
 test("Rerender without storage should throw", t => {
@@ -343,11 +352,12 @@ test("Rerender without storage should throw", t => {
       </MyData.Provider>
     </StateContext.Provider>), { message: "<state.Provider /> must be used inside a <StorageProvider />" });
 
-  t.is(emit.calls.length, 2);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["state"], { data: "the initial" }, "the initial"]);
-  // More of an implementation detail of React in that it unmounts the
-  // components that threw
-  t.deepEqual(emit.calls[1].arguments, ["stateRemoved", ["state"], "the initial"]);
+  t.deepEqual(args(emit), [
+    ["stateCreated", ["state"], { data: "the initial" }, "the initial"],
+    // More of an implementation detail of React in that it unmounts the
+    // components that threw
+    ["stateRemoved", ["state"], "the initial"],
+  ]);
 });
 
 test("Rerender with new storage should recreate the state instance in the new storage", t => {
@@ -373,11 +383,11 @@ test("Rerender with new storage should recreate the state instance in the new st
     </StateContext.Provider>);
 
   t.is(container.outerHTML, `<div><p>the initial</p></div>`);
-  t.is(emitA.calls.length, 2);
-  t.deepEqual(emitA.calls[0].arguments, ["stateCreated", ["state"], { data: "the initial" }, "the initial"]);
-  t.deepEqual(emitA.calls[1].arguments, ["stateRemoved", ["state"], "the initial"]);
-  t.is(emitB.calls.length, 1);
-  t.deepEqual(emitB.calls[0].arguments, ["stateCreated", ["state"], { data: "the initial" }, "the initial"]);
+  t.deepEqual(args(emitA), [
+    ["stateCreated", ["state"], { data: "the initial" }, "the initial"],
+    ["stateRemoved", ["state"], "the initial"],
+  ]);
+  t.deepEqual(args(emitB), [["stateCreated", ["state"], { data: "the initial" }, "the initial"]]);
 });
 
 test("Varying name property will recreate the state instance", t => {
@@ -402,8 +412,9 @@ test("Varying name property will recreate the state instance", t => {
 
   t.is(container.outerHTML, `<div><p>bData</p></div>`);
 
-  t.is(emit.calls.length, 3);
-  t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["a"], { data: "aData" }, "aData"]);
-  t.deepEqual(emit.calls[1].arguments, ["stateCreated", ["b"], { data: "bData" }, "bData"]);
-  t.deepEqual(emit.calls[2].arguments, ["stateRemoved", ["a"], "aData"]);
+  t.deepEqual(args(emit), [
+    ["stateCreated", ["a"], { data: "aData" }, "aData"],
+    ["stateCreated", ["b"], { data: "bData" }, "bData"],
+    ["stateRemoved", ["a"], "aData"],
+  ]);
 });
