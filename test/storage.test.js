@@ -15,7 +15,7 @@ test("Storage can be created without parameters and is empty", t => {
   const emit = t.context.spy(s, "emit");
 
   t.is(s instanceof Storage, true);
-  t.is(s.getStorage(), s);
+  t.is(s._getStorage(), s);
   t.deepEqual(s.getPath(), []);
   t.deepEqual(s.getSnapshot(), {});
   t.is(emit.calls.length, 0);
@@ -105,7 +105,7 @@ test("Storage createState creates a new state instance", t => {
   t.deepEqual(s.getSnapshot(), { test: { id: "test", data: { name: "initData" }, nested: {} } });
   t.is(instance.getName(), "test");
   t.is(instance.getData(), initData);
-  t.is(instance.getStorage(), s);
+  t.is(instance._getStorage(), s);
   t.deepEqual(instance.getPath(), ["test"]);
   t.is(emit.calls.length, 1);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, initData]);
@@ -409,7 +409,7 @@ test("States can be nested", t => {
   t.is(second.getName(), "second");
   t.deepEqual(second.getPath(), ["first", "second"]);
   t.is(second.getData(), secondData);
-  t.is(second.getStorage(), s);
+  t.is(second._getStorage(), s);
   t.is(first.getState(firstDef), undefined);
   t.is(first.getState(secondDef), second);
   t.is(second.getState(firstDef), undefined);
@@ -436,7 +436,7 @@ test("States of the same definition can be nested", t => {
   t.is(second.getName(), "test");
   t.deepEqual(second.getPath(), ["test", "test"]);
   t.is(second.getData(), initData);
-  t.is(second.getStorage(), s);
+  t.is(second._getStorage(), s);
   t.not(second, first);
   t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["test"], undefined, { name: "initData" }]);
@@ -1107,10 +1107,10 @@ test("Storage getState, createState, and removeState, with a different name shou
 
   t.is(sFoo.getName(), "foo");
   t.deepEqual(sFoo.getPath(), ["foo"]);
-  t.is(sFoo.getStorage(), s);
+  t.is(sFoo._getStorage(), s);
   t.is(sBar.getName(), "bar");
   t.deepEqual(sBar.getPath(), ["bar"]);
-  t.is(sBar.getStorage(), s);
+  t.is(sBar._getStorage(), s);
 
   s.removeState(d);
 
@@ -1215,10 +1215,10 @@ test("State getState, createState, and removeState, with a different name should
 
   t.is(sFoo.getName(), "foo");
   t.deepEqual(sFoo.getPath(), ["bar", "foo"]);
-  t.is(sFoo.getStorage(), s);
+  t.is(sFoo._getStorage(), s);
   t.is(sBar.getName(), "bar");
   t.deepEqual(sBar.getPath(), ["bar", "bar"]);
-  t.is(sBar.getStorage(), s);
+  t.is(sBar._getStorage(), s);
 
   nested.removeState(d);
 

@@ -122,8 +122,7 @@ const REPLY_SOURCE = "<";
 class Supervisor<+E: {}> extends EventEmitter<E> {
   _nested: StateMap = {};
 
-  // TODO: Mark this as private
-  +getStorage: () => Storage;
+  +_getStorage: () => Storage;
   +getPath: () => StatePath;
 
   /* eslint-disable no-useless-constructor */
@@ -139,7 +138,7 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
    */
   getState<M: UntypedModel>(m: M, name?: string): ?State<M> {
     if (process.env.NODE_ENV !== "production") {
-      ensureModel(this.getStorage(), m);
+      ensureModel(this._getStorage(), m);
     }
 
     const inst = this._nested[name || m.id];
@@ -164,7 +163,7 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
       return i;
     }
 
-    const storage = this.getStorage();
+    const storage = this._getStorage();
     const { id, init } = m;
 
     if (!name) {
@@ -206,7 +205,7 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
     if (inst) {
       delete this._nested[name || inst._name];
 
-      this.getStorage().emit("stateRemoved", inst.getPath(), inst._data);
+      this._getStorage().emit("stateRemoved", inst.getPath(), inst._data);
     }
 
     // FIXME: Implement
@@ -218,7 +217,7 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
    * state-tree.
    */
   sendMessage(msg: Message, srcName?: string = ANONYMOUS_SOURCE): Promise<void> {
-    const storage = this.getStorage();
+    const storage = this._getStorage();
     const msgPath = this.getPath().concat([srcName]);
 
     processInstanceMessages(storage, this, [createInflightMessage(storage, msgPath, msg)]);
@@ -248,7 +247,7 @@ export class Storage extends Supervisor<StorageEvents> {
   /**
    * Returns the Storage backing all state in this tree.
    */
-  getStorage(): Storage {
+  _getStorage(): Storage {
     return this;
   }
 
@@ -383,7 +382,7 @@ export class State<M: UntypedModel> extends Supervisor<StateEvents<M>> {
   /**
    * Returns the Storage backing all state in this tree.
    */
-  getStorage(): Storage {
+  _getStorage(): Storage {
     let s = this._supervisor;
 
     while (s instanceof State) {
