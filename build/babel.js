@@ -22,29 +22,18 @@ const plugins = [
 ];
 
 module.exports = {
-  compiler: {
-    babelrc: false,
-    presets: [
-      ["@babel/preset-react"],
-    ],
-    plugins,
-  },
-  test: {
-    babelrc: false,
-    ignore: [
-      "**/*.test.js",
-      "node_modules/**/*.js",
-    ],
-    presets: [
-      ["@babel/preset-react"],
-      ["@babel/preset-env", {
-        targets: {
-          node: true,
-        },
-        exclude: ["transform-typeof-symbol"],
-      }],
-    ],
-    plugins,
-  },
+  babelrc: false,
+  ignore: [
+    "**/*.test.js",
+    "node_modules/**/*.js",
+  ],
+  presets: [
+    ["@babel/preset-react"],
+    ["@babel/preset-env", {
+      loose: true,
+      // No targets = ECMAScript 5
+    }],
+  ],
+  plugins,
 };
 

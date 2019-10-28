@@ -5,7 +5,7 @@ const babel = require("./build/babel");
 export default {
   babel: {
     testOptions: {
-      ...babel.test,
+      ...babel,
       ignore: [],
     },
   },

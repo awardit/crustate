@@ -9,7 +9,6 @@ export default [
   config({
     input: "src/index.js",
     output: "dist/index",
-    externs: ["build/externs/crustate.js", "build/exports/crustate.js"],
   }),
   crustateReact,
   crustatePreact,

@@ -1,12 +1,5 @@
 /* @flow */
 
-/*
- * We need to suppress Google Closure Compiler's checkTypes warnings throughout
- * the file since @ampproject/rollup-plugin-closure-compiler generates bad
- * externs for named external imports. Everything becomes function() {}, which
- * causes argument-mismatch warnings preventing compilation.
- */
-
 import type { Context } from "react";
 import type {
   Message,

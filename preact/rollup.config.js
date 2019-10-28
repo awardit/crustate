@@ -15,10 +15,4 @@ export default config({
     }),
   ],
   external: ["crustate", "preact", "preact/hooks"],
-  externs: [
-    "build/externs/crustate.js",
-    "build/externs/react.js",
-    "build/externs/preact.js",
-    "build/exports/react.js",
-  ],
 });
