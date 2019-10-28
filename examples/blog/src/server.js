@@ -59,7 +59,7 @@ function createRequestHandler(storage: Storage) {
     }
   };
 
-  const subscriber = (msg: DataRequest, source: StatePath) => {
+  const effect = (msg: DataRequest, source: StatePath) => {
     switch (msg.resource) {
       case "list":
       // TODO: Generalize
@@ -97,7 +97,7 @@ function createRequestHandler(storage: Storage) {
     }
   };
 
-  storage.addSubscriber(subscriber, { "effects/request": true });
+  storage.addEffect({ effect, subscribe: { "effects/request": true } });
 
   return {
     waitForAll: () => new Promise(resolve => waiting ? resolvers.push(resolve) : resolve()),

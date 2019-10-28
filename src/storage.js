@@ -1,7 +1,8 @@
 /* @flow */
 
+import type { Effect } from "./effect";
 import type { Model, TypeofModelData, TypeofModelInit } from "./model";
-import type { InflightMessage, Message, Subscriptions } from "./message";
+import type { InflightMessage, Message } from "./message";
 
 import { debugAssert } from "./assert";
 import { findMatchingSubscription } from "./message";
@@ -24,7 +25,6 @@ export type StateSnapshot = {
 };
 
 export type Listener<M: Message> = (message: M, sourcePath: StatePath) => mixed;
-export type Subscriber<M: Message> = { listener: Listener<M>, subscriptions: Subscriptions<M> };
 
 export type StateMap = { [name: string]: State<any> };
 
@@ -232,7 +232,7 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
  * Base node in a state-tree, anchors all states and carries all data.
  */
 export class Storage extends Supervisor<StorageEvents> {
-  _subscribers: Array<Subscriber<any>> = [];
+  _effects: Array<Effect<any>> = [];
   /**
    * Models, used for subscribers, updates and messages.
    */
@@ -278,29 +278,6 @@ export class Storage extends Supervisor<StorageEvents> {
   }
 
   /**
-   * Adds a listener subscribing to the messages matching the given
-   * subscriptions.
-   */
-  addSubscriber<M: Message>(listener: Listener<M>, subscriptions: Subscriptions<M>): void {
-    this._subscribers.push({ listener, subscriptions });
-  }
-
-  /**
-   * Removes the supplied listener.
-   */
-  removeSubscriber(listener: Listener<any>): void {
-    const { _subscribers } = this;
-
-    for (let i = 0; i < _subscribers.length; i++) {
-      if (_subscribers[i].listener === listener) {
-        _subscribers.splice(i, 1);
-
-        return;
-      }
-    }
-  }
-
-  /**
    * Sends a message to all state-instances currently reachable from this
    * Storage instance.
    */
@@ -320,11 +297,24 @@ export class Storage extends Supervisor<StorageEvents> {
    * Looks up the closest matching State for the given path, then sends the
    * supplied message to all matching States and Subscribers.
    */
+  // TODO: Remove once Effects is in place
   replyMessage(msg: Message, targetState: StatePath, sourceName?: string = REPLY_SOURCE): void {
     const instance = findClosestSupervisor(this, targetState);
     const inflight = [createInflightMessage(this, targetState.concat(sourceName), msg)];
 
     processInstanceMessages(this, instance, inflight);
+  }
+
+  addEffect(eff: Effect<any>): void {
+    this._effects.push(eff);
+  }
+
+  removeEffect(eff: Effect<any>): void {
+    const i = this._effects.indexOf(eff);
+
+    if (i !== -1) {
+      this._effects.splice(i, 1);
+    }
   }
 
   /**
@@ -599,12 +589,12 @@ export function processMessages(
 }
 
 export function processStorageMessage(storage: Storage, inflight: InflightMessage): void {
-  const { _subscribers: s } = storage;
   const { _message, _source } = inflight;
   let received = inflight._received;
+  const { _effects } = storage;
 
-  for (const { listener, subscriptions } of s) {
-    const match = findMatchingSubscription(subscriptions, _message, received);
+  for (const { "effect": effect, "subscribe": subscribe } of _effects) {
+    const match = findMatchingSubscription(subscribe, _message, received);
 
     if (match) {
       if (!match.isPassive) {
@@ -613,7 +603,8 @@ export function processStorageMessage(storage: Storage, inflight: InflightMessag
 
       storage.emit("messageMatched", _message, [], match.isPassive);
 
-      listener(_message, _source);
+      // FIXME: Implement async-tracking
+      effect(_message, _source);
     }
   }
 

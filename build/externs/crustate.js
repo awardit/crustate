@@ -76,13 +76,13 @@ crustate.Storage.prototype.sendMessage;
   /**
    * @export
    */
-crustate.Storage.prototype.addSubscriber = function(listener, subscription) {};
+crustate.Storage.prototype.addEffect = function(listener, subscription) {};
 crustate.Storage.prototype.getState;
 crustate.Storage.prototype.createState = function(state, params) {};
 crustate.Storage.prototype.getPath;
 crustate.Storage.prototype.getStorage;
 crustate.Storage.prototype.removeState;
-crustate.Storage.prototype.removeSubscriber;
+crustate.Storage.prototype.removeState;
 crustate.Storage.prototype.stateDefinition;
 
 /**

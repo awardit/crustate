@@ -22,7 +22,7 @@ test("Storage can be created without parameters and is empty", t => {
   // Looking at internals
   t.deepEqual(s._nested, {});
   t.deepEqual(s._defs, {});
-  t.deepEqual(s._subscribers, []);
+  t.deepEqual(s._effects, []);
 });
 
 test("Storage is not modified when querying for state-instances or definitions", t => {
@@ -39,7 +39,7 @@ test("Storage is not modified when querying for state-instances or definitions",
   // Looking at internals
   t.deepEqual(s._nested, {});
   t.deepEqual(s._defs, {});
-  t.deepEqual(s._subscribers, []);
+  t.deepEqual(s._effects, []);
 });
 
 test("Storage can register state definitons", t => {
@@ -58,7 +58,7 @@ test("Storage can register state definitons", t => {
   // Looking at internals
   t.deepEqual(s._nested, {});
   t.deepEqual(s._defs, { test: state });
-  t.deepEqual(s._subscribers, []);
+  t.deepEqual(s._effects, []);
   t.deepEqual(stub1.calls, []);
   t.deepEqual(stub2.calls, []);
   t.deepEqual(stub3.calls, []);
@@ -82,7 +82,7 @@ test("Storage rejects duplicate state definitions", t => {
   // Looking at internals
   t.deepEqual(s._nested, {});
   t.deepEqual(s._defs, { test: state });
-  t.deepEqual(s._subscribers, []);
+  t.deepEqual(s._effects, []);
   t.deepEqual(stub1.calls, []);
   t.deepEqual(stub2.calls, []);
   t.deepEqual(stub3.calls, []);
@@ -112,7 +112,7 @@ test("Storage createState creates a new state instance", t => {
   // Looking at internals
   t.deepEqual(s._nested, { test: instance });
   t.deepEqual(s._defs, { test: state });
-  t.deepEqual(s._subscribers, []);
+  t.deepEqual(s._effects, []);
   t.is(init.calls.length, 1);
   t.deepEqual(init.calls[0].arguments, [undefined]);
   t.is(update.calls.length, 0);
@@ -184,7 +184,7 @@ test("Storage createState throws when trying to use a new state definition with 
   // Looking at internals
   t.deepEqual(s._nested, {});
   t.deepEqual(s._defs, { test: state });
-  t.deepEqual(s._subscribers, []);
+  t.deepEqual(s._effects, []);
   t.is(init.calls.length, 0);
   t.is(update.calls.length, 0);
   t.is(subscribe.calls.length, 0);
@@ -209,7 +209,7 @@ test("Storage getState on non-existing state instance should throw when using a 
   // Looking at internals
   t.deepEqual(s._nested, {});
   t.deepEqual(s._defs, { test: state });
-  t.deepEqual(s._subscribers, []);
+  t.deepEqual(s._effects, []);
   t.is(init.calls.length, 0);
   t.is(update.calls.length, 0);
   t.is(subscribe.calls.length, 0);
@@ -239,7 +239,7 @@ test("Storage getState on non-existing state instance should return undefined wh
     // Looking at internals
     t.deepEqual(s._nested, {});
     t.deepEqual(s._defs, { test: state });
-    t.deepEqual(s._subscribers, []);
+    t.deepEqual(s._effects, []);
     t.is(init.calls.length, 0);
     t.is(update.calls.length, 0);
     t.is(subscribe.calls.length, 0);
@@ -281,8 +281,8 @@ test("Sending messages on a Storage should send them to matching subscribers", t
   const msg = { tag: "testMessage" };
   const msg2 = { tag: "uncaught" };
 
-  s.addSubscriber(recv1, { "testMessage": true });
-  s.addSubscriber(recv2, { "fooMessage": true });
+  s.addEffect({ effect: recv1, subscribe: { "testMessage": true } });
+  s.addEffect({ effect: recv2, subscribe: { "fooMessage": true } });
 
   s.sendMessage(msg);
 
@@ -309,7 +309,7 @@ test("Sending messages with a name on a Storage should propagate the name", t =>
   const recv1 = t.context.stub();
   const msg = { tag: "testMessage" };
 
-  s.addSubscriber(recv1, { testMessage: true });
+  s.addEffect({ effect: recv1, subscribe: { testMessage: true } });
 
   s.sendMessage(msg, "themessage");
 
@@ -327,9 +327,12 @@ test("Removing a subscriber should not fire when a matching message is sent", t 
   const recv2 = t.context.stub();
   const msg = { tag: "testMessage" };
 
-  s.addSubscriber(recv1, { testMessage: true });
-  s.addSubscriber(recv2, { "testMessage": true });
-  s.removeSubscriber(recv2);
+  const eff1 = { effect: recv1, subscribe: { testMessage: true } };
+  const eff2 = { effect: recv2, subscribe: { testMessage: true } };
+
+  s.addEffect(eff1);
+  s.addEffect(eff2);
+  s.removeEffect(eff2);
 
   s.sendMessage(msg);
 
@@ -347,7 +350,7 @@ test("Sending messages on a Storage should also trigger unhandledMessage if no a
   const recv = t.context.stub();
   const msg = { tag: "testMessage" };
 
-  s.addSubscriber(recv, { "testMessage": { passive: true } });
+  s.addEffect({ effect: recv, subscribe: { "testMessage": { passive: true } } });
 
   s.sendMessage(msg);
 
@@ -689,8 +692,8 @@ test("Active subscribers prevent parents and unhandledMessage from receiving", t
     subscribe: t.context.stub(() => ({ "initMsg": true })),
   };
 
-  s.addSubscriber(stub1, { "initMsg": true });
-  s.addSubscriber(stub2, { "firstMsg": true });
+  s.addEffect({ effect: stub1, subscribe: { "initMsg": true } });
+  s.addEffect({ effect: stub2, subscribe: { "firstMsg": true } });
 
   const first = s.createState(firstDef);
 
@@ -726,8 +729,8 @@ test("Passive subscribers always receive messages from children", t => {
     subscribe: t.context.stub(() => ({ "initMsg": true })),
   };
 
-  s.addSubscriber(stub1, { "initMsg": { passive: true } });
-  s.addSubscriber(stub2, { "firstMsg": { passive: true } });
+  s.addEffect({ effect: stub1, subscribe: { "initMsg": { passive: true } } });
+  s.addEffect({ effect: stub2, subscribe: { "firstMsg": { passive: true } } });
 
   const first = s.createState(firstDef);
 

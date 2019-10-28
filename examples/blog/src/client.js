@@ -12,7 +12,7 @@ import { PostData, PostListData } from "./state";
 
 const basename = window.routerBasename;
 const storage = new Storage();
-const subscriber = (msg: DataRequest, source: StatePath) => {
+const effect = (msg: DataRequest, source: StatePath) => {
   switch (msg.resource) {
     case "list":
     // TODO: Generalize this:
@@ -50,7 +50,7 @@ Object.keys(events).forEach(eventName => {
   storage.addListener((eventName: any), (...data) => console[level](eventName, ...data));
 });
 
-storage.addSubscriber(subscriber, { "effects/request": true });
+storage.addEffect({ effect, subscribe: { "effects/request": true } });
 
 // Register the possible states we might restore when we call restoreSnapshot();
 storage.addModel(PostListData.model);
