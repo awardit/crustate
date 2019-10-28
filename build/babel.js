@@ -39,9 +39,7 @@ module.exports = {
       ["@babel/preset-react"],
       ["@babel/preset-env", {
         targets: {
-          node: 8,
-          firefox: 50,
-          ie: 11,
+          node: true,
         },
         exclude: ["transform-typeof-symbol"],
       }],
