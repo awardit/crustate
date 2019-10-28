@@ -122,7 +122,7 @@ test("Storage createState creates a new state instance", t => {
   t.deepEqual(args(subscribe), []);
 });
 
-test("Storage createState returns the same instance given the same params", t => {
+test("Storage createState throws given the same params", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const initData = { name: "initData" };
@@ -130,10 +130,11 @@ test("Storage createState returns the same instance given the same params", t =>
   const update = t.context.stub();
   const subscribe = t.context.stub(() => []);
   const state = { id: "test", init, update, subscribe };
-  const instance = s.createState(state);
-  const instance2 = s.createState(state);
 
-  t.is(instance, instance2);
+  s.createState(state);
+
+  t.throws(() => s.createState(state), { instanceOf: Error, message: "Duplicate state 'test'" });
+
   t.deepEqual(args(init), [[undefined]]);
   t.deepEqual(args(update), []);
   t.deepEqual(args(subscribe), []);
@@ -775,11 +776,11 @@ test("findClosestSupervisor", t => {
   const s = new Storage();
 
   const sA = s.createState(defA);
-  const sAB = s.createState(defA).createState(defB);
-  const sAA = s.createState(defA).createState(defA);
+  const sAB = sA.createState(defB);
+  const sAA = sA.createState(defA);
   const sB = s.createState(defB);
-  const sBA = s.createState(defB).createState(defA);
-  const sBB = s.createState(defB).createState(defB);
+  const sBA = sB.createState(defA);
+  const sBB = sB.createState(defB);
 
   t.is(findClosestSupervisor(s, []), s);
   t.is(findClosestSupervisor(s, ["a"]), sA);
@@ -1118,7 +1119,6 @@ test("Storage getState, createState, and removeState, with a different name shou
 
   t.not(s.getState(d), undefined);
   t.is(s.getState(d), s.getState(d, "foo"));
-  t.is(s.createState(d), s.createState(d, undefined, "foo"));
   t.is(s.getState(d), s.getState(d, "foo"));
   t.is(s.getState(d, "bar"), undefined);
   t.not(s.createState(d, null, "bar"), undefined);
@@ -1128,11 +1128,12 @@ test("Storage getState, createState, and removeState, with a different name shou
     bar: { id: "foo", data: 1, nested: {} },
   });
 
-  const sFoo = s.createState(d, undefined, "foo");
-  const sBar = s.createState(d, null, "bar");
+  // AVA is missing flowtypes, so the truthy check does not eliminate null
+  const sFoo: State<any> = (s.getState(d, "foo"): any);
+  const sBar: State<any> = (s.getState(d, "bar"): any);
 
-  t.not(sFoo, undefined);
-  t.not(sBar, undefined);
+  t.truthy(sFoo);
+  t.truthy(sBar);
   t.not(sFoo, sBar);
 
   t.is(sFoo.getName(), "foo");
@@ -1227,7 +1228,6 @@ test("State getState, createState, and removeState, with a different name should
   t.not(nested.getState(d), undefined);
   t.not(nested.getState(d), s.getState(d));
   t.is(nested.getState(d), nested.getState(d, "foo"));
-  t.is(nested.createState(d), nested.createState(d, undefined, "foo"));
   t.is(nested.getState(d), nested.getState(d, "foo"));
   t.is(nested.getState(d, "bar"), undefined);
   t.not(nested.createState(d, null, "bar"), undefined);
@@ -1237,11 +1237,12 @@ test("State getState, createState, and removeState, with a different name should
     bar: { id: "foo", data: 1, nested: {} },
   } } });
 
-  const sFoo = nested.createState(d, undefined, "foo");
-  const sBar = nested.createState(d, null, "bar");
+  // AVA is missing flowtypes, so the truthy check does not eliminate null
+  const sFoo: State<any> = (nested.getState(d, "foo"): any);
+  const sBar: State<any> = (nested.getState(d, "bar"): any);
 
-  t.not(sFoo, undefined);
-  t.not(sBar, undefined);
+  t.truthy(sFoo);
+  t.truthy(sBar);
   t.not(sFoo, sBar);
 
   t.is(sFoo.getName(), "foo");

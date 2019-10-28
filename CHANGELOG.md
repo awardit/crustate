@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Renamed `ModelDataType` and `ModelInitType` to `TypeofModelData` and
   `TypeofModelInit`.
+- `createState` now throws if the state already exists to avoid unintended
+  sideffects.
 ### Removed
 - Removed `params` data from `State` objects and snapshot.
 - Removed public `Storage` type export.

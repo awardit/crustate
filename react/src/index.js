@@ -139,7 +139,8 @@ export function createStateData<+M: AnyModel>(model: M): StateData<M> {
       throw new Error(`<${model.id}.Provider /> must be used inside a <StorageProvider />`);
     }
 
-    const instance = context.createState(model, excludeChildren(props), props.name);
+    const instance = context.getState(model, props.name) ||
+      context.createState(model, excludeChildren(props), props.name);
     const [data, setData] = useState(instance.getData());
 
     useEffect((): (() => void) => {

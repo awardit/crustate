@@ -159,19 +159,18 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
    * if it does not exist it will be created, name defaults to model id.
    */
   createState<M: UntypedModel>(m: M, params: TypeofModelInit<M>, name?: string): State<M> {
-    // TODO: Should probably throw since it can have sideeffects or not
-    const i = this.getState(m, name);
-
-    if (i) {
-      return i;
-    }
-
-    const storage = this._getStorage();
     const { id, init } = m;
 
     if (!name) {
       name = id;
     }
+
+    if (this._nested[name]) {
+      // TODO: Maybe add path?
+      throw new Error(`Duplicate state '${name}'`);
+    }
+
+    const storage = this._getStorage();
 
     tryAddModel(storage, m);
 
