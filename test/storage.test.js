@@ -854,9 +854,13 @@ test("Storage.removeState", t => {
   const emit = t.context.spy(s, "emit");
 
   t.is(s.getState(defA), undefined);
-  t.is(s.removeState(defA), undefined);
+
+  s.removeState(defA);
+
   t.is(emit.calls.length, 0);
-  t.is(s.removeState(defB), undefined);
+
+  s.removeState(defB);
+
   t.is(emit.calls.length, 0);
   t.is(s.getState(defA), undefined);
 
@@ -864,9 +868,13 @@ test("Storage.removeState", t => {
 
   t.is(a instanceof State, true);
   t.is(s.getState(defA), a);
-  t.is(s.removeState(defB), undefined);
+
+  s.removeState(defB);
+
   t.is(s.getState(defA), a);
-  t.is(s.removeState(defA), undefined);
+
+  s.removeState(defA);
+
   t.is(s.getState(defA), undefined);
   t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["a"], undefined, {}]);
@@ -894,9 +902,13 @@ test("State.removeState", t => {
   t.is(emit.calls.length, 1);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["a"], undefined, {}]);
   t.is(a.getState(defA), undefined);
-  t.is(a.removeState(defA), undefined);
+
+  a.removeState(defA);
+
   t.is(emit.calls.length, 1);
-  t.is(a.removeState(defB), undefined);
+
+  a.removeState(defB);
+
   t.is(emit.calls.length, 1);
   t.is(a.getState(defA), undefined);
 
@@ -904,9 +916,13 @@ test("State.removeState", t => {
 
   t.is(i instanceof State, true);
   t.is(a.getState(defA), i);
-  t.is(a.removeState(defB), undefined);
+
+  a.removeState(defB);
+
   t.is(a.getState(defA), i);
-  t.is(a.removeState(defA), undefined);
+
+  a.removeState(defA);
+
   t.is(i.getState(defA), undefined);
   t.is(emit.calls.length, 3);
   t.deepEqual(emit.calls[0].arguments, ["stateCreated", ["a"], undefined, {}]);
@@ -1316,7 +1332,7 @@ test("broadcastMessage triggers unhandledMessage on empty", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
 
-  t.is(s.broadcastMessage({ tag: "AAA" }), undefined);
+  s.broadcastMessage({ tag: "AAA" });
 
   t.is(emit.calls.length, 2);
   t.deepEqual(emit.calls[0].arguments, ["messageQueued", { tag: "AAA" }, ["@"]]);
@@ -1339,7 +1355,7 @@ test("broadcastMessage triggers attempts to send messages to all states", t => {
   const foo = s.createState(d);
   foo.createState(d, undefined, "bar");
 
-  t.is(s.broadcastMessage({ tag: "AAA" }), undefined);
+  s.broadcastMessage({ tag: "AAA" });
 
   t.is(emit.calls.length, 4);
   t.deepEqual(emit.calls[0].arguments[0], "stateCreated");
@@ -1369,7 +1385,7 @@ test("broadcastMessage sends a message to all states with deepest first", t => {
   foo.createState(d);
   foo.createState(d, undefined, "bar");
 
-  t.is(s.broadcastMessage({ tag: "AAA" }), undefined);
+  s.broadcastMessage({ tag: "AAA" });
 
   t.is(emit.calls.length, 10);
   t.deepEqual(emit.calls[0].arguments[0], "stateCreated");
@@ -1409,7 +1425,7 @@ test("broadcastMessage will still trigger unhandledMessage if only passive subsc
   foo.createState(d);
   foo.createState(d, undefined, "bar");
 
-  t.is(s.broadcastMessage({ tag: "AAA" }), undefined);
+  s.broadcastMessage({ tag: "AAA" });
 
   t.is(emit.calls.length, 11);
   t.deepEqual(emit.calls[0].arguments[0], "stateCreated");
@@ -1456,7 +1472,7 @@ test("broadcastMessage will not trigger unhandledMessage if at least one is a no
   s.createState(d);
   s.createState(d2);
 
-  t.is(s.broadcastMessage({ tag: "AAA" }), undefined);
+  s.broadcastMessage({ tag: "AAA" });
 
   t.is(emit.calls.length, 7);
   t.deepEqual(emit.calls[0].arguments[0], "stateCreated");
@@ -1498,7 +1514,7 @@ test("broadcastMessage will not trigger unhandledMessage if at least one is a no
   const foo = s.createState(d);
   foo.createState(d2);
 
-  t.is(s.broadcastMessage({ tag: "AAA" }), undefined);
+  s.broadcastMessage({ tag: "AAA" });
 
   t.is(emit.calls.length, 7);
   t.deepEqual(emit.calls[0].arguments[0], "stateCreated");
@@ -1534,7 +1550,7 @@ test("broadcastMessage propagates messages in order", t => {
   foo.createState(d);
   foo.createState(d, undefined, "bar");
 
-  t.is(s.broadcastMessage({ tag: "AAA" }), undefined);
+  s.broadcastMessage({ tag: "AAA" });
 
   t.is(emit.calls.length, 22);
   t.deepEqual(emit.calls[0].arguments[0], "stateCreated");
