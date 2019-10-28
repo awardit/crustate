@@ -74,7 +74,7 @@ export type Subscription<M: Message> = true | {
 export function findMatchingSubscription<M: Message>(
   subscriptions: Subscriptions<M>,
   message: M, received: boolean
-): ?{ isPassive: boolean } {
+): ?{ _isPassive: boolean } {
   const { tag } = message;
 
   if (!subscriptions[tag]) {
@@ -88,7 +88,7 @@ export function findMatchingSubscription<M: Message>(
   const matching = subscriber === true ? null : subscriber.matching;
 
   if ((passive || !received) && tag === message.tag && (!matching || matching(message))) {
-    return { isPassive: passive };
+    return { _isPassive: passive };
   }
 
   return null;

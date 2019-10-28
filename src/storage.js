@@ -559,11 +559,11 @@ export function processMessages(
     const match = findMatchingSubscription(messageFilter, m, currentInflight._received);
 
     if (match) {
-      if (!match.isPassive) {
+      if (!match._isPassive) {
         currentInflight._received = true;
       }
 
-      storage.emit("messageMatched", m, sourcePath, match.isPassive);
+      storage.emit("messageMatched", m, sourcePath, match._isPassive);
 
       const updateRequest = update(instance._data, m);
 
@@ -591,17 +591,16 @@ export function processMessages(
 export function processStorageMessage(storage: Storage, inflight: InflightMessage): void {
   const { _message, _source } = inflight;
   let received = inflight._received;
-  const { _effects } = storage;
 
-  for (const { "effect": effect, "subscribe": subscribe } of _effects) {
+  for (const { effect, subscribe } of storage._effects) {
     const match = findMatchingSubscription(subscribe, _message, received);
 
     if (match) {
-      if (!match.isPassive) {
+      if (!match._isPassive) {
         received = true;
       }
 
-      storage.emit("messageMatched", _message, [], match.isPassive);
+      storage.emit("messageMatched", _message, [], match._isPassive);
 
       // FIXME: Implement async-tracking
       effect(_message, _source);
