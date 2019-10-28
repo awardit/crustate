@@ -23,5 +23,9 @@ export type {
 } from "./model";
 export type { Snapshot, StatePath, StateSnapshot } from "./storage";
 
+export { EFFECT_ERROR } from "./message";
 export { updateData, updateAndSend } from "./update";
-export { State, Storage } from "./storage";
+export {
+  State,
+  Storage,
+} from "./storage";

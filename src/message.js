@@ -19,6 +19,11 @@ export type Message = {
   +tag: MessageTag,
 };
 
+export type ErrorMessage = {
+  +tag: typeof EFFECT_ERROR,
+  +error: mixed,
+};
+
 /**
  * A message on its way upwards in the hierarchy.
  */
@@ -65,6 +70,8 @@ export type Subscription<M: Message> = true | {
    */
   matching?: MessageFilter<M>,
 };
+
+export const EFFECT_ERROR: "effect/error" = "effect/error";
 
 /**
  * @param {!Object} subscriptions

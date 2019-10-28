@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- `broadcastMessage`, `replyMessage`, `sendMessage` return promises which
+  resolve once any effects and state triggered by them has settled.
 ### Changed
 - Renamed `ModelDataType` and `ModelInitType` to `TypeofModelData` and
   `TypeofModelInit`.

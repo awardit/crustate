@@ -2,10 +2,13 @@
 
 import type { Effect } from "./effect";
 import type { Model, TypeofModelData, TypeofModelInit } from "./model";
-import type { InflightMessage, Message } from "./message";
+import type { ErrorMessage, InflightMessage, Message } from "./message";
 
 import { debugAssert } from "./assert";
-import { findMatchingSubscription } from "./message";
+import {
+  EFFECT_ERROR,
+  findMatchingSubscription,
+} from "./message";
 import { EventEmitter } from "./eventemitter";
 
 export type StatePath = Array<string>;
@@ -187,6 +190,7 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
     storage.emit("stateCreated", path, (params: any), data);
 
     if (messages) {
+      // FIXME: Return this somehow
       processInstanceMessages(
         storage,
         instance._supervisor,
@@ -199,7 +203,7 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
     return instance;
   }
 
-  removeState<M: UntypedModel>(m: M, name?: string): Promise<void> {
+  removeState<M: UntypedModel>(m: M, name?: string): void {
     const inst = this.getState(m, name);
 
     if (inst) {
@@ -207,9 +211,6 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
 
       this._getStorage().emit("stateRemoved", inst.getPath(), inst._data);
     }
-
-    // FIXME: Implement
-    return Promise.resolve(undefined);
   }
 
   /**
@@ -220,10 +221,7 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
     const storage = this._getStorage();
     const msgPath = this.getPath().concat([srcName]);
 
-    processInstanceMessages(storage, this, [createInflightMessage(storage, msgPath, msg)]);
-
-    // FIXME: Implement
-    return Promise.resolve(undefined);
+    return processInstanceMessages(storage, this, [createInflightMessage(storage, msgPath, msg)]);
   }
 }
 
@@ -281,8 +279,7 @@ export class Storage extends Supervisor<StorageEvents> {
    * Storage instance.
    */
   broadcastMessage(msg: Message, sourceName?: string = BROADCAST_SOURCE): Promise<void> {
-    // TODO: Process promises
-    processEffects(
+    return processEffects(
       this,
       handleBroadcast(
         this,
@@ -291,21 +288,22 @@ export class Storage extends Supervisor<StorageEvents> {
         createInflightMessage(this, [sourceName], msg)
       )
     );
-
-    // FIXME: Implement
-    return Promise.resolve(undefined);
   }
 
   /**
    * Looks up the closest matching State for the given path, then sends the
    * supplied message to all matching States and Subscribers.
    */
-  // TODO: Remove once Effects is in place
-  replyMessage(msg: Message, targetState: StatePath, sourceName?: string = REPLY_SOURCE): void {
+  // TODO: Remove once Effects is in place?
+  replyMessage(
+    msg: Message,
+    targetState: StatePath,
+    sourceName?: string = REPLY_SOURCE
+  ): Promise<void> {
     const instance = findClosestSupervisor(this, targetState);
     const inflight = [createInflightMessage(this, targetState.concat(sourceName), msg)];
 
-    processInstanceMessages(this, instance, inflight);
+    return processInstanceMessages(this, instance, inflight);
   }
 
   addEffect(eff: Effect<any>): void {
@@ -518,13 +516,11 @@ export function enqueueMessages(
   }
 }
 
-// TODO: Should probably return which effect along with the promise and message
-// which triggered it
 export function processInstanceMessages(
   storage: Storage,
   instance: Supervisor<{}>,
   inflight: Array<InflightMessage>
-): void {
+): Promise<any> {
   let sourcePath = instance.getPath();
 
   while (instance instanceof State) {
@@ -535,7 +531,7 @@ export function processInstanceMessages(
     instance = instance._supervisor;
   }
 
-  processEffects(storage, inflight);
+  return processEffects(storage, inflight);
 }
 
 export function processMessages(
@@ -594,12 +590,14 @@ export function processMessages(
 export function processEffects(
   storage: Storage,
   inflightMsgs: Array<InflightMessage>
-): void {
+): Promise<void> {
+  const effects = [];
+
   for (const { _message, _source, _received } of inflightMsgs) {
     let received = _received;
 
-    for (const { effect, subscribe } of storage._effects) {
-      const match = findMatchingSubscription(subscribe, _message, received);
+    for (const effect of storage._effects) {
+      const match = findMatchingSubscription(effect.subscribe, _message, received);
 
       if (match) {
         if (!match._isPassive) {
@@ -609,7 +607,9 @@ export function processEffects(
         storage.emit("messageMatched", _message, [], match._isPassive);
 
         // FIXME: Implement async-tracking and remove _source
-        effect(_message, _source);
+        // TODO: Should probably track which effect along with the promise and
+        // message which triggered it
+        effects.push(runEffect(storage, effect, _message, _source));
       }
     }
 
@@ -617,6 +617,33 @@ export function processEffects(
       storage.emit("unhandledMessage", _message, _source);
     }
   }
+
+  return (Promise.all(effects): any);
+}
+
+/**
+ * Runs the supplied effect and attempts to collect any reply-message from it,
+ * rejections will cause an `ErrorMessage` to be sent as a reply.
+ *
+ * The resulting promise will always succeed.
+ */
+export function runEffect(
+  storage: Storage,
+  { effect, name }: Effect<any>,
+  message: Message,
+  srcPath: StatePath
+): Promise<?Promise<void>> {
+  const onSuccess = (msg: ?Message): ?Promise<void> => msg ?
+    storage.replyMessage(msg, srcPath, name) :
+    null;
+  const onError = (e: any): Promise<void> => storage.replyMessage(
+    ({ tag: EFFECT_ERROR, error: e }: ErrorMessage),
+    srcPath,
+    name
+  );
+
+  // TODO: Try-catch around the effect call?
+  return Promise.resolve(effect(message, srcPath)).then(onSuccess, onError);
 }
 
 /**
