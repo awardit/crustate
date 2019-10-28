@@ -281,12 +281,16 @@ export class Storage extends Supervisor<StorageEvents> {
    * Storage instance.
    */
   broadcastMessage(msg: Message, sourceName?: string = BROADCAST_SOURCE): Promise<void> {
-    handleBroadcast(
+    // TODO: Process promises
+    processEffects(
       this,
-      [],
-      this._nested,
-      createInflightMessage(this, [sourceName], msg)
-    ).forEach((m: InflightMessage): void => processStorageMessage(this, m));
+      handleBroadcast(
+        this,
+        [],
+        this._nested,
+        createInflightMessage(this, [sourceName], msg)
+      )
+    );
 
     // FIXME: Implement
     return Promise.resolve(undefined);
@@ -514,6 +518,8 @@ export function enqueueMessages(
   }
 }
 
+// TODO: Should probably return which effect along with the promise and message
+// which triggered it
 export function processInstanceMessages(
   storage: Storage,
   instance: Supervisor<{}>,
@@ -529,9 +535,7 @@ export function processInstanceMessages(
     instance = instance._supervisor;
   }
 
-  for (const i of inflight) {
-    processStorageMessage(storage, i);
-  }
+  processEffects(storage, inflight);
 }
 
 export function processMessages(
@@ -587,27 +591,31 @@ export function processMessages(
   }
 }
 
-export function processStorageMessage(storage: Storage, inflight: InflightMessage): void {
-  const { _message, _source } = inflight;
-  let received = inflight._received;
+export function processEffects(
+  storage: Storage,
+  inflightMsgs: Array<InflightMessage>
+): void {
+  for (const { _message, _source, _received } of inflightMsgs) {
+    let received = _received;
 
-  for (const { effect, subscribe } of storage._effects) {
-    const match = findMatchingSubscription(subscribe, _message, received);
+    for (const { effect, subscribe } of storage._effects) {
+      const match = findMatchingSubscription(subscribe, _message, received);
 
-    if (match) {
-      if (!match._isPassive) {
-        received = true;
+      if (match) {
+        if (!match._isPassive) {
+          received = true;
+        }
+
+        storage.emit("messageMatched", _message, [], match._isPassive);
+
+        // FIXME: Implement async-tracking and remove _source
+        effect(_message, _source);
       }
-
-      storage.emit("messageMatched", _message, [], match._isPassive);
-
-      // FIXME: Implement async-tracking
-      effect(_message, _source);
     }
-  }
 
-  if (!received) {
-    storage.emit("unhandledMessage", _message, _source);
+    if (!received) {
+      storage.emit("unhandledMessage", _message, _source);
+    }
   }
 }
 
