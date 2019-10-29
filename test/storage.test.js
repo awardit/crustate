@@ -141,29 +141,6 @@ test("Storage createState throws given the same params", t => {
   t.deepEqual(args(emit), [["stateCreated", ["test"], undefined, initData]]);
 });
 
-test.failing("Storage createState sends an update message and returns the same instance when new params are supplied", t => {
-  const s = new Storage();
-  const emit = t.context.spy(s, "emit");
-  const initData = { name: "initData" };
-  const init = t.context.stub(() => updateData(initData));
-  const update = t.context.stub((state, msg) => updateData(msg.params));
-  const subscribe = t.context.stub(() => ({ [MESSAGE_NEW_PARAMS]: true }));
-  const state = { id: "test", init, update, subscribe };
-  const instance = s.createState(state, 1);
-  const instanceEmit = t.context.spy(instance, "emit");
-  const instance2 = s.createState(state, 2);
-
-  t.is(instance, instance2);
-  t.deepEqual(args(init), [[undefined]]);
-  t.deepEqual(args(update), [[initData, { tag: MESSAGE_NEW_PARAMS, params: 2 }]]);
-  t.deepEqual(args(subscribe), [initData]);
-  t.deepEqual(args(emit), [
-    ["stateCreated", ["test"], undefined, initData],
-    ["stateNewData", 2, ["test"], { tag: MESSAGE_NEW_PARAMS, params: 2 }],
-  ]);
-  t.deepEqual(args(instanceEmit), [["stateNewData", 2, ["test"], { tag: MESSAGE_NEW_PARAMS, params: 2 }]]);
-});
-
 test("Storage createState throws when trying to use a new state definition with the same identifier", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
