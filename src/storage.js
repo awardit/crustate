@@ -103,7 +103,7 @@ export type StorageEvents = {
   snapshotRestored: [],
 };
 
-export type StateEvents<M: UntypedModel> = {
+export type StateEvents<M: AnyModel> = {
   /**
    * Emitted when a state-instance updates its data.
    *
@@ -116,7 +116,7 @@ export type StateEvents<M: UntypedModel> = {
   stateNewData: [TypeofModelData<M>, StatePath, Message],
 };
 
-type UntypedModel = Model<any, any, any>;
+type AnyModel = Model<any, any, any>;
 
 const ANONYMOUS_SOURCE = "$";
 const BROADCAST_SOURCE = "@";
@@ -137,7 +137,7 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
    * Returns the nested State for the given model and name if it
    * exists, name defaults to model id.
    */
-  getState<M: UntypedModel>(m: M, name?: string): ?State<M> {
+  getState<M: AnyModel>(m: M, name?: string): ?State<M> {
     if (process.env.NODE_ENV !== "production") {
       ensureModel(this._getStorage(), m);
     }
@@ -156,7 +156,7 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
    * Attempts to retrieve the nested State for the given model and name,
    * if it does not exist it will be created, name defaults to model id.
    */
-  createState<M: UntypedModel>(m: M, params: TypeofModelInit<M>, name?: string): State<M> {
+  createState<M: AnyModel>(m: M, params: TypeofModelInit<M>, name?: string): State<M> {
     const { id, init } = m;
 
     if (!name) {
@@ -200,7 +200,7 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
     return instance;
   }
 
-  removeState<M: UntypedModel>(m: M, name?: string): void {
+  removeState<M: AnyModel>(m: M, name?: string): void {
     const inst = this.getState(m, name);
 
     if (inst) {
@@ -336,7 +336,7 @@ export class Storage extends Supervisor<StorageEvents> {
 /**
  * Object representing an instance of a Model.
  */
-export class State<M: UntypedModel> extends Supervisor<StateEvents<M>> {
+export class State<M: AnyModel> extends Supervisor<StateEvents<M>> {
   /**
    * Matches the Storage _defs collection.
    */
