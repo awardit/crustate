@@ -80,6 +80,14 @@ test("Removing a subscriber should not fire when a matching message is sent", t 
   ]);
   t.deepEqual(args(recv1), [[msg, ["$"]]]);
   t.deepEqual(args(recv2), []);
+
+  s.removeEffect(eff2);
+
+  t.deepEqual(args(emit), [
+    ["messageQueued", msg, ["$"]],
+    ["messageMatched", msg, [], false],
+  ]);
+  t.deepEqual(args(recv2), []);
 });
 
 test("Sending messages on a Storage should also trigger unhandledMessage if no active effects are present", t => {
