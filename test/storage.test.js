@@ -5,9 +5,6 @@ import ava from "ava";
 import { Storage, State, findClosestSupervisor, processInstanceMessages } from "../src/storage";
 import { updateData, updateAndSend } from "../src/update";
 
-// We redefine this here so we can test it
-const MESSAGE_NEW_PARAMS = "crustate/stateNewParams";
-
 const test = ninos(ava);
 const args = f => f.calls.map(c => c.arguments);
 
