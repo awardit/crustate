@@ -4,6 +4,7 @@ import ninos from "ninos";
 import ava from "ava";
 import { Storage } from "../src/storage";
 import { updateData, updateAndSend } from "../src/update";
+import { EFFECT_ERROR } from "../src/message";
 
 const test = ninos(ava);
 const args = f => f.calls.map(c => c.arguments);
@@ -171,5 +172,170 @@ test("Passive effects always receive messages from children", t => {
     ["messageMatched", { tag: "initMsg" }, [], true],
     ["messageMatched", { tag: "firstMsg" }, [], true],
     ["unhandledMessage", { tag: "firstMsg" }, ["first"]],
+  ]);
+});
+
+test("Immediate reply from effect", async t => {
+  const effect = t.context.stub(() => ({ tag: "the-reply", data: "foo" }));
+  const myEffect = {
+    effect,
+    subscribe: {
+      "trigger-effect": true,
+    },
+  };
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+
+  s.addEffect(myEffect);
+
+  const p = s.sendMessage({ tag: "trigger-effect" });
+
+  t.deepEqual(args(effect), [
+    [{ tag: "trigger-effect" }, ["$"]],
+  ]);
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "trigger-effect" }, ["$"]],
+    ["messageMatched", { tag: "trigger-effect" }, [], false],
+  ]);
+
+  await p;
+
+  // TODO: The paths are wrong, the $ should be removed when replying?
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "trigger-effect" }, ["$"]],
+    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageQueued", { tag: "the-reply", data: "foo" }, ["$", "<"]],
+    ["unhandledMessage", { tag: "the-reply", data: "foo" }, ["$", "<"]],
+  ]);
+});
+
+test("Immediate reply from effect with name", async t => {
+  const effect = t.context.stub(() => ({ tag: "the-reply", data: "foo" }));
+  const myEffect = {
+    effect,
+    name: "My Effect",
+    subscribe: {
+      "trigger-effect": true,
+    },
+  };
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+
+  s.addEffect(myEffect);
+
+  const p = s.sendMessage({ tag: "trigger-effect" });
+
+  t.deepEqual(args(effect), [
+    [{ tag: "trigger-effect" }, ["$"]],
+  ]);
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "trigger-effect" }, ["$"]],
+    ["messageMatched", { tag: "trigger-effect" }, [], false],
+  ]);
+
+  await p;
+
+  // TODO: The paths are wrong, the $ should be removed when replying?
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "trigger-effect" }, ["$"]],
+    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageQueued", { tag: "the-reply", data: "foo" }, ["$", "My Effect"]],
+    ["unhandledMessage", { tag: "the-reply", data: "foo" }, ["$", "My Effect"]],
+  ]);
+});
+
+test("Immediate throw in effect", async t => {
+  const effect = t.context.stub(() => {
+    throw new Error("My Effect error");
+  });
+  const myEffect = {
+    effect,
+    subscribe: {
+      "trigger-effect": true,
+    },
+  };
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+
+  s.addEffect(myEffect);
+
+  t.throws(() => s.sendMessage({ tag: "trigger-effect" }), { instanceOf: Error, message: "My Effect error" });
+
+  t.deepEqual(args(effect), [
+    [{ tag: "trigger-effect" }, ["$"]],
+  ]);
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "trigger-effect" }, ["$"]],
+    ["messageMatched", { tag: "trigger-effect" }, [], false],
+  ]);
+});
+
+test("Async reply from effect", async t => {
+  const effect = t.context.stub(async () => ({ tag: "the-reply", data: "foo" }));
+  const myEffect = {
+    effect,
+    subscribe: {
+      "trigger-effect": true,
+    },
+  };
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+
+  s.addEffect(myEffect);
+
+  const p = s.sendMessage({ tag: "trigger-effect" });
+
+  t.deepEqual(args(effect), [
+    [{ tag: "trigger-effect" }, ["$"]],
+  ]);
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "trigger-effect" }, ["$"]],
+    ["messageMatched", { tag: "trigger-effect" }, [], false],
+  ]);
+
+  await p;
+
+  // TODO: The paths are wrong, the $ should be removed when replying?
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "trigger-effect" }, ["$"]],
+    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageQueued", { tag: "the-reply", data: "foo" }, ["$", "<"]],
+    ["unhandledMessage", { tag: "the-reply", data: "foo" }, ["$", "<"]],
+  ]);
+});
+
+test("Async throw in effect", async t => {
+  const effect = t.context.stub(async () => {
+    throw new Error("My Effect error");
+  });
+  const myEffect = {
+    effect,
+    subscribe: {
+      "trigger-effect": true,
+    },
+  };
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+
+  s.addEffect(myEffect);
+
+  const p = s.sendMessage({ tag: "trigger-effect" });
+
+  t.deepEqual(args(effect), [
+    [{ tag: "trigger-effect" }, ["$"]],
+  ]);
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "trigger-effect" }, ["$"]],
+    ["messageMatched", { tag: "trigger-effect" }, [], false],
+  ]);
+
+  await p;
+
+  // TODO: These paths?
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "trigger-effect" }, ["$"]],
+    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageQueued", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
+    ["unhandledMessage", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
   ]);
 });
