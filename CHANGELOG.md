@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `broadcastMessage`, `replyMessage`, `sendMessage` return promises which
   resolve once any effects and state triggered by them has settled.
+- Asynchronous `Effect`s which can return promises which will be tracked
+  by the `Storage` instance.
+- `Storage`.`runningEffects` listing the currently running async effects.
+- `Storage`.`wait` allowing code to wait for the states to settle after
+  async effects.
 ### Changed
 - Renamed `ModelDataType` and `ModelInitType` to `TypeofModelData` and
   `TypeofModelInit`.

@@ -21,7 +21,12 @@ export type {
   TypeofModelData,
   TypeofModelInit,
 } from "./model";
-export type { Snapshot, StatePath, StateSnapshot } from "./storage";
+export type {
+  RunningEffect,
+  Snapshot,
+  StatePath,
+  StateSnapshot,
+} from "./storage";
 
 export { EFFECT_ERROR } from "./message";
 export { updateData, updateAndSend } from "./update";

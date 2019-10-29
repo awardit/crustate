@@ -114,6 +114,12 @@ export type StateEvents<M: AnyModel> = {
   stateNewData: [TypeofModelData<M>, StatePath, Message],
 };
 
+export type RunningEffect = {
+  +name: ?string,
+  +message: Message,
+  +source: StatePath,
+};
+
 type AnyModel = Model<any, any, any>;
 
 const ANONYMOUS_SOURCE = "$";
@@ -224,11 +230,13 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
  * Base node in a state-tree, anchors all states and carries all data.
  */
 export class Storage extends Supervisor<StorageEvents> {
-  _effects: Array<Effect<any>> = [];
+  +_effects: Array<Effect<any>> = [];
+  +_running: Map<Promise<any>, RunningEffect> = new Map();
   /**
    * Models, used for subscribers, updates and messages.
    */
-  _defs: { [id: string]: Model<any, any, any> } = {};
+  +_defs: { [id: string]: Model<any, any, any> } = {};
+  _waiting: Array<() => void> = [];
 
   // Explicit constructor results in shorter minified code
   constructor(): void {
@@ -328,6 +336,21 @@ export class Storage extends Supervisor<StorageEvents> {
     restoreSnapshot(this, this, snapshot);
 
     this.emit("snapshotRestored");
+  }
+
+  wait(): Promise<void> {
+    if (this._running.size === 0) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve: () => void): void => {
+      this._waiting.push(resolve);
+    });
+  }
+
+  runningEffects(): Array<RunningEffect> {
+    /* eslint-disable-next-line unicorn/prefer-spread */
+    return Array.from(this._running.values());
   }
 }
 
@@ -599,9 +622,6 @@ export function processEffects(
 
         storage.emit("messageMatched", _message, ([]: StatePath), match._isPassive);
 
-        // FIXME: Implement async-tracking and remove _source
-        // TODO: Should probably track which effect along with the promise and
-        // message which triggered it
         effects.push(runEffect(storage, effect, _message, _source));
       }
     }
@@ -624,19 +644,38 @@ export function runEffect(
   storage: Storage,
   { effect, name }: Effect<any>,
   message: Message,
-  srcPath: StatePath
+  source: StatePath
 ): Promise<?Promise<void>> {
   const onSuccess = (msg: ?Message): ?Promise<void> => msg ?
-    storage.replyMessage(msg, srcPath, name) :
+    storage.replyMessage(msg, source, name) :
     null;
   const onError = (e: any): Promise<void> => storage.replyMessage(
     ({ tag: EFFECT_ERROR, error: e }: ErrorMessage),
-    srcPath,
+    source,
     name
   );
 
   // TODO: Try-catch around the effect call?
-  return Promise.resolve(effect(message, srcPath)).then(onSuccess, onError);
+  const promise = Promise.resolve(effect(message, source)).then(onSuccess, onError);
+  const dropPromise = (): void => {
+    storage._running.delete(promise);
+
+    if (storage._running.size === 0) {
+      for (const r of storage._waiting) {
+        r();
+      }
+
+      storage._waiting = [];
+    }
+  };
+
+  storage._running.set(promise, {
+    name,
+    message,
+    source,
+  });
+
+  return promise.then(dropPromise, dropPromise);
 }
 
 /**
