@@ -27,8 +27,6 @@ export type StateSnapshot = {
   nested: Snapshot,
 };
 
-export type Listener<M: Message> = (message: M, sourcePath: StatePath) => mixed;
-
 export type StateMap = { [name: string]: State<any> };
 
 export type StorageEvents = {
