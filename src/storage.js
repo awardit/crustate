@@ -264,7 +264,6 @@ export class Storage extends Supervisor<StorageEvents> {
    */
   addModel<T, I, M>(model: Model<T, I, M>): void {
     if (!tryAddModel(this, model)) {
-      // FIXME: Proper exception type
       throw new Error(`Duplicate model '${model.id}'.`);
     }
   }
@@ -477,7 +476,6 @@ export function ensureModel<T, I, M>(storage: Storage, model: Model<T, I, M>): v
   const { id } = model;
 
   if (storage._defs[id] && storage._defs[id] !== model) {
-    // FIXME: Proper exception type
     throw new Error(`Model mismatch for '${id}'.`);
   }
 }
