@@ -28,8 +28,8 @@ export type ErrorMessage = {
  * A message on its way upwards in the hierarchy.
  */
 export type InflightMessage = {
-  _message: Message,
-  _source: StatePath,
+  +_message: Message,
+  +_source: StatePath,
   /**
    * If an active subscription has received this message this is the state path
    * which received it.
@@ -81,7 +81,7 @@ export const EFFECT_ERROR: "effect/error" = "effect/error";
 export function findMatchingSubscription<M: Message>(
   subscriptions: Subscriptions<M>,
   message: M, received: boolean
-): ?{ _isPassive: boolean } {
+): ?{ +_isPassive: boolean } {
   const { tag } = message;
 
   if (!subscriptions[tag]) {
