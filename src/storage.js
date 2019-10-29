@@ -129,6 +129,7 @@ const REPLY_SOURCE = "<";
 class Supervisor<+E: {}> extends EventEmitter<E> {
   _nested: StateMap = {};
 
+  // Abstract methods
   +_getStorage: () => Storage;
   +getPath: () => StatePath;
 
