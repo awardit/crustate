@@ -11,7 +11,7 @@ import {
 } from "./message";
 import { EventEmitter } from "./eventemitter";
 
-export type StatePath = Array<string>;
+export type StatePath = $ReadOnlyArray<string>;
 
 /**
  * A snapshot of the state of the application, can be used to restore the state
@@ -599,7 +599,7 @@ export function processEffects(
           received = true;
         }
 
-        storage.emit("messageMatched", _message, [], match._isPassive);
+        storage.emit("messageMatched", _message, ([]: StatePath), match._isPassive);
 
         // FIXME: Implement async-tracking and remove _source
         // TODO: Should probably track which effect along with the promise and

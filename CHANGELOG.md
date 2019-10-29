@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `TypeofModelInit`.
 - `createState` now throws if the state already exists to avoid unintended
   sideffects.
+- `StatePath` changed to read-only.
 ### Removed
 - Removed `params` data from `State` objects and snapshot.
 - Removed public `Supervisor` type export.
