@@ -128,12 +128,10 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
   +_getStorage: () => Storage;
   +getPath: () => StatePath;
 
-  /* eslint-disable no-useless-constructor */
   // Explicit constructor results in shorter minified code
   constructor(): void {
     super();
   }
-  /* eslint-enable no-useless-constructor */
 
   /**
    * Returns the nested State for the given model and name if it
@@ -234,12 +232,10 @@ export class Storage extends Supervisor<StorageEvents> {
    */
   _defs: { [id: string]: Model<any, any, any> } = {};
 
-  /* eslint-disable no-useless-constructor */
   // Explicit constructor results in shorter minified code
   constructor(): void {
     super();
   }
-  /* eslint-enable no-useless-constructor */
 
   /**
    * Returns the Storage backing all state in this tree.

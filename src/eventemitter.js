@@ -6,6 +6,10 @@ export type Listeners = { [k: string]: Array<(...args: any) => mixed> };
 export class EventEmitter<+E: {}> {
   _eventListeners: Listeners = {};
 
+  constructor(): void {
+    // Empty
+  }
+
   addListener<K: $Keys<E>>(
     eventName: K,
     // Using inline Listener here since E is not allowed in an input position

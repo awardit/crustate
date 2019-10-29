@@ -246,6 +246,7 @@
           "varsIgnorePattern": "^React$"
         }
       ],
+      "no-useless-constructor": "off",
       "object-curly-spacing": [
         "error",
         "always"
