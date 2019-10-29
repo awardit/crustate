@@ -8,9 +8,9 @@ export default config({
   plugins: [
     alias({
       entries: [
-        { find: "crustate/react", replacement: path.join(__dirname, "./react/src/index") },
-        { find: "react", replacement: path.join(__dirname, "./preact/src/react-shim") },
-        { find: "react-dom", replacement: path.join(__dirname, "./preact/src/react-shim") },
+        { find: "crustate/react", replacement: path.join(__dirname, "../react/src/index") },
+        { find: "react", replacement: path.join(__dirname, "./src/react-shim") },
+        { find: "react-dom", replacement: path.join(__dirname, "./src/react-shim") },
       ],
     }),
   ],

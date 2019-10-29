@@ -1,13 +1,12 @@
+import path from "path";
 import babelPlugin from "rollup-plugin-babel";
 import replacePlugin from "rollup-plugin-replace";
 import { terser } from "rollup-plugin-terser";
 import gzip from "rollup-plugin-gzip";
 
-export { default as aliasPlugin } from "rollup-plugin-alias";
-
 // Rollup configuration compiler does not respect __dirname, so we have to rely
 // on the current working directory:
-const babel = babelPlugin(require("./build/babel.js"));
+const babel = babelPlugin(require(path.join(process.cwd(), "build", "babel")));
 const isProduction = process.env.NODE_ENV === "production";
 
 const terserInstance = terser({
