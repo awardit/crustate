@@ -434,10 +434,9 @@ export function restoreSnapshot(
 ): void {
   const newNested: StateMap = {};
 
-  /* eslint-disable guard-for-in */
   // We trust that the user has not been poking around in globals
+  /* eslint-disable-next-line guard-for-in */
   for (const k in snapshot) {
-  /* eslint-enable guard-for-in */
     const { id, data, nested } = snapshot[k];
 
     // Ensure the model exists when we restore
@@ -690,10 +689,9 @@ export function handleBroadcast(
 ): Array<InflightMessage> {
   const returning = [msg];
 
-  /* eslint-disable guard-for-in */
   // We trust that the user has not been poking around in globals
+  /* eslint-disable-next-line guard-for-in */
   for (const key in nested) {
-  /* eslint-enable guard-for-in */
     const instance = nested[key];
     const nestedPath = path.concat([key]);
     const messages = handleBroadcast(storage, nestedPath, instance._nested, msg);

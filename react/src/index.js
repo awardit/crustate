@@ -163,11 +163,10 @@ export function createStateData<+M: AnyModel>(model: M): StateData<M> {
           context.removeState(model, instance.getName());
         }
       };
-    /* eslint-disable react-hooks/exhaustive-deps */
     // We need to skip the dep on data since otherwise we are going to
     // re-register the state every time
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
     }, [context, instance]);
-    /* eslint-enable react-hooks/exhaustive-deps */
 
     return createElement(InstanceProvider, { value: instance },
       createElement(Provider, { value: data },
