@@ -4,7 +4,7 @@ import ninos from "ninos";
 import ava from "ava";
 import { Storage } from "../src/storage";
 import { updateData, updateAndSend } from "../src/update";
-import { EFFECT_ERROR } from "../src/message";
+import { EFFECT_ERROR } from "../src/effect";
 
 const test = ninos(ava);
 const args = f => f.calls.map(c => c.arguments);

@@ -28,7 +28,7 @@ export type {
   StateSnapshot,
 } from "./storage";
 
-export { EFFECT_ERROR } from "./message";
+export { EFFECT_ERROR } from "./effect";
 export { updateData, updateAndSend } from "./update";
 export {
   State,

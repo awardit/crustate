@@ -1,15 +1,13 @@
 /* @flow */
 
-import type { Effect } from "./effect";
+import type { Effect, EffectErrorMessage } from "./effect";
 import type { Model, TypeofModelData, TypeofModelInit } from "./model";
-import type { ErrorMessage, InflightMessage, Message } from "./message";
+import type { InflightMessage, Message } from "./message";
 
 import { debugAssert } from "./assert";
-import {
-  EFFECT_ERROR,
-  findMatchingSubscription,
-} from "./message";
+import { EFFECT_ERROR } from "./effect";
 import { EventEmitter } from "./eventemitter";
+import { findMatchingSubscription } from "./message";
 
 export type StatePath = $ReadOnlyArray<string>;
 
@@ -634,7 +632,7 @@ export function processEffects(
 
 /**
  * Runs the supplied effect and attempts to collect any reply-message from it,
- * rejections will cause an `ErrorMessage` to be sent as a reply.
+ * rejections will cause an `EffectErrorMessage` to be sent as a reply.
  *
  * The resulting promise will always succeed.
  */
@@ -648,7 +646,7 @@ export function runEffect(
     storage.replyMessage(msg, source, name) :
     null;
   const onError = (e: any): Promise<void> => storage.replyMessage(
-    ({ tag: EFFECT_ERROR, error: e }: ErrorMessage),
+    ({ tag: EFFECT_ERROR, error: e }: EffectErrorMessage),
     source,
     name
   );

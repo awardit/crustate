@@ -16,3 +16,10 @@ export type Effect<M> = {
   name?: string,
   subscribe: Subscriptions<M>,
 };
+
+export type EffectErrorMessage = {
+  +tag: typeof EFFECT_ERROR,
+  +error: mixed,
+};
+
+export const EFFECT_ERROR: "effect/error" = "effect/error";
