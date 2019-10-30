@@ -148,6 +148,7 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
     const inst = this._nested[name || m.id];
 
     if (inst) {
+      // TODO: Use path
       debugAssert(inst._name === (name || m.id),
         `State name '${inst._name}' does not match key name '${name || m.id}`);
     }
@@ -631,7 +632,7 @@ export function processEffects(
     }
   }
 
-  return (Promise.all(effects): any);
+  return Promise.all(effects).then((): void => undefined);
 }
 
 /**
