@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sideffects.
 - `StatePath` changed to read-only.
 ### Removed
+- Removed `State`.`getName`.
 - Removed `params` data from `State` objects and snapshot.
 - Removed public `Supervisor` type export.
 - Removed `getStorage` from public API.

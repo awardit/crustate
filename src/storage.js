@@ -382,13 +382,6 @@ export class State<M: AnyModel> extends Supervisor<StateEvents<M>> {
   }
 
   /**
-   * Returns the name of this State.
-   */
-  getName(): string {
-    return this._name;
-  }
-
-  /**
    * Returns the data contained in this State.
    */
   getData(): TypeofModelData<M> {

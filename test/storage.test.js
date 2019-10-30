@@ -101,7 +101,7 @@ test("Storage createState creates a new state instance", t => {
   t.is(s.getState(state), instance);
   t.is(s.getState(state, "bar"), undefined);
   t.deepEqual(s.getSnapshot(), { test: { id: "test", data: { name: "initData" }, nested: {} } });
-  t.is(instance.getName(), "test");
+  t.is(instance._name, "test");
   t.is(instance.getData(), initData);
   t.is(instance._getStorage(), s);
   t.deepEqual(instance.getPath(), ["test"]);
@@ -293,7 +293,7 @@ test("States can be nested", t => {
   const second = first.createState(secondDef);
 
   t.is(second instanceof State, true);
-  t.is(second.getName(), "second");
+  t.is(second._name, "second");
   t.deepEqual(second.getPath(), ["first", "second"]);
   t.is(second.getData(), secondData);
   t.is(second._getStorage(), s);
@@ -321,7 +321,7 @@ test("States of the same definition can be nested", t => {
   const second = first.createState(state);
 
   t.is(second instanceof State, true);
-  t.is(second.getName(), "test");
+  t.is(second._name, "test");
   t.deepEqual(second.getPath(), ["test", "test"]);
   t.is(second.getData(), initData);
   t.is(second._getStorage(), s);
@@ -817,10 +817,10 @@ test("Storage getState, createState, and removeState, with a different name shou
   t.truthy(sBar);
   t.not(sFoo, sBar);
 
-  t.is(sFoo.getName(), "foo");
+  t.is(sFoo._name, "foo");
   t.deepEqual(sFoo.getPath(), ["foo"]);
   t.is(sFoo._getStorage(), s);
-  t.is(sBar.getName(), "bar");
+  t.is(sBar._name, "bar");
   t.deepEqual(sBar.getPath(), ["bar"]);
   t.is(sBar._getStorage(), s);
 
@@ -926,10 +926,10 @@ test("State getState, createState, and removeState, with a different name should
   t.truthy(sBar);
   t.not(sFoo, sBar);
 
-  t.is(sFoo.getName(), "foo");
+  t.is(sFoo._name, "foo");
   t.deepEqual(sFoo.getPath(), ["bar", "foo"]);
   t.is(sFoo._getStorage(), s);
-  t.is(sBar.getName(), "bar");
+  t.is(sBar._name, "bar");
   t.deepEqual(sBar.getPath(), ["bar", "bar"]);
   t.is(sBar._getStorage(), s);
 

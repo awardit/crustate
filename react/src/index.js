@@ -139,8 +139,9 @@ export function createStateData<+M: AnyModel>(model: M): StateData<M> {
       throw new Error(`<${model.id}.Provider /> must be used inside a <StorageProvider />`);
     }
 
-    const instance = context.getState(model, props.name) ||
-      context.createState(model, excludeChildren(props), props.name);
+    const { name } = props;
+    const instance = context.getState(model, name) ||
+      context.createState(model, excludeChildren(props), name);
     const [data, setData] = useState(instance.getData());
 
     useEffect((): (() => void) => {
@@ -160,7 +161,7 @@ export function createStateData<+M: AnyModel>(model: M): StateData<M> {
 
         // Drop the state if we were the last listener
         if (instance.listeners("stateNewData").length === 0) {
-          context.removeState(model, instance.getName());
+          context.removeState(model, name);
         }
       };
     // We need to skip the dep on data since otherwise we are going to
