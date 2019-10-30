@@ -389,19 +389,6 @@ export class State<M: AnyModel> extends Supervisor<StateEvents<M>> {
   }
 
   /**
-   * Returns the Storage backing all state in this tree.
-   */
-  _getStorage(): Storage {
-    let s = this._supervisor;
-
-    while (s instanceof State) {
-      s = s._supervisor;
-    }
-
-    return s;
-  }
-
-  /**
    * Returns the path to this state.
    */
   getPath(): StatePath {
@@ -415,6 +402,19 @@ export class State<M: AnyModel> extends Supervisor<StateEvents<M>> {
     }
 
     return path;
+  }
+
+  /**
+   * Returns the Storage backing all state in this tree.
+   */
+  _getStorage(): Storage {
+    let s = this._supervisor;
+
+    while (s instanceof State) {
+      s = s._supervisor;
+    }
+
+    return s;
   }
 }
 
