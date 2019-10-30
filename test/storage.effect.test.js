@@ -21,6 +21,31 @@ test("Awaiting empty storage does nothing", async t => {
   t.deepEqual(args(emit), []);
 });
 
+test("Awaiting empty state does nothing", async t => {
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+  const init = t.context.stub(() => updateData("test"));
+  const update = t.context.stub();
+  const subscribe = t.context.stub();
+  const model = { id: "test", init, update, subscribe };
+
+  const state = s.createState(model);
+
+  t.deepEqual(args(emit), [
+    ["stateCreated", ["test"], undefined, "test"],
+  ]);
+  t.deepEqual(s.runningEffects(), []);
+  t.is(state.getData(), "test");
+
+  t.is(await state.waitInit(), undefined);
+
+  t.deepEqual(args(emit), [
+    ["stateCreated", ["test"], undefined, "test"],
+  ]);
+  t.deepEqual(s.runningEffects(), []);
+  t.is(state.getData(), "test");
+});
+
 test("Sending messages on a Storage should send them to matching effects", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
@@ -258,7 +283,6 @@ test("Immediate reply from effect with name", async t => {
   await p;
 
   t.deepEqual(s.runningEffects(), []);
-  // TODO: The paths are wrong, the $ should be removed when replying?
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
     ["messageMatched", { tag: "trigger-effect" }, [], false],
@@ -327,6 +351,41 @@ test("Async reply from effect", async t => {
   ]);
 });
 
+test("Storage.wait on async reply from effect", async t => {
+  const effect = t.context.stub(async () => ({ tag: "the-reply", data: "foo" }));
+  const myEffect = {
+    effect,
+    subscribe: { "trigger-effect": true },
+  };
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+
+  s.addEffect(myEffect);
+
+  s.sendMessage({ tag: "trigger-effect" });
+
+  t.deepEqual(args(effect), [
+    [{ tag: "trigger-effect" }, ["$"]],
+  ]);
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "trigger-effect" }, ["$"]],
+    ["messageMatched", { tag: "trigger-effect" }, [], false],
+  ]);
+  t.deepEqual(s.runningEffects(), [
+    { name: undefined, source: ["$"], message: { tag: "trigger-effect" } },
+  ]);
+
+  t.is(await s.wait(), undefined);
+
+  t.deepEqual(s.runningEffects(), []);
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "trigger-effect" }, ["$"]],
+    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageQueued", { tag: "the-reply", data: "foo" }, ["$", "<"]],
+    ["unhandledMessage", { tag: "the-reply", data: "foo" }, ["$", "<"]],
+  ]);
+});
+
 test("Async throw in effect", async t => {
   const effect = t.context.stub(async () => {
     throw new Error("My Effect error");
@@ -364,6 +423,43 @@ test("Async throw in effect", async t => {
   ]);
 });
 
+test("Storage.wait on async throw in effect", async t => {
+  const effect = t.context.stub(async () => {
+    throw new Error("My Effect error");
+  });
+  const myEffect = {
+    effect,
+    subscribe: { "trigger-effect": true },
+  };
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+
+  s.addEffect(myEffect);
+
+  s.sendMessage({ tag: "trigger-effect" });
+
+  t.deepEqual(args(effect), [
+    [{ tag: "trigger-effect" }, ["$"]],
+  ]);
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "trigger-effect" }, ["$"]],
+    ["messageMatched", { tag: "trigger-effect" }, [], false],
+  ]);
+  t.deepEqual(s.runningEffects(), [
+    { name: undefined, source: ["$"], message: { tag: "trigger-effect" } },
+  ]);
+
+  t.is(await s.wait(), undefined);
+
+  t.deepEqual(s.runningEffects(), []);
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "trigger-effect" }, ["$"]],
+    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageQueued", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
+    ["unhandledMessage", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
+  ]);
+});
+
 test("State async effect", async t => {
   const effect = t.context.stub(async () => ({ tag: "the-reply", data: "foo" }));
   const myEffect = {
@@ -379,7 +475,7 @@ test("State async effect", async t => {
 
   s.addEffect(myEffect);
 
-  s.createState(model);
+  const state = s.createState(model);
 
   t.deepEqual(args(effect), [
     [{ tag: "trigger-effect" }, ["test"]],
@@ -393,8 +489,7 @@ test("State async effect", async t => {
     { name: undefined, source: ["test"], message: { tag: "trigger-effect" } },
   ]);
 
-  // TODO: Placeholder for when createState can provide a promise
-  await s.wait();
+  t.is(await state.waitInit(), undefined);
 
   t.deepEqual(s.runningEffects(), []);
   t.deepEqual(args(emit), [
@@ -437,7 +532,7 @@ test("State async effect chain", async t => {
   s.addEffect(myEffect);
   s.addEffect(mySecondEffect);
 
-  s.createState(model);
+  const state = s.createState(model);
 
   t.deepEqual(args(effect), [
     [{ tag: "trigger-effect" }, ["test"]],
@@ -451,8 +546,7 @@ test("State async effect chain", async t => {
     { name: undefined, source: ["test"], message: { tag: "trigger-effect" } },
   ]);
 
-  // TODO: Await the state creation instead
-  await s.wait();
+  t.is(await state.waitInit(), undefined);
 
   t.deepEqual(s.runningEffects(), []);
   t.deepEqual(args(emit), [
