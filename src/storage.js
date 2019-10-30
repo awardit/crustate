@@ -190,16 +190,13 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
     storage.emit("stateCreated", path, (params: any), data);
 
     if (messages) {
-      // FIXME: Return this somehow
-      processInstanceMessages(
+      instance._init = processInstanceMessages(
         storage,
         instance._supervisor,
         messages.map((m: Message): InflightMessage => createInflightMessage(storage, path, m))
       );
     }
 
-    // FIXME: Return a promise or an object with a promise and the instance, or
-    // make the instance possible to await?
     return instance;
   }
 
@@ -366,6 +363,7 @@ export class State<M: AnyModel> extends Supervisor<StateEvents<M>> {
   _name: string;
   _data: TypeofModelData<M>;
   _supervisor: Storage | State<any>;
+  _init: ?Promise<void>;
 
   constructor(
     id: string,
@@ -402,6 +400,19 @@ export class State<M: AnyModel> extends Supervisor<StateEvents<M>> {
     }
 
     return path;
+  }
+
+  /**
+   * Returns a promise resolving when the state has initialized and its effects
+   * have settled. If they already have settled it will return a resolved
+   * promise.
+   */
+  waitInit(): Promise<void> {
+    if (this._init) {
+      return this._init;
+    }
+
+    return Promise.resolve(undefined);
   }
 
   /**

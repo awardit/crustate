@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Storage`.`runningEffects` listing the currently running async effects.
 - `Storage`.`wait` allowing code to wait for the states to settle after
   async effects.
+- `State`.`waitInit` returning promise resolved once init and associated
+  effects are done.
 ### Changed
 - Renamed `ModelDataType` and `ModelInitType` to `TypeofModelData` and
   `TypeofModelInit`.
