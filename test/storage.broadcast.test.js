@@ -20,6 +20,18 @@ test("broadcastMessage triggers unhandledMessage on empty", t => {
   ]);
 });
 
+test("broadcastMessage with name uses that name as source", t => {
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+
+  s.broadcastMessage({ tag: "AAA" }, "the broadcast");
+
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "AAA" }, ["the broadcast"]],
+    ["unhandledMessage", { tag: "AAA" }, ["the broadcast"]],
+  ]);
+});
+
 test("broadcastMessage triggers attempts to send messages to all states", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
