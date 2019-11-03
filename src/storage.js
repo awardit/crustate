@@ -656,8 +656,9 @@ export function runEffect(
     name
   );
 
-  // TODO: Try-catch around the effect call?
-  const promise = Promise.resolve(effect(message, source)).then(onSuccess, onError);
+  const promise = new Promise((resolve: (msg: ?Message | Promise<?Message>) => void): void =>
+    resolve(effect(message, source)))
+    .then(onSuccess, onError);
   const dropPromise = (): void => {
     storage._running.delete(promise);
 

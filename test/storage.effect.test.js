@@ -304,7 +304,20 @@ test("Immediate throw in effect", async t => {
 
   s.addEffect(myEffect);
 
-  t.throws(() => s.sendMessage({ tag: "trigger-effect" }), { instanceOf: Error, message: "My Effect error" });
+  const p = s.sendMessage({ tag: "trigger-effect" });
+
+  t.deepEqual(s.runningEffects(), [
+    { message: { tag: "trigger-effect" }, name: undefined, source: ["$"] },
+  ]);
+  t.deepEqual(args(effect), [
+    [{ tag: "trigger-effect" }, ["$"]],
+  ]);
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "trigger-effect" }, ["$"]],
+    ["messageMatched", { tag: "trigger-effect" }, [], false],
+  ]);
+
+  await p;
 
   t.deepEqual(s.runningEffects(), []);
   t.deepEqual(args(effect), [
@@ -313,6 +326,8 @@ test("Immediate throw in effect", async t => {
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
     ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageQueued", { tag: "effect/error", error: new Error("My Effect error") }, ["$", "<"]],
+    ["unhandledMessage", { tag: "effect/error", error: new Error("My Effect error") }, ["$", "<"]],
   ]);
 });
 
