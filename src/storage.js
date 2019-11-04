@@ -522,17 +522,6 @@ export function findClosestSupervisor(supervisor: Supervisor<{}>, path: StatePat
   return supervisor;
 }
 
-export function enqueueMessages(
-  storage: Storage,
-  source: StatePath,
-  inflight: Array<InflightMessage>,
-  messages: Array<Message>
-): void {
-  for (const m of messages) {
-    inflight.push(createInflightMessage(storage, source, m));
-  }
-}
-
 export function processInstanceMessages(
   storage: Storage,
   instance: Supervisor<{}>,
@@ -541,7 +530,7 @@ export function processInstanceMessages(
   let sourcePath = instance.getPath();
 
   while (instance instanceof State) {
-    processMessages(storage, instance, sourcePath, inflight);
+    inflight.push(...processMessages(storage, instance, sourcePath, inflight));
 
     // Traverse down one level
     sourcePath = sourcePath.slice(0, -1);
@@ -555,58 +544,58 @@ export function processMessages(
   storage: Storage,
   instance: State<any>,
   sourcePath: StatePath,
-  inflight: Array<InflightMessage>
-): void {
+  inflight: $ReadOnlyArray<InflightMessage>
+): Array<InflightMessage> {
+  const newMessages = [];
   const definition = getModelById(storage, instance._id);
-
-  // We are going to add to messages if any new messages are generated, save
-  // length here
-  const currentLimit = inflight.length;
   const { update, subscribe } = definition;
 
   // We need to be able to update the filters if the data changes
   let messageFilter = subscribe(instance._data);
 
-  // TODO: Emit event? that we are considering messags for state?
-
-  for (let i = 0; i < currentLimit; i++) {
-    const currentInflight = inflight[i];
+  for (const currentInflight of inflight) {
     const { _message: m } = currentInflight;
     const match = findMatchingSubscription(messageFilter, m, currentInflight._received);
 
-    if (match) {
-      if (!match._isPassive) {
-        currentInflight._received = true;
-      }
+    if (!match) {
+      continue;
+    }
 
-      storage.emit("messageMatched", m, sourcePath, match._isPassive);
+    if (!match._isPassive) {
+      currentInflight._received = true;
+    }
 
-      const updateRequest = update(instance._data, m);
+    storage.emit("messageMatched", m, sourcePath, match._isPassive);
 
-      if (updateRequest) {
-        const { data, messages } = updateRequest;
+    const updateRequest = update(instance._data, m);
 
-        instance._data = data;
+    if (!updateRequest) {
+      continue;
+    }
 
-        storage.emit("stateNewData", data, sourcePath, m);
-        instance.emit("stateNewData", data, sourcePath, m);
+    const { data, messages } = updateRequest;
 
-        if (messages) {
-          enqueueMessages(storage, sourcePath, inflight, messages);
-        }
+    instance._data = data;
 
-        // TODO: Skip on last iteration?
-        messageFilter = subscribe(instance._data);
+    storage.emit("stateNewData", data, sourcePath, m);
+    instance.emit("stateNewData", data, sourcePath, m);
+
+    if (messages) {
+      for (const m of messages) {
+        newMessages.push(createInflightMessage(storage, sourcePath, m));
       }
     }
 
-    // No Match
+    // TODO: Skip on last iteration?
+    messageFilter = subscribe(instance._data);
   }
+
+  return newMessages;
 }
 
 export function processEffects(
   storage: Storage,
-  inflightMsgs: Array<InflightMessage>
+  inflightMsgs: $ReadOnlyArray<InflightMessage>
 ): Promise<void> {
   const effects = [];
 
@@ -616,15 +605,17 @@ export function processEffects(
     for (const effect of storage._effects) {
       const match = findMatchingSubscription(effect.subscribe, _message, received);
 
-      if (match) {
-        if (!match._isPassive) {
-          received = true;
-        }
-
-        storage.emit("messageMatched", _message, ([]: StatePath), match._isPassive);
-
-        effects.push(runEffect(storage, effect, _message, _source));
+      if (!match) {
+        continue;
       }
+
+      if (!match._isPassive) {
+        received = true;
+      }
+
+      storage.emit("messageMatched", _message, ([]: StatePath), match._isPassive);
+
+      effects.push(runEffect(storage, effect, _message, _source));
     }
 
     if (!received) {
@@ -703,8 +694,7 @@ export function handleBroadcast(
 
     msg._received = false;
 
-    // We modify messages
-    processMessages(storage, instance, nestedPath, messages);
+    messages.push(...processMessages(storage, instance, nestedPath, messages));
 
     // Propagate the received flag
     msg._received = msg._received || hasBeenReceived;
