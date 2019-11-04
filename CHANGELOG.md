@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Export `EffectErrorMessage` type.
 ### Changed
 - Errors are now also caught in non-async effects and result in `EFFECT_ERROR`
   messages.

@@ -4,7 +4,10 @@
 //
 // NOTE: Keep in sync with externs.js
 
-export type { Effect } from "./effect";
+export type {
+  Effect,
+  EffectErrorMessage,
+} from "./effect";
 export type {
   Message,
   MessageTag,
