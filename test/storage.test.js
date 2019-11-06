@@ -724,6 +724,76 @@ test("Storage.replyMessage", t => {
   ]);
 });
 
+test("Storage.replyMessage passive", t => {
+  const defA = {
+    id: "a",
+    init: t.context.stub(() => updateData({})),
+    update: t.context.stub(() => null),
+    subscribe: t.context.stub(() => ({
+      A: { passive: true },
+    })),
+  };
+  const defB = {
+    id: "b",
+    init: t.context.stub(() => updateData({})),
+    update: t.context.stub(() => updateAndSend({}, { tag: "A", from: "b" })),
+    subscribe: t.context.stub(() => ({
+      B: { passive: true },
+    })),
+  };
+  const s = new Storage();
+  const msgA = { tag: "A" };
+  const msgB = { tag: "B" };
+
+  s.createState(defA).createState(defB);
+
+  const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
+
+  s.replyMessage(msgA, []);
+  s.replyMessage(msgA, ["a"]);
+  s.replyMessage(msgA, ["a", "b"]);
+  s.replyMessage(msgB, ["a", "b"]);
+  s.replyMessage(msgB, ["a", "b", "c"]);
+  s.replyMessage(msgB, ["a", "b"], "outside");
+
+  t.deepEqual(args(emit), [
+    ["messageQueued", { tag: "A" }, ["<"]],
+    ["unhandledMessage", { tag: "A" }, ["<"]],
+    ["messageQueued", { tag: "A" }, ["a", "<"]],
+    ["messageMatched", { tag: "A" }, ["a"], true],
+    ["unhandledMessage", { tag: "A" }, ["a", "<"]],
+    ["messageQueued", { tag: "A" }, ["a", "b", "<"]],
+    ["unhandledMessage", { tag: "A" }, ["a", "b", "<"]],
+    ["messageQueued", { tag: "B" }, ["a", "b", "<"]],
+    ["messageMatched", { tag: "B" }, ["a", "b"], true],
+    ["stateNewData", {}, ["a", "b"], { tag: "B" }],
+    ["messageQueued", { tag: "A", from: "b" }, ["a", "b"]],
+    ["messageMatched", { tag: "A", from: "b" }, ["a"], true],
+    ["unhandledMessage", { tag: "A", from: "b" }, ["a", "b"]],
+    ["unhandledMessage", { tag: "B" }, ["a", "b", "<"]],
+    ["messageQueued", { tag: "B" }, ["a", "b", "c", "<"]],
+    ["unhandledMessage", { tag: "B" }, ["a", "b", "c", "<"]],
+    ["messageQueued", { tag: "B" }, ["a", "b", "outside"]],
+    ["messageMatched", { tag: "B" }, ["a", "b"], true],
+    ["stateNewData", {}, ["a", "b"], { tag: "B" }],
+    ["messageQueued", { tag: "A", from: "b" }, ["a", "b"]],
+    ["messageMatched", { tag: "A", from: "b" }, ["a"], true],
+    ["unhandledMessage", { tag: "A", from: "b" }, ["a", "b"]],
+    ["unhandledMessage", { tag: "B" }, ["a", "b", "outside"]],
+  ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "A" }, ["<"]),
+    unhandledMessageError({ tag: "A" }, ["a", "<"]),
+    unhandledMessageError({ tag: "A" }, ["a", "b", "<"]),
+    unhandledMessageError({ tag: "A", from: "b" }, ["a", "b"]),
+    unhandledMessageError({ tag: "B" }, ["a", "b", "<"]),
+    unhandledMessageError({ tag: "B" }, ["a", "b", "c", "<"]),
+    unhandledMessageError({ tag: "A", from: "b" }, ["a", "b"]),
+    unhandledMessageError({ tag: "B" }, ["a", "b", "outside"]),
+  ]);
+});
+
 test("Storage.removeState", t => {
   const s = new Storage();
   const defA = {

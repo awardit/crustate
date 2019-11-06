@@ -212,7 +212,7 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
   }
 
   /**
-   * Sends the given message to any matching State or Subscriber in the
+   * Sends the given message to any matching State or Effect in the
    * state-tree.
    */
   sendMessage(msg: Message, srcName?: string = ANONYMOUS_SOURCE): Promise<void> {
@@ -291,27 +291,27 @@ export class Storage extends Supervisor<StorageEvents> {
   }
 
   /**
-   * Looks up the closest matching State for the given path, then sends the
-   * supplied message to all matching States and Subscribers.
+   * Looks up the specified target state and if found the message is processed
+   * in the state, and any resulting messages are passed upwards. The reply
+   * is always passed to effects at the end.
    */
   replyMessage(
     msg: Message,
     targetState: StatePath,
     sourceName?: string = REPLY_SOURCE
   ): Promise<void> {
+    const reply = createInflightMessage(this, targetState.concat(sourceName), msg);
     const instance = findState(this, targetState);
-    const inflight = [createInflightMessage(this, targetState.concat(sourceName), msg)];
+    // If we have an instance, only pass the specific reply message to it and
+    // then propagate any resulting messages.
+    const inflight = instance ? processInstanceMessages(
+      this,
+      instance._supervisor,
+      processMessages(this, instance, instance.getPath(), [reply])
+    ) : [];
 
-    if (instance) {
-      return processEffects(
-        this,
-        processInstanceMessages(
-          this,
-          instance,
-          inflight
-        )
-      );
-    }
+    // Re-add the reply so it is always handled by effects
+    inflight.push(reply);
 
     return processEffects(this, inflight);
   }

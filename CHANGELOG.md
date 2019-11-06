@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   messages.
 - `replyMessage` will no longer process messages for state instances if the
   target state instance is not found.
+- `replyMessage` will now only pass the reply to the actual instance and
+  effects, skipping any parent states of the target state. Messages created
+  from the reply will be processed by parent-states as normal.
 
 ## [0.5.0] - 2019-10-30
 ### Added
