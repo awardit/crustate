@@ -15,12 +15,12 @@ import {
   createStateData,
   useData,
 } from "../react/src";
+import { args, unhandledMessageError } from "./util";
 
 type UpdateMsg = { tag: "data", data: string };
 
 // We need to make sure we cleanup after each test, so serial
 const test = ninos(ava).serial;
-const args = f => f.calls.map(c => c.arguments);
 
 function init() {
   cleanup();
@@ -157,6 +157,7 @@ test("State renders correctly and updates when modified", t => {
 test("sendMessage should have a path", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
 
   const { container, getByText } = render(
     <StorageProvider storage={s}>
@@ -175,11 +176,15 @@ test("sendMessage should have a path", t => {
     ["messageQueued", { tag: "data", data: "whatevs" }, ["$"]],
     ["unhandledMessage", { tag: "data", data: "whatevs" }, ["$"]],
   ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "data", data: "whatevs" }, ["$"]),
+  ]);
 });
 
 test("sendMessage should be able to set a path", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
 
   const { container, getByText } = render(
     <StorageProvider storage={s}>
@@ -197,6 +202,9 @@ test("sendMessage should be able to set a path", t => {
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "data", data: "whatevs" }, ["aaaaa"]],
     ["unhandledMessage", { tag: "data", data: "whatevs" }, ["aaaaa"]],
+  ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "data", data: "whatevs" }, ["aaaaa"]),
   ]);
 });
 

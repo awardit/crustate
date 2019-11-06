@@ -4,13 +4,14 @@ import ninos from "ninos";
 import ava from "ava";
 import { Storage } from "../src/storage";
 import { updateData, updateAndSend } from "../src/update";
+import { args, unhandledMessageError } from "./util";
 
-const test = ninos(ava);
-const args = f => f.calls.map(c => c.arguments);
+const test = ninos(ava).serial;
 
 test("broadcastMessage triggers unhandledMessage on empty", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
 
   s.broadcastMessage({ tag: "AAA" });
 
@@ -18,11 +19,15 @@ test("broadcastMessage triggers unhandledMessage on empty", t => {
     ["messageQueued", { tag: "AAA" }, ["@"]],
     ["unhandledMessage", { tag: "AAA" }, ["@"]],
   ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "AAA" }, ["@"]),
+  ]);
 });
 
 test("broadcastMessage with name uses that name as source", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
 
   s.broadcastMessage({ tag: "AAA" }, "the broadcast");
 
@@ -30,11 +35,15 @@ test("broadcastMessage with name uses that name as source", t => {
     ["messageQueued", { tag: "AAA" }, ["the broadcast"]],
     ["unhandledMessage", { tag: "AAA" }, ["the broadcast"]],
   ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "AAA" }, ["the broadcast"]),
+  ]);
 });
 
 test("broadcastMessage triggers attempts to send messages to all states", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const init = t.context.stub(() => updateData(1));
   const update = t.context.stub(() => updateData(2));
   const subscribe = t.context.stub(() => ({}));
@@ -61,11 +70,15 @@ test("broadcastMessage triggers attempts to send messages to all states", t => {
     [1],
   ]);
   t.deepEqual(args(update), []);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "AAA" }, ["@"]),
+  ]);
 });
 
 test("broadcastMessage sends a message to all states with deepest first", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const init = t.context.stub(() => updateData(1));
   const update = t.context.stub(() => updateData(2));
   const subscribe = t.context.stub(() => ({ AAA: true }));
@@ -103,11 +116,13 @@ test("broadcastMessage sends a message to all states with deepest first", t => {
     [2],
   ]);
   t.is(update.calls.length, 3);
+  t.deepEqual(args(error), []);
 });
 
 test("broadcastMessage will still trigger unhandledMessage if only passive effects are used", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const init = t.context.stub(() => updateData(1));
   const update = t.context.stub(() => updateData(2));
   const subscribe = t.context.stub(() => ({ AAA: { passive: true } }));
@@ -146,11 +161,15 @@ test("broadcastMessage will still trigger unhandledMessage if only passive effec
     [2],
   ]);
   t.is(update.calls.length, 3);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "AAA" }, ["@"]),
+  ]);
 });
 
 test("broadcastMessage will not trigger unhandledMessage if at least one is a non-passive subscriber", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const init = t.context.stub(() => updateData(1));
   const update = t.context.stub(() => updateData(2));
   const subscribe = t.context.stub(() => ({ AAA: { passive: true } }));
@@ -191,11 +210,13 @@ test("broadcastMessage will not trigger unhandledMessage if at least one is a no
     [2],
   ]);
   t.is(update.calls.length, 2);
+  t.deepEqual(args(error), []);
 });
 
 test("broadcastMessage will not trigger unhandledMessage if at least one is a non-passive subscriber, nested variant", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const init = t.context.stub(() => updateData(1));
   const update = t.context.stub(() => updateData(2));
   const subscribe = t.context.stub(() => ({ AAA: { passive: true } }));
@@ -236,11 +257,13 @@ test("broadcastMessage will not trigger unhandledMessage if at least one is a no
     [2],
   ]);
   t.is(update.calls.length, 2);
+  t.deepEqual(args(error), []);
 });
 
 test("broadcastMessage propagates messages in order", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const init = t.context.stub(() => updateData(1));
   const update = t.context.stub(() => updateAndSend(2, { tag: "BBB" }));
   const subscribe = t.context.stub(() => ({ AAA: true, BBB: true }));
@@ -280,5 +303,10 @@ test("broadcastMessage propagates messages in order", t => {
     ["unhandledMessage", { tag: "BBB" }, ["foo"]],
     ["unhandledMessage", { tag: "BBB" }, ["foo"]],
     ["unhandledMessage", { tag: "BBB" }, ["foo"]],
+  ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "BBB" }, ["foo"]),
+    unhandledMessageError({ tag: "BBB" }, ["foo"]),
+    unhandledMessageError({ tag: "BBB" }, ["foo"]),
   ]);
 });

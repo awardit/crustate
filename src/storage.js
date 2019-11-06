@@ -620,6 +620,10 @@ export function processEffects(
 
     if (!received) {
       storage.emit("unhandledMessage", _message, _source);
+
+      if (storage.listeners("unhandledMessage").length === 0) {
+        logUnhandledMessage(_message, _source);
+      }
     }
   }
 
@@ -724,4 +728,8 @@ export function createSnapshot(node: Supervisor<{}>): Snapshot {
 
     return a;
   }, {});
+}
+
+export function logUnhandledMessage(msg: Message, path: StatePath): void {
+  console.error("Unhandled message:", msg, "from [", path.join(", "), "]");
 }

@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Export `EffectErrorMessage` type.
+- Any unhandled messages will now trigger a default `console.error` if no
+  listener is registered for `unhandledMessage`.
 ### Changed
 - Errors are now also caught in non-async effects and result in `EFFECT_ERROR`
   messages.

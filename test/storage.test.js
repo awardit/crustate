@@ -4,9 +4,9 @@ import ninos from "ninos";
 import ava from "ava";
 import { Storage, State, findClosestSupervisor, processInstanceMessages } from "../src/storage";
 import { updateData, updateAndSend } from "../src/update";
+import { args, unhandledMessageError } from "./util";
 
-const test = ninos(ava);
-const args = f => f.calls.map(c => c.arguments);
+const test = ninos(ava).serial;
 
 test("Storage can be created without parameters and is empty", t => {
   const s = new Storage();
@@ -225,6 +225,7 @@ test("Storage getState on non-existing state instance should return undefined wh
 test("Sending messages on an empty storage only results in unhandledMessage events", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const msg = { tag: "testMessage" };
 
   s.sendMessage(msg);
@@ -233,11 +234,15 @@ test("Sending messages on an empty storage only results in unhandledMessage even
     ["messageQueued", msg, ["$"]],
     ["unhandledMessage", msg, ["$"]],
   ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "testMessage" }, ["$"]),
+  ]);
 });
 
 test("Sending messages with a name Storage should use the name as source", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const msg = { tag: "testMessage" };
 
   s.sendMessage(msg, "mysource");
@@ -246,11 +251,36 @@ test("Sending messages with a name Storage should use the name as source", t => 
     ["messageQueued", msg, ["mysource"]],
     ["unhandledMessage", msg, ["mysource"]],
   ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "testMessage" }, ["mysource"]),
+  ]);
+});
+
+test("unhandledMessage default logging will not trigger if a listener is registered", t => {
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
+  const msg = { tag: "testMessage" };
+  const listener = t.context.stub();
+
+  s.addListener("unhandledMessage", listener);
+
+  s.sendMessage(msg);
+
+  t.deepEqual(args(emit), [
+    ["messageQueued", msg, ["$"]],
+    ["unhandledMessage", msg, ["$"]],
+  ]);
+  t.deepEqual(args(error), []);
+  t.deepEqual(args(listener), [
+    [msg, ["$"]],
+  ]);
 });
 
 test("States with init using updateAndSend should send messages to parent Storage", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const initData = { name: "initData" };
   const initMsg = { tag: "initMsg" };
   const init = t.context.stub(() => updateAndSend(initData, initMsg));
@@ -268,6 +298,9 @@ test("States with init using updateAndSend should send messages to parent Storag
     ["stateCreated", ["test"], undefined, initData],
     ["messageQueued", initMsg, ["test"]],
     ["unhandledMessage", initMsg, ["test"]],
+  ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError(initMsg, ["test"]),
   ]);
 });
 
@@ -394,6 +427,7 @@ test("State getState on non-existing state instance should return undefined when
 test("Messages sent on State should propagate upwards", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const firstData = { name: "firstData" };
   const initMsg = { tag: "initMsg" };
   const firstDef = {
@@ -414,11 +448,15 @@ test("Messages sent on State should propagate upwards", t => {
     ["messageQueued", { tag: "initMsg" }, ["first", "$"]],
     ["unhandledMessage", { tag: "initMsg" }, ["first", "$"]],
   ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "initMsg" }, ["first", "$"]),
+  ]);
 });
 
 test("Messages with a sourceName sent on State should propagate upwards with that name", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const firstData = { name: "firstData" };
   const initMsg = { tag: "initMsg" };
   const firstDef = {
@@ -439,11 +477,15 @@ test("Messages with a sourceName sent on State should propagate upwards with tha
     ["messageQueued", { tag: "initMsg" }, ["first", "thesource"]],
     ["unhandledMessage", { tag: "initMsg" }, ["first", "thesource"]],
   ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "initMsg" }, ["first", "thesource"]),
+  ]);
 });
 
 test("State init is sent to parent instances", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const firstData = { name: "firstData" };
   const firstDef = {
     id: "first",
@@ -478,11 +520,15 @@ test("State init is sent to parent instances", t => {
     ["messageMatched", secondInit, ["first"], true],
     ["unhandledMessage", secondInit, ["first", "second"]],
   ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError(secondInit, ["first", "second"]),
+  ]);
 });
 
 test("no message matches on nested states", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const firstDef = {
     id: "first",
     init: t.context.stub(() => updateData({})),
@@ -499,11 +545,15 @@ test("no message matches on nested states", t => {
     ["messageQueued", { tag: "nomatch" }, ["first", "$"]],
     ["unhandledMessage", { tag: "nomatch" }, ["first", "$"]],
   ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "nomatch" }, ["first", "$"]),
+  ]);
 });
 
 test("State init is sent to parent instances, but not siblings", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const firstData = { name: "firstData" };
   const firstDef = {
     id: "first",
@@ -535,11 +585,15 @@ test("State init is sent to parent instances, but not siblings", t => {
     ["messageQueued", secondInit, ["second"]],
     ["unhandledMessage", secondInit, ["second"]],
   ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError(secondInit, ["second"]),
+  ]);
 });
 
 test("Messages generated during processing are handled in order", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const firstData = { name: "firstData" };
   const secondData = { name: "secondData" };
   const initMsg = { tag: "initMsg" };
@@ -565,6 +619,10 @@ test("Messages generated during processing are handled in order", t => {
     ["messageQueued", firstMsg, ["first"]],
     ["unhandledMessage", initMsg, ["first", "$"]],
     ["unhandledMessage", firstMsg, ["first"]],
+  ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError(initMsg, ["first", "$"]),
+    unhandledMessageError(firstMsg, ["first"]),
   ]);
 });
 
@@ -627,6 +685,7 @@ test("Storage.replyMessage", t => {
   s.createState(defA).createState(defB);
 
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
 
   s.replyMessage(msgA, []);
   s.replyMessage(msgA, ["a"]);
@@ -648,6 +707,14 @@ test("Storage.replyMessage", t => {
     ["unhandledMessage", { tag: "A" }, ["foo", "bar", "<"]],
     ["messageQueued", { tag: "A" }, ["foo", "bar", "another"]],
     ["unhandledMessage", { tag: "A" }, ["foo", "bar", "another"]],
+  ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "A" }, ["<"]),
+    unhandledMessageError({ tag: "A" }, ["a", "<"]),
+    unhandledMessageError({ tag: "B" }, ["a", "b", "<"]),
+    unhandledMessageError({ tag: "B" }, ["a", "b", "outside"]),
+    unhandledMessageError({ tag: "A" }, ["foo", "bar", "<"]),
+    unhandledMessageError({ tag: "A" }, ["foo", "bar", "another"]),
   ]);
 });
 
@@ -758,6 +825,7 @@ test("Storage updates subscribe during processing when state data is updated", t
   };
 
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const i = s.createState(def);
 
   processInstanceMessages(s, i, [
@@ -775,6 +843,10 @@ test("Storage updates subscribe during processing when state data is updated", t
     ["stateNewData", true, ["a"], { tag: "b", __yes: true }],
     ["unhandledMessage", { tag: "b", __no: true }, ["a", "test"]],
     ["unhandledMessage", { tag: "a", __no: true }, ["a", "test"]],
+  ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "b", __no: true }, ["a", "test"]),
+    unhandledMessageError({ tag: "a", __no: true }, ["a", "test"]),
   ]);
 });
 
@@ -995,6 +1067,7 @@ test("State getState, createState, and removeState, with a different name should
 test("createState with a different name should still work to send messages", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const init = t.context.stub(() => updateData(1));
   const update = t.context.stub(() => updateData(2));
   const subscribe = t.context.stub(() => ({}));
@@ -1025,4 +1098,8 @@ test("createState with a different name should still work to send messages", t =
   t.is(init.calls.length, 3);
   t.deepEqual(args(update), []);
   t.is(subscribe.calls.length, 4);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "AAA", testing: "foo" }, ["bar", "foo", "$"]),
+    unhandledMessageError({ tag: "AAA", testing: "bar" }, ["bar", "bar", "$"]),
+  ]);
 });

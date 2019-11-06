@@ -5,9 +5,9 @@ import ava from "ava";
 import { Storage } from "../src/storage";
 import { updateData, updateAndSend } from "../src/update";
 import { EFFECT_ERROR } from "../src/effect";
+import { args, unhandledMessageError } from "./util";
 
-const test = ninos(ava);
-const args = f => f.calls.map(c => c.arguments);
+const test = ninos(ava).serial;
 
 test("Awaiting empty storage does nothing", async t => {
   const s = new Storage();
@@ -49,6 +49,7 @@ test("Awaiting empty state does nothing", async t => {
 test("Sending messages on a Storage should send them to matching effects", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const recv1 = t.context.stub();
   const recv2 = t.context.stub();
   const msg = { tag: "testMessage" };
@@ -75,6 +76,9 @@ test("Sending messages on a Storage should send them to matching effects", t => 
     ["messageMatched", msg, [], false],
     ["messageQueued", msg2, ["$"]],
     ["unhandledMessage", msg2, ["$"]],
+  ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError(msg2, ["$"]),
   ]);
 });
 
@@ -130,6 +134,7 @@ test("Removing a subscriber should not fire when a matching message is sent", t 
 test("Sending messages on a Storage should also trigger unhandledMessage if no active effects are present", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const recv = t.context.stub();
   const msg = { tag: "testMessage" };
 
@@ -142,6 +147,9 @@ test("Sending messages on a Storage should also trigger unhandledMessage if no a
     ["messageQueued", msg, ["$"]],
     ["messageMatched", msg, [], true],
     ["unhandledMessage", msg, ["$"]],
+  ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError(msg, ["$"]),
   ]);
 });
 
@@ -184,6 +192,7 @@ test("Active effects prevent parents and unhandledMessage from receiving", t => 
 test("Passive effects always receive messages from children", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
   const stub1 = t.context.stub();
   const stub2 = t.context.stub();
   const firstData = { name: "firstData" };
@@ -218,6 +227,9 @@ test("Passive effects always receive messages from children", t => {
     ["messageMatched", { tag: "firstMsg" }, [], true],
     ["unhandledMessage", { tag: "firstMsg" }, ["first"]],
   ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "firstMsg" }, ["first"]),
+  ]);
 });
 
 test("Immediate reply from effect", async t => {
@@ -228,6 +240,7 @@ test("Immediate reply from effect", async t => {
   };
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
 
   s.addEffect(myEffect);
 
@@ -253,6 +266,9 @@ test("Immediate reply from effect", async t => {
     ["messageQueued", { tag: "the-reply", data: "foo" }, ["$", "<"]],
     ["unhandledMessage", { tag: "the-reply", data: "foo" }, ["$", "<"]],
   ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "the-reply", data: "foo" }, ["$", "<"]),
+  ]);
 });
 
 test("Immediate reply from effect with name", async t => {
@@ -264,6 +280,7 @@ test("Immediate reply from effect with name", async t => {
   };
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
 
   s.addEffect(myEffect);
 
@@ -289,6 +306,9 @@ test("Immediate reply from effect with name", async t => {
     ["messageQueued", { tag: "the-reply", data: "foo" }, ["$", "My Effect"]],
     ["unhandledMessage", { tag: "the-reply", data: "foo" }, ["$", "My Effect"]],
   ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "the-reply", data: "foo" }, ["$", "My Effect"]),
+  ]);
 });
 
 test("Immediate throw in effect", async t => {
@@ -301,6 +321,7 @@ test("Immediate throw in effect", async t => {
   };
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
 
   s.addEffect(myEffect);
 
@@ -329,6 +350,9 @@ test("Immediate throw in effect", async t => {
     ["messageQueued", { tag: "effect/error", error: new Error("My Effect error") }, ["$", "<"]],
     ["unhandledMessage", { tag: "effect/error", error: new Error("My Effect error") }, ["$", "<"]],
   ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "effect/error", error: new Error("My Effect error") }, ["$", "<"]),
+  ]);
 });
 
 test("Async reply from effect", async t => {
@@ -339,6 +363,7 @@ test("Async reply from effect", async t => {
   };
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
 
   s.addEffect(myEffect);
 
@@ -364,6 +389,9 @@ test("Async reply from effect", async t => {
     ["messageQueued", { tag: "the-reply", data: "foo" }, ["$", "<"]],
     ["unhandledMessage", { tag: "the-reply", data: "foo" }, ["$", "<"]],
   ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "the-reply", data: "foo" }, ["$", "<"]),
+  ]);
 });
 
 test("Storage.wait on async reply from effect", async t => {
@@ -374,6 +402,7 @@ test("Storage.wait on async reply from effect", async t => {
   };
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
 
   s.addEffect(myEffect);
 
@@ -398,6 +427,9 @@ test("Storage.wait on async reply from effect", async t => {
     ["messageMatched", { tag: "trigger-effect" }, [], false],
     ["messageQueued", { tag: "the-reply", data: "foo" }, ["$", "<"]],
     ["unhandledMessage", { tag: "the-reply", data: "foo" }, ["$", "<"]],
+  ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: "the-reply", data: "foo" }, ["$", "<"]),
   ]);
 });
 
@@ -411,6 +443,7 @@ test("Async throw in effect", async t => {
   };
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
 
   s.addEffect(myEffect);
 
@@ -436,6 +469,9 @@ test("Async throw in effect", async t => {
     ["messageQueued", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
     ["unhandledMessage", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
   ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]),
+  ]);
 });
 
 test("Storage.wait on async throw in effect", async t => {
@@ -448,6 +484,7 @@ test("Storage.wait on async throw in effect", async t => {
   };
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
 
   s.addEffect(myEffect);
 
@@ -472,6 +509,9 @@ test("Storage.wait on async throw in effect", async t => {
     ["messageMatched", { tag: "trigger-effect" }, [], false],
     ["messageQueued", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
     ["unhandledMessage", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
+  ]);
+  t.deepEqual(args(error), [
+    unhandledMessageError({ tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]),
   ]);
 });
 

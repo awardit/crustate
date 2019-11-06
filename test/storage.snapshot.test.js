@@ -4,9 +4,9 @@ import ninos from "ninos";
 import ava from "ava";
 import { Storage } from "../src/storage";
 import { updateData } from "../src/update";
+import { args } from "./util";
 
 const test = ninos(ava);
-const args = f => f.calls.map(c => c.arguments);
 
 test("restoreSnapshot throws if it cannot find a matching state definition", t => {
   const s = new Storage();
