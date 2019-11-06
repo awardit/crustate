@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Errors are now also caught in non-async effects and result in `EFFECT_ERROR`
   messages.
+- `replyMessage` will no longer process messages for state instances if the
+  target state instance is not found.
 
 ## [0.5.0] - 2019-10-30
 ### Added

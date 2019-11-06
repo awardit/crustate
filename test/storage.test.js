@@ -2,7 +2,7 @@
 
 import ninos from "ninos";
 import ava from "ava";
-import { Storage, State, findClosestSupervisor, processInstanceMessages } from "../src/storage";
+import { Storage, State, findState, processInstanceMessages } from "../src/storage";
 import { updateData, updateAndSend } from "../src/update";
 import { args, unhandledMessageError } from "./util";
 
@@ -626,7 +626,7 @@ test("Messages generated during processing are handled in order", t => {
   ]);
 });
 
-test("findClosestSupervisor", t => {
+test("findState", t => {
   const defA = {
     id: "a",
     init: t.context.stub(() => updateData({})),
@@ -648,21 +648,21 @@ test("findClosestSupervisor", t => {
   const sBA = sB.createState(defA);
   const sBB = sB.createState(defB);
 
-  t.is(findClosestSupervisor(s, []), s);
-  t.is(findClosestSupervisor(s, ["a"]), sA);
-  t.is(findClosestSupervisor(s, ["a", "c"]), sA);
-  t.is(findClosestSupervisor(s, ["a", "b"]), sAB);
-  t.is(findClosestSupervisor(s, ["a", "b", "c"]), sAB);
-  t.is(findClosestSupervisor(s, ["a", "a"]), sAA);
-  t.is(findClosestSupervisor(s, ["a", "a", "c"]), sAA);
-  t.is(findClosestSupervisor(s, ["b"]), sB);
-  t.is(findClosestSupervisor(s, ["b", "c"]), sB);
-  t.is(findClosestSupervisor(s, ["b", "a"]), sBA);
-  t.is(findClosestSupervisor(s, ["b", "a", "c"]), sBA);
-  t.is(findClosestSupervisor(s, ["b", "b"]), sBB);
-  t.is(findClosestSupervisor(s, ["b", "b", "c"]), sBB);
-  t.is(findClosestSupervisor(s, ["c"]), s);
-  t.is(findClosestSupervisor(s, ["c", "d"]), s);
+  t.is(findState(s, []), null);
+  t.is(findState(s, ["a"]), sA);
+  t.is(findState(s, ["a", "c"]), null);
+  t.is(findState(s, ["a", "b"]), sAB);
+  t.is(findState(s, ["a", "b", "c"]), null);
+  t.is(findState(s, ["a", "a"]), sAA);
+  t.is(findState(s, ["a", "a", "c"]), null);
+  t.is(findState(s, ["b"]), sB);
+  t.is(findState(s, ["b", "c"]), null);
+  t.is(findState(s, ["b", "a"]), sBA);
+  t.is(findState(s, ["b", "a", "c"]), null);
+  t.is(findState(s, ["b", "b"]), sBB);
+  t.is(findState(s, ["b", "b", "c"]), null);
+  t.is(findState(s, ["c"]), null);
+  t.is(findState(s, ["c", "d"]), null);
 });
 
 test("Storage.replyMessage", t => {

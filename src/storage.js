@@ -291,16 +291,19 @@ export class Storage extends Supervisor<StorageEvents> {
    * Looks up the closest matching State for the given path, then sends the
    * supplied message to all matching States and Subscribers.
    */
-  // TODO: Remove once Effects is in place?
   replyMessage(
     msg: Message,
     targetState: StatePath,
     sourceName?: string = REPLY_SOURCE
   ): Promise<void> {
-    const instance = findClosestSupervisor(this, targetState);
+    const instance = findState(this, targetState);
     const inflight = [createInflightMessage(this, targetState.concat(sourceName), msg)];
 
-    return processInstanceMessages(this, instance, inflight);
+    if (instance) {
+      return processInstanceMessages(this, instance, inflight);
+    }
+
+    return processEffects(this, inflight);
   }
 
   addEffect(eff: Effect<any>): void {
@@ -510,16 +513,19 @@ export function createInflightMessage(
   };
 }
 
-export function findClosestSupervisor(supervisor: Supervisor<{}>, path: StatePath): Supervisor<{}> {
+export function findState(
+  supervisor: Storage | State<any>,
+  path: StatePath
+): ?State<any> {
   for (const p of path) {
     if (!supervisor._nested[p]) {
-      return supervisor;
+      return null;
     }
 
     supervisor = supervisor._nested[p];
   }
 
-  return supervisor;
+  return supervisor instanceof State ? supervisor : null;
 }
 
 export function processInstanceMessages(
