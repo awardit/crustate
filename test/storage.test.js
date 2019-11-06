@@ -2,7 +2,13 @@
 
 import ninos from "ninos";
 import ava from "ava";
-import { Storage, State, findState, processInstanceMessages } from "../src/storage";
+import {
+  Storage,
+  State,
+  findState,
+  processEffects,
+  processInstanceMessages,
+} from "../src/storage";
 import { updateData, updateAndSend } from "../src/update";
 import { args, unhandledMessageError } from "./util";
 
@@ -828,7 +834,7 @@ test("Storage updates subscribe during processing when state data is updated", t
   const error = t.context.spy(console, "error", () => {});
   const i = s.createState(def);
 
-  processInstanceMessages(s, i, [
+  const messages = processInstanceMessages(s, i, [
     { _message: { tag: "b", __no: true }, _source: ["a", "test"], _received: false },
     { _message: { tag: "a", __yes: true }, _source: ["a", "test"], _received: false },
     { _message: { tag: "b", __yes: true }, _source: ["a", "test"], _received: false },
@@ -841,6 +847,11 @@ test("Storage updates subscribe during processing when state data is updated", t
     ["stateNewData", true, ["a"], { tag: "a", __yes: true }],
     ["messageMatched", { tag: "b", __yes: true }, ["a"], false],
     ["stateNewData", true, ["a"], { tag: "b", __yes: true }],
+  ]);
+
+  processEffects(s, messages);
+
+  t.deepEqual(args(emit).slice(5), [
     ["unhandledMessage", { tag: "b", __no: true }, ["a", "test"]],
     ["unhandledMessage", { tag: "a", __no: true }, ["a", "test"]],
   ]);

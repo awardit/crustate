@@ -191,11 +191,11 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
     storage.emit("stateCreated", path, (params: any), data);
 
     if (messages) {
-      instance._init = processInstanceMessages(
+      instance._init = processEffects(storage, processInstanceMessages(
         storage,
         instance._supervisor,
         messages.map((m: Message): InflightMessage => createInflightMessage(storage, path, m))
-      );
+      ));
     }
 
     return instance;
@@ -219,7 +219,10 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
     const storage = this._getStorage();
     const msgPath = this.getPath().concat([srcName]);
 
-    return processInstanceMessages(storage, this, [createInflightMessage(storage, msgPath, msg)]);
+    return processEffects(
+      storage,
+      processInstanceMessages(storage, this, [createInflightMessage(storage, msgPath, msg)])
+    );
   }
 }
 
@@ -300,7 +303,14 @@ export class Storage extends Supervisor<StorageEvents> {
     const inflight = [createInflightMessage(this, targetState.concat(sourceName), msg)];
 
     if (instance) {
-      return processInstanceMessages(this, instance, inflight);
+      return processEffects(
+        this,
+        processInstanceMessages(
+          this,
+          instance,
+          inflight
+        )
+      );
     }
 
     return processEffects(this, inflight);
@@ -532,7 +542,7 @@ export function processInstanceMessages(
   storage: Storage,
   instance: Supervisor<{}>,
   inflight: Array<InflightMessage>
-): Promise<any> {
+): Array<InflightMessage> {
   let sourcePath = instance.getPath();
 
   while (instance instanceof State) {
@@ -543,7 +553,7 @@ export function processInstanceMessages(
     instance = instance._supervisor;
   }
 
-  return processEffects(storage, inflight);
+  return inflight;
 }
 
 export function processMessages(
