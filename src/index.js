@@ -39,4 +39,5 @@ export {
 export {
   State,
   Storage,
+  logUnhandledMessage,
 } from "./storage";
