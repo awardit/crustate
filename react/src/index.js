@@ -73,8 +73,6 @@ type StorageProviderProps = { storage: Storage, children?: ?React$Node };
 /**
  * The basic state context where we will carry either a Storage, or a state
  * for the current nesting.
- *
- * @suppress {checkTypes}
  */
 export const StateContext: Context<?State<any> | Storage> = createContext(null);
 
@@ -82,8 +80,6 @@ const InstanceProvider = StateContext.Provider;
 
 /**
  * Provider for the Storage-instance to be used in all child-components.
- *
- * @suppress {checkTypes}
  */
 export function StorageProvider({ storage, children }: StorageProviderProps): React$Node {
   return createElement(InstanceProvider, { value: storage }, children);
@@ -92,8 +88,6 @@ export function StorageProvider({ storage, children }: StorageProviderProps): Re
 /**
  * Returns a function for passing messages into the state-tree at the current
  * nesting.
- *
- * @suppress {checkTypes}
  */
 export function useSendMessage(): SendMessageFn {
   const supervisor = useContext(StateContext);
@@ -125,10 +119,6 @@ function excludeChildren<T: { children?: ?React$Node, name?: string }>(
   return rest;
 }
 
-/**
- * @suppress {checkTypes}
- * @return {!StateData}
- */
 export function createStateData<+M: AnyModel>(model: M): StateData<M> {
   const Ctx = (createContext(undefined): React$Context<TypeofModelData<M> | void>);
   const { Provider } = Ctx;
@@ -190,8 +180,6 @@ export function createStateData<+M: AnyModel>(model: M): StateData<M> {
 /**
  * Returns the data in the topmost state associated with the supplied
  * StateData. Will throw if a StateData.Provider is not a parent node.
- *
- * @suppress {checkTypes}
  */
 export function useData<M: AnyModel>(context: StateData<M>): TypeofModelData<M> {
   const { _dataContext, model } = context;

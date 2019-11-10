@@ -66,11 +66,6 @@ export type Subscription<M: Message> = true | {
   matching?: MessageFilter<M>,
 };
 
-/**
- * @param {!Object} subscriptions
- * @param {!crustate.Message} message
- * @param {!boolean} received
- */
 export function findMatchingSubscription<M: Message>(
   subscriptions: Subscriptions<M>,
   message: M, received: boolean
