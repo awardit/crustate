@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Export type `SendMessageFn` describing React `useSendMessage` return.
+### Changed
+- React `useSendMessage` return function will now return a `Promise` when
+  sending messages, they will be resolved when all data updates and effects
+  triggered by the message have been resolved.
+### Added
 - Export `logUnhandledMessage` to allow reuse of logging.
 
 ## [0.6.0] - 2019-11-07

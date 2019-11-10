@@ -66,6 +66,8 @@ export type StateData<M: AnyModel> = {
   +Consumer: DataConsumer<TypeofModelData<M>>,
 };
 
+export type SendMessageFn = (msg: Message, srcName?: string) => Promise<void>;
+
 type StorageProviderProps = { storage: Storage, children?: ?React$Node };
 
 /**
@@ -93,16 +95,15 @@ export function StorageProvider({ storage, children }: StorageProviderProps): Re
  *
  * @suppress {checkTypes}
  */
-export function useSendMessage(): (message: Message, sourceName?: string) => void {
+export function useSendMessage(): SendMessageFn {
   const supervisor = useContext(StateContext);
 
   if (!supervisor) {
     throw new Error("useSendMessage() must be used inside a <State.Provider />.");
   }
 
-  return (message: Message, sourceName?: string): void => {
+  return (message: Message, sourceName?: string): Promise<void> =>
     supervisor.sendMessage(message, sourceName);
-  };
 }
 
 /**
