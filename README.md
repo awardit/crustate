@@ -7,7 +7,7 @@
 [![Build Status](https://travis-ci.org/crossroads-loyalty-solutions/crustate.svg?branch=master)](https://travis-ci.org/crossroads-loyalty-solutions/crustate)
 [![Codecov](https://img.shields.io/codecov/c/gh/crossroads-loyalty-solutions/crustate.svg)](https://codecov.io/gh/crossroads-loyalty-solutions/crustate)
 ![License](https://img.shields.io/npm/l/crustate.svg)
-[![npm](https://img.shields.io/npm/v/crustate.svg)](https://www.npmjs.com/package/crustate)
+[![npm](https://img.shields.io/npm/v/crustate.svg)](https://www.npmjs.com/package/crustate) [![Greenkeeper badge](https://badges.greenkeeper.io/crossroads-loyalty-solutions/crustate.svg)](https://greenkeeper.io/)
 
 This library is based on the principles of message passing found in languages
 like Elm and Elixir/Erlang. The purpose is to be able to build modular state
