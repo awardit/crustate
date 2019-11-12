@@ -86,7 +86,7 @@
     "eslint-plugin-react": "7.16.0",
     "eslint-plugin-react-hooks": "2.2.0",
     "express": "4.17.1",
-    "flow-bin": "0.111.3",
+    "flow-bin": "0.112.0",
     "jsdom": "15.2.1",
     "ninos": "3.0.0",
     "nodemon": "1.19.4",
