@@ -98,13 +98,11 @@ state-hierarchy and can be subscribed to in supervising states.
 ```javascript
 type ModelSubscribe<T, M: Message> = (state: T) => Subscriptions;
 type Subscriptions<M: Message> = { [tag: $PropertyType<M, "tag">]: Subscription };
-type Subscription<M: Message> = true | { passive?: boolean, matching?: (msg: M) => bool };
+type Subscription<M: Message> = boolean };
 ```
 
 For a state to actually receive messages it first needs to subscribe to
-messages; which tags it is interested in, if they have any specific
-requirements, and if it is supposed to be the primary (active) handler for
-messages of that type.
+messages; which tags it is interested in:
 
 ```javascript
 function subscribe(state) {
@@ -114,7 +112,5 @@ function subscribe(state) {
 }
 ```
 
-By default subscriptions are active but can be turned into passive subscriptions
-by specifying the `passive` flag where they will receive all matching messages
-even if they already have been received by other child-states, `passive` will
-also not prevent any non-`passive` parent states from matching it.
+When a message matches a state it will be consumed by that state and no longer
+propagate upwards in the tree.
