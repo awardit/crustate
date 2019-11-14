@@ -7,7 +7,6 @@ export type {
 export type {
   Message,
   MessageTag,
-  MessageFilter,
   Subscriptions,
   Subscription,
 } from "./message";

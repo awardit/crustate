@@ -241,6 +241,7 @@
         }
       ],
       "no-case-declarations": "off",
+      "no-labels": "off",
       "no-unused-vars": [
         "error",
         {
