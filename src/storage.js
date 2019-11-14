@@ -563,14 +563,13 @@ export function processMessages(
 ): Array<InflightMessage> {
   const newMessages = [];
   const definition = getModelById(storage, instance._id);
-  const { update, subscribe } = definition;
-
-  // We need to be able to update the filters if the data changes
-  let messageFilter = subscribe(instance._data);
+  const { update } = definition;
 
   for (const currentInflight of inflight) {
     const { _message: m } = currentInflight;
-    if (!isMatchingSubscription(messageFilter, m)) {
+    const updateRequest = update(instance._data, m);
+
+    if (!updateRequest) {
       continue;
     }
 
@@ -578,27 +577,20 @@ export function processMessages(
 
     storage.emit("messageMatched", m, sourcePath);
 
-    const updateRequest = update(instance._data, m);
+    if (updateRequest !== 1) {
+      const { data, messages } = updateRequest;
 
-    if (!updateRequest) {
-      continue;
-    }
+      instance._data = data;
 
-    const { data, messages } = updateRequest;
+      storage.emit("stateNewData", data, sourcePath, m);
+      instance.emit("stateNewData", data, sourcePath, m);
 
-    instance._data = data;
-
-    storage.emit("stateNewData", data, sourcePath, m);
-    instance.emit("stateNewData", data, sourcePath, m);
-
-    if (messages) {
-      for (const m of messages) {
-        newMessages.push(createInflightMessage(storage, sourcePath, m));
+      if (messages) {
+        for (const m of messages) {
+          newMessages.push(createInflightMessage(storage, sourcePath, m));
+        }
       }
     }
-
-    // TODO: Skip on last iteration?
-    messageFilter = subscribe(instance._data);
   }
 
   return newMessages;

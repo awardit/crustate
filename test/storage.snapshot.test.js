@@ -2,8 +2,7 @@
 
 import ninos from "ninos";
 import ava from "ava";
-import { Storage } from "../src/storage";
-import { updateData } from "../src/update";
+import { Storage, updateData } from "../src";
 import { args } from "./util";
 
 const test = ninos(ava);

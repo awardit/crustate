@@ -4,7 +4,7 @@ import type { Model } from "../src/model";
 import type { Message } from "../src/message";
 
 import test from "ava";
-import { updateData } from "../src/update";
+import { updateData } from "../src";
 
 // Type tests
 type MyMessage = { tag: "a" } | { tag: "b" };
@@ -12,7 +12,6 @@ type MyMessage = { tag: "a" } | { tag: "b" };
   id: "test",
   init: () => updateData("init"),
   update: () => null,
-  subscribe: () => ({}),
 }: Model<string, void, MyMessage>);
 
 test("Model can be instantiated", t => {
@@ -20,11 +19,8 @@ test("Model can be instantiated", t => {
     id: "test",
     init: () => updateData("init"),
     update: (data, msg) => updateData(msg.tag),
-    subscribe: () => ({ any: true }),
   };
 
   t.deepEqual(definition.init(), updateData("init"));
   t.deepEqual(definition.update("init", { tag: "foo" }), updateData("foo"));
-  t.deepEqual(definition.subscribe("init"), { any: true });
-  t.deepEqual(definition.subscribe("foo"), { any: true });
 });

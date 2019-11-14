@@ -3,13 +3,11 @@
 import ninos from "ninos";
 import ava from "ava";
 import {
-  Storage,
-  State,
   findState,
   processEffects,
   processInstanceMessages,
 } from "../src/storage";
-import { updateData, updateAndSend } from "../src/update";
+import { Storage, State, updateData, updateAndSend } from "../src";
 import { args, unhandledMessageError } from "./util";
 
 const test = ninos(ava).serial;
