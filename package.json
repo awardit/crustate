@@ -84,7 +84,7 @@
     "eslint-config-xo-react": "0.20.0",
     "eslint-plugin-flowtype": "4.4.1",
     "eslint-plugin-react": "7.16.0",
-    "eslint-plugin-react-hooks": "2.2.0",
+    "eslint-plugin-react-hooks": "2.3.0",
     "express": "4.17.1",
     "flow-bin": "0.112.0",
     "jsdom": "15.2.1",
