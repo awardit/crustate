@@ -64,7 +64,7 @@ test("Sending messages on a Storage should send them to matching effects", t => 
   t.deepEqual(args(recv2), []);
   t.deepEqual(args(emit), [
     ["messageQueued", msg, ["$"]],
-    ["messageMatched", msg, [], false],
+    ["messageMatched", msg, []],
   ]);
 
   s.sendMessage(msg2);
@@ -73,7 +73,7 @@ test("Sending messages on a Storage should send them to matching effects", t => 
   t.deepEqual(args(recv2), []);
   t.deepEqual(args(emit), [
     ["messageQueued", msg, ["$"]],
-    ["messageMatched", msg, [], false],
+    ["messageMatched", msg, []],
     ["messageQueued", msg2, ["$"]],
     ["unhandledMessage", msg2, ["$"]],
   ]);
@@ -95,7 +95,7 @@ test("Sending messages with a name on a Storage should propagate the name", t =>
   t.deepEqual(args(recv1), [[msg, ["themessage"]]]);
   t.deepEqual(args(emit), [
     ["messageQueued", msg, ["themessage"]],
-    ["messageMatched", msg, [], false],
+    ["messageMatched", msg, []],
   ]);
 });
 
@@ -117,7 +117,7 @@ test("Removing a subscriber should not fire when a matching message is sent", t 
 
   t.deepEqual(args(emit), [
     ["messageQueued", msg, ["$"]],
-    ["messageMatched", msg, [], false],
+    ["messageMatched", msg, []],
   ]);
   t.deepEqual(args(recv1), [[msg, ["$"]]]);
   t.deepEqual(args(recv2), []);
@@ -126,31 +126,9 @@ test("Removing a subscriber should not fire when a matching message is sent", t 
 
   t.deepEqual(args(emit), [
     ["messageQueued", msg, ["$"]],
-    ["messageMatched", msg, [], false],
+    ["messageMatched", msg, []],
   ]);
   t.deepEqual(args(recv2), []);
-});
-
-test("Sending messages on a Storage should also trigger unhandledMessage if no active effects are present", t => {
-  const s = new Storage();
-  const emit = t.context.spy(s, "emit");
-  const error = t.context.spy(console, "error", () => {});
-  const recv = t.context.stub();
-  const msg = { tag: "testMessage" };
-
-  s.addEffect({ effect: recv, subscribe: { "testMessage": { passive: true } } });
-
-  s.sendMessage(msg);
-
-  t.deepEqual(args(recv), [[msg, ["$"]]]);
-  t.deepEqual(args(emit), [
-    ["messageQueued", msg, ["$"]],
-    ["messageMatched", msg, [], true],
-    ["unhandledMessage", msg, ["$"]],
-  ]);
-  t.deepEqual(args(error), [
-    unhandledMessageError(msg, ["$"]),
-  ]);
 });
 
 test("Active effects prevent parents and unhandledMessage from receiving", t => {
@@ -182,53 +160,10 @@ test("Active effects prevent parents and unhandledMessage from receiving", t => 
   t.deepEqual(args(emit), [
     ["stateCreated", ["first"], undefined, { name: "firstData" }],
     ["messageQueued", { tag: "initMsg" }, ["first", "$"]],
-    ["messageMatched", { tag: "initMsg" }, ["first"], false],
+    ["messageMatched", { tag: "initMsg" }, ["first"]],
     ["stateNewData", { name: "firstData" }, ["first"], { tag: "initMsg" }],
     ["messageQueued", { tag: "firstMsg" }, ["first"]],
-    ["messageMatched", { tag: "firstMsg" }, [], false],
-  ]);
-});
-
-test("Passive effects always receive messages from children", t => {
-  const s = new Storage();
-  const emit = t.context.spy(s, "emit");
-  const error = t.context.spy(console, "error", () => {});
-  const stub1 = t.context.stub();
-  const stub2 = t.context.stub();
-  const firstData = { name: "firstData" };
-  const initMsg = { tag: "initMsg" };
-  const firstMsg = { tag: "firstMsg" };
-  const firstDef = {
-    id: "first",
-    init: t.context.stub(() => updateData(firstData)),
-    update: t.context.stub(() => updateAndSend(firstData, firstMsg)),
-    subscribe: t.context.stub(() => ({ "initMsg": true })),
-  };
-
-  s.addEffect({ effect: stub1, subscribe: { "initMsg": { passive: true } } });
-  s.addEffect({ effect: stub2, subscribe: { "firstMsg": { passive: true } } });
-
-  const first = s.createState(firstDef);
-
-  first.sendMessage(initMsg);
-
-  t.deepEqual(args(stub1), [[initMsg, ["first", "$"]]]);
-  t.deepEqual(args(stub2), [[firstMsg, ["first"]]]);
-  t.deepEqual(args(firstDef.update), [[firstData, initMsg]]);
-  t.is(first.getData(), firstData);
-
-  t.deepEqual(args(emit), [
-    ["stateCreated", ["first"], undefined, { name: "firstData" }],
-    ["messageQueued", { tag: "initMsg" }, ["first", "$"]],
-    ["messageMatched", { tag: "initMsg" }, ["first"], false],
-    ["stateNewData", { name: "firstData" }, ["first"], { tag: "initMsg" }],
-    ["messageQueued", { tag: "firstMsg" }, ["first"]],
-    ["messageMatched", { tag: "initMsg" }, [], true],
-    ["messageMatched", { tag: "firstMsg" }, [], true],
-    ["unhandledMessage", { tag: "firstMsg" }, ["first"]],
-  ]);
-  t.deepEqual(args(error), [
-    unhandledMessageError({ tag: "firstMsg" }, ["first"]),
+    ["messageMatched", { tag: "firstMsg" }, []],
   ]);
 });
 
@@ -251,7 +186,7 @@ test("Immediate reply from effect", async t => {
   ]);
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
   ]);
   t.deepEqual(s.runningEffects(), [
     { name: undefined, source: ["$"], message: { tag: "trigger-effect" } },
@@ -262,7 +197,7 @@ test("Immediate reply from effect", async t => {
   t.deepEqual(s.runningEffects(), []);
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
     ["messageQueued", { tag: "the-reply", data: "foo" }, ["$", "<"]],
     ["unhandledMessage", { tag: "the-reply", data: "foo" }, ["$", "<"]],
   ]);
@@ -291,7 +226,7 @@ test("Immediate reply from effect with name", async t => {
   ]);
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
   ]);
   t.deepEqual(s.runningEffects(), [
     { name: "My Effect", source: ["$"], message: { tag: "trigger-effect" } },
@@ -302,7 +237,7 @@ test("Immediate reply from effect with name", async t => {
   t.deepEqual(s.runningEffects(), []);
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
     ["messageQueued", { tag: "the-reply", data: "foo" }, ["$", "My Effect"]],
     ["unhandledMessage", { tag: "the-reply", data: "foo" }, ["$", "My Effect"]],
   ]);
@@ -335,7 +270,7 @@ test("Immediate throw in effect", async t => {
   ]);
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
   ]);
 
   await p;
@@ -346,7 +281,7 @@ test("Immediate throw in effect", async t => {
   ]);
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
     ["messageQueued", { tag: "effect/error", error: new Error("My Effect error") }, ["$", "<"]],
     ["unhandledMessage", { tag: "effect/error", error: new Error("My Effect error") }, ["$", "<"]],
   ]);
@@ -374,7 +309,7 @@ test("Async reply from effect", async t => {
   ]);
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
   ]);
   t.deepEqual(s.runningEffects(), [
     { name: undefined, source: ["$"], message: { tag: "trigger-effect" } },
@@ -385,7 +320,7 @@ test("Async reply from effect", async t => {
   t.deepEqual(s.runningEffects(), []);
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
     ["messageQueued", { tag: "the-reply", data: "foo" }, ["$", "<"]],
     ["unhandledMessage", { tag: "the-reply", data: "foo" }, ["$", "<"]],
   ]);
@@ -413,7 +348,7 @@ test("Storage.wait on async reply from effect", async t => {
   ]);
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
   ]);
   t.deepEqual(s.runningEffects(), [
     { name: undefined, source: ["$"], message: { tag: "trigger-effect" } },
@@ -424,7 +359,7 @@ test("Storage.wait on async reply from effect", async t => {
   t.deepEqual(s.runningEffects(), []);
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
     ["messageQueued", { tag: "the-reply", data: "foo" }, ["$", "<"]],
     ["unhandledMessage", { tag: "the-reply", data: "foo" }, ["$", "<"]],
   ]);
@@ -454,7 +389,7 @@ test("Async throw in effect", async t => {
   ]);
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
   ]);
   t.deepEqual(s.runningEffects(), [
     { name: undefined, source: ["$"], message: { tag: "trigger-effect" } },
@@ -465,7 +400,7 @@ test("Async throw in effect", async t => {
   t.deepEqual(s.runningEffects(), []);
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
     ["messageQueued", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
     ["unhandledMessage", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
   ]);
@@ -495,7 +430,7 @@ test("Storage.wait on async throw in effect", async t => {
   ]);
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
   ]);
   t.deepEqual(s.runningEffects(), [
     { name: undefined, source: ["$"], message: { tag: "trigger-effect" } },
@@ -506,7 +441,7 @@ test("Storage.wait on async throw in effect", async t => {
   t.deepEqual(s.runningEffects(), []);
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
     ["messageQueued", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
     ["unhandledMessage", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
   ]);
@@ -538,7 +473,7 @@ test("State async effect", async t => {
   t.deepEqual(args(emit), [
     ["stateCreated", ["test"], undefined, { state: "init" }],
     ["messageQueued", { tag: "trigger-effect" }, ["test"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
   ]);
   t.deepEqual(s.runningEffects(), [
     { name: undefined, source: ["test"], message: { tag: "trigger-effect" } },
@@ -550,9 +485,9 @@ test("State async effect", async t => {
   t.deepEqual(args(emit), [
     ["stateCreated", ["test"], undefined, { state: "init" }],
     ["messageQueued", { tag: "trigger-effect" }, ["test"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
     ["messageQueued", { tag: "the-reply", data: "foo" }, ["test", "<"]],
-    ["messageMatched", { tag: "the-reply", data: "foo" }, ["test"], false],
+    ["messageMatched", { tag: "the-reply", data: "foo" }, ["test"]],
     ["stateNewData", { state: "foo" }, ["test"], { tag: "the-reply", data: "foo" }],
   ]);
 });
@@ -595,7 +530,7 @@ test("State async effect chain", async t => {
   t.deepEqual(args(emit), [
     ["stateCreated", ["test"], undefined, { state: "init" }],
     ["messageQueued", { tag: "trigger-effect" }, ["test"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
   ]);
   t.deepEqual(s.runningEffects(), [
     { name: undefined, source: ["test"], message: { tag: "trigger-effect" } },
@@ -607,14 +542,14 @@ test("State async effect chain", async t => {
   t.deepEqual(args(emit), [
     ["stateCreated", ["test"], undefined, { state: "init" }],
     ["messageQueued", { tag: "trigger-effect" }, ["test"]],
-    ["messageMatched", { tag: "trigger-effect" }, [], false],
+    ["messageMatched", { tag: "trigger-effect" }, []],
     ["messageQueued", { tag: "the-reply" }, ["test", "<"]],
-    ["messageMatched", { tag: "the-reply" }, ["test"], false],
+    ["messageMatched", { tag: "the-reply" }, ["test"]],
     ["stateNewData", { state: "updating" }, ["test"], { tag: "the-reply" }],
     ["messageQueued", { tag: "second-effect" }, ["test"]],
-    ["messageMatched", { tag: "second-effect" }, [], false],
+    ["messageMatched", { tag: "second-effect" }, []],
     ["messageQueued", { tag: "finally" }, ["test", "<"]],
-    ["messageMatched", { tag: "finally" }, ["test"], false],
+    ["messageMatched", { tag: "finally" }, ["test"]],
     ["stateNewData", { state: "done" }, ["test"], { tag: "finally" }],
   ]);
 });

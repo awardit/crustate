@@ -7,7 +7,7 @@ import type { InflightMessage, Message } from "./message";
 import { debugAssert } from "./assert";
 import { EFFECT_ERROR } from "./effect";
 import { EventEmitter } from "./eventemitter";
-import { findMatchingSubscription } from "./message";
+import { isMatchingSubscription } from "./message";
 
 export type StatePath = $ReadOnlyArray<string>;
 
@@ -82,9 +82,8 @@ export type StorageEvents = {
    *
    *  * The message
    *  * Path of the matching state-instance
-   *  * If the subscription was passive
    */
-  messageMatched: [Message, StatePath, boolean],
+  messageMatched: [Message, StatePath],
   /**
    * Emitted when a snapshot is going to be restored.
    *
@@ -571,17 +570,13 @@ export function processMessages(
 
   for (const currentInflight of inflight) {
     const { _message: m } = currentInflight;
-    const match = findMatchingSubscription(messageFilter, m, currentInflight._received);
-
-    if (!match) {
+    if (!isMatchingSubscription(messageFilter, m)) {
       continue;
     }
 
-    if (!match._isPassive) {
-      currentInflight._received = true;
-    }
+    currentInflight._received = true;
 
-    storage.emit("messageMatched", m, sourcePath, match._isPassive);
+    storage.emit("messageMatched", m, sourcePath);
 
     const updateRequest = update(instance._data, m);
 
@@ -615,26 +610,21 @@ export function processEffects(
 ): Promise<void> {
   const effects = [];
 
+  outer:
   for (const { _message, _source, _received } of inflightMsgs) {
-    let received = _received;
+    if (!_received) {
+      for (const effect of storage._effects) {
+        if (!isMatchingSubscription(effect.subscribe, _message)) {
+          continue;
+        }
 
-    for (const effect of storage._effects) {
-      const match = findMatchingSubscription(effect.subscribe, _message, received);
+        storage.emit("messageMatched", _message, ([]: StatePath));
 
-      if (!match) {
-        continue;
+        effects.push(runEffect(storage, effect, _message, _source));
+
+        continue outer;
       }
 
-      if (!match._isPassive) {
-        received = true;
-      }
-
-      storage.emit("messageMatched", _message, ([]: StatePath), match._isPassive);
-
-      effects.push(runEffect(storage, effect, _message, _source));
-    }
-
-    if (!received) {
       storage.emit("unhandledMessage", _message, _source);
 
       if (storage.listeners("unhandledMessage").length === 0) {

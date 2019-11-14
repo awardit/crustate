@@ -149,7 +149,7 @@ test("State renders correctly and updates when modified", t => {
   t.deepEqual(args(emit), [
     ["stateCreated", ["state"], { data: "initial" }, "initial"],
     ["messageQueued", { tag: "data", data: "the new one" }, ["state", "$"]],
-    ["messageMatched", { tag: "data", data: "the new one" }, ["state"], false],
+    ["messageMatched", { tag: "data", data: "the new one" }, ["state"]],
     ["stateNewData", "the new one", ["state"], { tag: "data", data: "the new one" }],
   ]);
 });
@@ -275,7 +275,7 @@ test("State updates during rendering are respected", t => {
   t.deepEqual(args(emit), [
     ["stateCreated", ["state"], { data: "my initial" }, "my initial"],
     ["messageQueued", { tag: "data", data: "updated" }, ["state", "$"]],
-    ["messageMatched", { tag: "data", data: "updated" }, ["state"], false],
+    ["messageMatched", { tag: "data", data: "updated" }, ["state"]],
     ["stateNewData", "updated", ["state"], { tag: "data", data: "updated" }],
   ]);
 });

@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   triggered by the message have been resolved.
 ### Added
 - Export `logUnhandledMessage` to allow reuse of logging.
+### Removed
+- Removed `passive` option in `Subscription`.
 
 ## [0.6.0] - 2019-11-07
 ### Added

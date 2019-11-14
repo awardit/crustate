@@ -33,58 +33,22 @@ export type InflightMessage = {
 };
 
 /**
- * A function filtering messages.
- */
-// TODO: Can we filter messages better?
-export type MessageFilter<M: Message> = (msg: M) => boolean;
-
-/**
  * A restricted map of message-key -> subscription-options for a given
  * message-type.
  */
 export type Subscriptions<M: Message> = {
-  // TODO: Any way to just grab the message with the matching property?
-  [tag: $PropertyType<M, "tag">]: Subscription<M>,
+  [tag: $PropertyType<M, "tag">]: Subscription,
 };
 
 /**
  * Options for a given subcription, the value true means default values for all
  * options.
  */
-export type Subscription<M: Message> = true | {
-  /**
-   * If the Subscription is passive it will not consume the message and it will
-   * also not count towards the message being handled, default is false.
-   *
-   * Suitable for things which are to observe the state-changes for of other
-   * states.
-   */
-  passive?: boolean,
-  /**
-   * Extra, user-supplied, filtering logic.
-   */
-  matching?: MessageFilter<M>,
-};
+export type Subscription = boolean;
 
-export function findMatchingSubscription<M: Message>(
+export function isMatchingSubscription<M: Message>(
   subscriptions: Subscriptions<M>,
-  message: M, received: boolean
-): ?{ +_isPassive: boolean } {
-  const { tag } = message;
-
-  if (!subscriptions[tag]) {
-    return null;
-  }
-
-  const subscriber = subscriptions[tag];
-  // We do not use object destructuring here since it would require us to
-  // create a new object for the default value in the case of true
-  const passive = subscriber === true ? false : Boolean(subscriber.passive);
-  const matching = subscriber === true ? null : subscriber.matching;
-
-  if ((passive || !received) && tag === message.tag && (!matching || matching(message))) {
-    return { _isPassive: passive };
-  }
-
-  return null;
+  { tag }: M
+): boolean {
+  return Boolean(subscriptions[tag]);
 }

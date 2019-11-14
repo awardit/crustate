@@ -40,9 +40,7 @@ export const PostData = createStateData<Model<PostDataState, { postId: number },
   update: (state, msg) => msg.data ?
     updateData({ state: "LOADED", post: msg.data }) :
     updateData({ state: "ERROR", error: msg.error }),
-  subscribe: state => state.state === "LOADING" ? {
-    [POST_RESPONSE]: {
-      matching: resp => Boolean(resp.error || (resp.data && resp.data.id === state.postId)),
-    },
-  } : {},
+  subscribe: ({ state }) => ({
+    [POST_RESPONSE]: state === "LOADING",
+  }),
 });

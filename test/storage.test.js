@@ -497,8 +497,7 @@ test("State init is sent to parent instances", t => {
     id: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => null),
-    // Passive, so we should get it but also passthrough
-    subscribe: t.context.stub(() => ({ "secondInit": { passive: true } })),
+    subscribe: t.context.stub(() => ({ "secondInit": true })),
   };
   const secondData = { name: "secondData" };
   const secondInit = { tag: "secondInit" };
@@ -523,12 +522,9 @@ test("State init is sent to parent instances", t => {
     ["stateCreated", ["first"], undefined, { name: "firstData" }],
     ["stateCreated", ["first", "second"], undefined, { name: "secondData" }],
     ["messageQueued", secondInit, ["first", "second"]],
-    ["messageMatched", secondInit, ["first"], true],
-    ["unhandledMessage", secondInit, ["first", "second"]],
+    ["messageMatched", secondInit, ["first"]],
   ]);
-  t.deepEqual(args(error), [
-    unhandledMessageError(secondInit, ["first", "second"]),
-  ]);
+  t.deepEqual(args(error), []);
 });
 
 test("no message matches on nested states", t => {
@@ -539,7 +535,6 @@ test("no message matches on nested states", t => {
     id: "first",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => null),
-    // Passive, so we should get it but also passthrough
     subscribe: t.context.stub(() => ({ "never": true })),
   };
 
@@ -565,8 +560,7 @@ test("State init is sent to parent instances, but not siblings", t => {
     id: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => null),
-    // Passive, so we should get it but also passthrough
-    subscribe: t.context.stub(() => ({ "secondInit": { passive: true } })),
+    subscribe: t.context.stub(() => ({ "secondInit": false })),
   };
   const secondData = { name: "secondData" };
   const secondInit = { tag: "secondInit" };
@@ -608,7 +602,7 @@ test("Messages generated during processing are handled in order", t => {
     id: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => updateAndSend(secondData, firstMsg)),
-    subscribe: t.context.stub(() => ({ "initMsg": { passive: true } })),
+    subscribe: t.context.stub(() => ({ "initMsg": true })),
   };
 
   const first = s.createState(firstDef);
@@ -620,14 +614,12 @@ test("Messages generated during processing are handled in order", t => {
   t.deepEqual(args(emit), [
     ["stateCreated", ["first"], undefined, { name: "firstData" }],
     ["messageQueued", initMsg, ["first", "$"]],
-    ["messageMatched", initMsg, ["first"], true],
+    ["messageMatched", initMsg, ["first"]],
     ["stateNewData", secondData, ["first"], initMsg],
     ["messageQueued", firstMsg, ["first"]],
-    ["unhandledMessage", initMsg, ["first", "$"]],
     ["unhandledMessage", firstMsg, ["first"]],
   ]);
   t.deepEqual(args(error), [
-    unhandledMessageError(initMsg, ["first", "$"]),
     unhandledMessageError(firstMsg, ["first"]),
   ]);
 });
@@ -721,76 +713,6 @@ test("Storage.replyMessage", t => {
     unhandledMessageError({ tag: "B" }, ["a", "b", "outside"]),
     unhandledMessageError({ tag: "A" }, ["foo", "bar", "<"]),
     unhandledMessageError({ tag: "A" }, ["foo", "bar", "another"]),
-  ]);
-});
-
-test("Storage.replyMessage passive", t => {
-  const defA = {
-    id: "a",
-    init: t.context.stub(() => updateData({})),
-    update: t.context.stub(() => null),
-    subscribe: t.context.stub(() => ({
-      A: { passive: true },
-    })),
-  };
-  const defB = {
-    id: "b",
-    init: t.context.stub(() => updateData({})),
-    update: t.context.stub(() => updateAndSend({}, { tag: "A", from: "b" })),
-    subscribe: t.context.stub(() => ({
-      B: { passive: true },
-    })),
-  };
-  const s = new Storage();
-  const msgA = { tag: "A" };
-  const msgB = { tag: "B" };
-
-  s.createState(defA).createState(defB);
-
-  const emit = t.context.spy(s, "emit");
-  const error = t.context.spy(console, "error", () => {});
-
-  s.replyMessage(msgA, []);
-  s.replyMessage(msgA, ["a"]);
-  s.replyMessage(msgA, ["a", "b"]);
-  s.replyMessage(msgB, ["a", "b"]);
-  s.replyMessage(msgB, ["a", "b", "c"]);
-  s.replyMessage(msgB, ["a", "b"], "outside");
-
-  t.deepEqual(args(emit), [
-    ["messageQueued", { tag: "A" }, ["<"]],
-    ["unhandledMessage", { tag: "A" }, ["<"]],
-    ["messageQueued", { tag: "A" }, ["a", "<"]],
-    ["messageMatched", { tag: "A" }, ["a"], true],
-    ["unhandledMessage", { tag: "A" }, ["a", "<"]],
-    ["messageQueued", { tag: "A" }, ["a", "b", "<"]],
-    ["unhandledMessage", { tag: "A" }, ["a", "b", "<"]],
-    ["messageQueued", { tag: "B" }, ["a", "b", "<"]],
-    ["messageMatched", { tag: "B" }, ["a", "b"], true],
-    ["stateNewData", {}, ["a", "b"], { tag: "B" }],
-    ["messageQueued", { tag: "A", from: "b" }, ["a", "b"]],
-    ["messageMatched", { tag: "A", from: "b" }, ["a"], true],
-    ["unhandledMessage", { tag: "A", from: "b" }, ["a", "b"]],
-    ["unhandledMessage", { tag: "B" }, ["a", "b", "<"]],
-    ["messageQueued", { tag: "B" }, ["a", "b", "c", "<"]],
-    ["unhandledMessage", { tag: "B" }, ["a", "b", "c", "<"]],
-    ["messageQueued", { tag: "B" }, ["a", "b", "outside"]],
-    ["messageMatched", { tag: "B" }, ["a", "b"], true],
-    ["stateNewData", {}, ["a", "b"], { tag: "B" }],
-    ["messageQueued", { tag: "A", from: "b" }, ["a", "b"]],
-    ["messageMatched", { tag: "A", from: "b" }, ["a"], true],
-    ["unhandledMessage", { tag: "A", from: "b" }, ["a", "b"]],
-    ["unhandledMessage", { tag: "B" }, ["a", "b", "outside"]],
-  ]);
-  t.deepEqual(args(error), [
-    unhandledMessageError({ tag: "A" }, ["<"]),
-    unhandledMessageError({ tag: "A" }, ["a", "<"]),
-    unhandledMessageError({ tag: "A" }, ["a", "b", "<"]),
-    unhandledMessageError({ tag: "A", from: "b" }, ["a", "b"]),
-    unhandledMessageError({ tag: "B" }, ["a", "b", "<"]),
-    unhandledMessageError({ tag: "B" }, ["a", "b", "c", "<"]),
-    unhandledMessageError({ tag: "A", from: "b" }, ["a", "b"]),
-    unhandledMessageError({ tag: "B" }, ["a", "b", "outside"]),
   ]);
 });
 
@@ -913,9 +835,9 @@ test("Storage updates subscribe during processing when state data is updated", t
 
   t.deepEqual(args(emit), [
     ["stateCreated", ["a"], undefined, false],
-    ["messageMatched", { tag: "a", __yes: true }, ["a"], false],
+    ["messageMatched", { tag: "a", __yes: true }, ["a"]],
     ["stateNewData", true, ["a"], { tag: "a", __yes: true }],
-    ["messageMatched", { tag: "b", __yes: true }, ["a"], false],
+    ["messageMatched", { tag: "b", __yes: true }, ["a"]],
     ["stateNewData", true, ["a"], { tag: "b", __yes: true }],
   ]);
 
