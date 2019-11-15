@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Export `logUnhandledMessage` to allow reuse of logging.
 - `updateNone` to consume a message in a `Model`.`update` without updating
   the state data.
+- Added `process.env.NODE_ENV` for debugging purposes in bundled code.
 ### Changed
 - React `useSendMessage` return function will now return a `Promise` when
   sending messages, they will be resolved when all data updates and effects
@@ -20,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Model`.`update` `msg` parameter takes an `UnknownMessage` type in addition
   to the message type of the `Model` generic to enforce type-refinement on
   incoming messages.
+- Package is no longer minified by default.
 ### Removed
 - Removed `passive` option in `Subscription`.
 - `Model`.`subscribe` 
