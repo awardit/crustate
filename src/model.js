@@ -17,10 +17,18 @@ export type UpdateNoop = 1;
 export type ModelInit<T, I> = (init: I) => Update<T>;
 
 /**
+ * Message representing any other kind of message in the type-signature of
+ * `ModelUpdate`, do not match against this message directly.
+ */
+export type UnknownMessage = {
+  +tag: "!DO!NOT!MATCH!THIS!",
+};
+
+/**
  * Update function, receives messages for a state and produces a state-update
  * which can include messages sent to supervisors.
  */
-export type ModelUpdate<T, M> = (state: T, msg: M) => ?Update<T> | UpdateNoop;
+export type ModelUpdate<T, M> = (state: T, msg: M | UnknownMessage) => ?Update<T> | UpdateNoop;
 
 /**
  * Definition of a state containing the data `T` which can be instantiated given
