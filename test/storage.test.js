@@ -7,7 +7,7 @@ import {
   processEffects,
   processInstanceMessages,
 } from "../src/storage";
-import { Storage, State, updateData, updateAndSend } from "../src";
+import { Storage, State, updateData, updateNone, updateAndSend } from "../src";
 import { args, unhandledMessageError } from "./util";
 
 const test = ninos(ava).serial;
@@ -49,8 +49,7 @@ test("Storage can register state definitons", t => {
   const emit = t.context.spy(s, "emit");
   const stub1 = t.context.stub();
   const stub2 = t.context.stub();
-  const stub3 = t.context.stub();
-  const state = { id: "test", init: stub1, update: stub2, subscribe: stub3 };
+  const state = { id: "test", init: stub1, update: stub2 };
 
   t.is(s.addModel(state), undefined);
   t.is(s.getModel("test"), state);
@@ -63,7 +62,6 @@ test("Storage can register state definitons", t => {
   t.deepEqual(s._effects, []);
   t.deepEqual(stub1.calls, []);
   t.deepEqual(stub2.calls, []);
-  t.deepEqual(stub3.calls, []);
 });
 
 test("Storage rejects duplicate state definitions", t => {
@@ -71,8 +69,7 @@ test("Storage rejects duplicate state definitions", t => {
   const emit = t.context.spy(s, "emit");
   const stub1 = t.context.stub();
   const stub2 = t.context.stub();
-  const stub3 = t.context.stub();
-  const state = { id: "test", init: stub1, update: stub2, subscribe: stub3 };
+  const state = { id: "test", init: stub1, update: stub2 };
 
   t.is(s.addModel(state), undefined);
   t.throws(() => s.addModel(state), { instanceOf: Error, message: "Duplicate model 'test'." });
@@ -87,7 +84,6 @@ test("Storage rejects duplicate state definitions", t => {
   t.deepEqual(s._effects, []);
   t.deepEqual(stub1.calls, []);
   t.deepEqual(stub2.calls, []);
-  t.deepEqual(stub3.calls, []);
 });
 
 test("Storage createState creates a new state instance", t => {
@@ -96,8 +92,7 @@ test("Storage createState creates a new state instance", t => {
   const initData = { name: "initData" };
   const init = t.context.stub(() => updateData(initData));
   const update = t.context.stub();
-  const subscribe = t.context.stub(() => []);
-  const state = { id: "test", init, update, subscribe };
+  const state = { id: "test", init, update };
   const instance = s.createState(state);
 
   t.is(instance instanceof State, true);
@@ -120,7 +115,6 @@ test("Storage createState creates a new state instance", t => {
     [undefined],
   ]);
   t.deepEqual(args(update), []);
-  t.deepEqual(args(subscribe), []);
 });
 
 test("Storage createState throws given the same params", t => {
@@ -129,8 +123,7 @@ test("Storage createState throws given the same params", t => {
   const initData = { name: "initData" };
   const init = t.context.stub(() => updateData(initData));
   const update = t.context.stub();
-  const subscribe = t.context.stub(() => []);
-  const state = { id: "test", init, update, subscribe };
+  const state = { id: "test", init, update };
 
   s.createState(state);
 
@@ -138,7 +131,6 @@ test("Storage createState throws given the same params", t => {
 
   t.deepEqual(args(init), [[undefined]]);
   t.deepEqual(args(update), []);
-  t.deepEqual(args(subscribe), []);
   t.deepEqual(args(emit), [["stateCreated", ["test"], undefined, initData]]);
 });
 
@@ -148,9 +140,8 @@ test("Storage createState throws when trying to use a new state definition with 
   const initData = { name: "initData" };
   const init = t.context.stub(() => updateData(initData));
   const update = t.context.stub();
-  const subscribe = t.context.stub(() => []);
-  const state = { id: "test", init, update, subscribe };
-  const state2 = { id: "test", init, update, subscribe };
+  const state = { id: "test", init, update };
+  const state2 = { id: "test", init, update };
   s.addModel(state);
   t.throws(() => s.createState(state2), { instanceOf: Error, message: "Model mismatch for 'test'." });
 
@@ -164,7 +155,6 @@ test("Storage createState throws when trying to use a new state definition with 
   t.deepEqual(s._effects, []);
   t.deepEqual(args(init), []);
   t.deepEqual(args(update), []);
-  t.deepEqual(args(subscribe), []);
 });
 
 test("Storage getState on non-existing state instance should throw when using a mismatched state-definition of same id in dev-mode", t => {
@@ -173,9 +163,8 @@ test("Storage getState on non-existing state instance should throw when using a 
   const initData = { name: "initData" };
   const init = t.context.stub(() => updateData(initData));
   const update = t.context.stub();
-  const subscribe = t.context.stub(() => []);
-  const state = { id: "test", init, update, subscribe };
-  const state2 = { id: "test", init, update, subscribe };
+  const state = { id: "test", init, update };
+  const state2 = { id: "test", init, update };
   s.addModel(state);
   t.throws(() => s.getState(state2), { instanceOf: Error, message: "Model mismatch for 'test'." });
 
@@ -189,7 +178,6 @@ test("Storage getState on non-existing state instance should throw when using a 
   t.deepEqual(s._effects, []);
   t.deepEqual(args(init), []);
   t.deepEqual(args(update), []);
-  t.deepEqual(args(subscribe), []);
 });
 
 test("Storage getState on non-existing state instance should return undefined when using a mismatched state-definition of same id in dev-mode", t => {
@@ -202,9 +190,8 @@ test("Storage getState on non-existing state instance should return undefined wh
     const initData = { name: "initData" };
     const init = t.context.stub(() => updateData(initData));
     const update = t.context.stub();
-    const subscribe = t.context.stub(() => []);
-    const state = { id: "test", init, update, subscribe };
-    const state2 = { id: "test", init, update, subscribe };
+    const state = { id: "test", init, update };
+    const state2 = { id: "test", init, update };
 
     s.addModel(state);
     t.is(s.getState(state2), undefined);
@@ -219,7 +206,6 @@ test("Storage getState on non-existing state instance should return undefined wh
     t.deepEqual(s._effects, []);
     t.deepEqual(args(init), []);
     t.deepEqual(args(update), []);
-    t.deepEqual(args(subscribe), []);
   }
   finally {
     process.env.NODE_ENV = nodeEnv;
@@ -288,16 +274,14 @@ test("States with init using updateAndSend should send messages to parent Storag
   const initData = { name: "initData" };
   const initMsg = { tag: "initMsg" };
   const init = t.context.stub(() => updateAndSend(initData, initMsg));
-  const update = t.context.stub(() => null);
   // Should never receive this since messages are not self-referencing
-  const subscribe = t.context.stub(() => ({ "initMsg": true }));
-  const state = { id: "test", init, update, subscribe };
+  const update = t.context.stub();
+  const state = { id: "test", init, update };
 
   s.createState(state);
 
   t.is(init.calls.length, 1);
   t.deepEqual(args(update), []);
-  t.deepEqual(args(subscribe), []);
   t.deepEqual(args(emit), [
     ["stateCreated", ["test"], undefined, initData],
     ["messageQueued", initMsg, ["test"]],
@@ -316,14 +300,12 @@ test("States can be nested", t => {
     id: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(),
-    subscribe: t.context.stub(() => ({})),
   };
   const secondData = { name: "secondData" };
   const secondDef = {
     id: "second",
     init: t.context.stub(() => updateData(secondData)),
     update: t.context.stub(),
-    subscribe: t.context.stub(() => ({})),
   };
 
   const first = s.createState(firstDef);
@@ -349,8 +331,7 @@ test("States of the same definition can be nested", t => {
   const initData = { name: "initData" };
   const init = t.context.stub(() => updateData(initData));
   const update = t.context.stub(() => null);
-  const subscribe = t.context.stub(() => ({}));
-  const state = { id: "test", init, update, subscribe };
+  const state = { id: "test", init, update };
   const first = s.createState(state);
 
   t.is(first.getState(state), undefined);
@@ -375,9 +356,8 @@ test("State getState throws when trying to use a new state definition with the s
   const initData = { name: "initData" };
   const init = t.context.stub(() => updateData(initData));
   const update = t.context.stub();
-  const subscribe = t.context.stub(() => ({}));
-  const state = { id: "test", init, update, subscribe };
-  const state2 = { id: "test", init, update, subscribe };
+  const state = { id: "test", init, update };
+  const state2 = { id: "test", init, update };
   s.addModel(state);
   const inst = s.createState(state);
 
@@ -390,7 +370,6 @@ test("State getState throws when trying to use a new state definition with the s
   t.deepEqual(s._defs, { test: state });
   t.is(init.calls.length, 1);
   t.deepEqual(args(update), []);
-  t.deepEqual(args(subscribe), []);
 });
 
 test("State getState on non-existing state instance should return undefined when using a mismatched state-definition of same id in dev-mode", t => {
@@ -403,9 +382,8 @@ test("State getState on non-existing state instance should return undefined when
     const initData = { name: "initData" };
     const init = t.context.stub(() => updateData(initData));
     const update = t.context.stub();
-    const subscribe = t.context.stub(() => ({}));
-    const state = { id: "test", init, update, subscribe };
-    const state2 = { id: "test", init, update, subscribe };
+    const state = { id: "test", init, update };
+    const state2 = { id: "test", init, update };
 
     s.addModel(state);
 
@@ -420,7 +398,6 @@ test("State getState on non-existing state instance should return undefined when
     t.deepEqual(s.getSnapshot(), { test: { id: "test", data: { name: "initData" }, nested: {} } });
     t.is(init.calls.length, 1);
     t.deepEqual(args(update), []);
-    t.deepEqual(args(subscribe), []);
     t.deepEqual(args(emit), [["stateCreated", ["test"], undefined, { name: "initData" }]]);
   }
   finally {
@@ -428,7 +405,7 @@ test("State getState on non-existing state instance should return undefined when
   }
 });
 
-test("Messages sent on State should propagate upwards", t => {
+test("Messages sent on State should propagate upwards if not handled", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const error = t.context.spy(console, "error", () => {});
@@ -438,14 +415,15 @@ test("Messages sent on State should propagate upwards", t => {
     id: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => null),
-    subscribe: t.context.stub(() => ({})),
   };
 
   const first = s.createState(firstDef);
 
   first.sendMessage(initMsg);
 
-  t.deepEqual(args(firstDef.update), []);
+  t.deepEqual(args(firstDef.update), [
+    [firstData, initMsg],
+  ]);
   t.is(first.getData(), firstData);
   t.deepEqual(args(emit), [
     ["stateCreated", ["first"], undefined, { name: "firstData" }],
@@ -467,14 +445,15 @@ test("Messages with a sourceName sent on State should propagate upwards with tha
     id: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => null),
-    subscribe: t.context.stub(() => ({})),
   };
 
   const first = s.createState(firstDef);
 
   first.sendMessage(initMsg, "thesource");
 
-  t.deepEqual(args(firstDef.update), []);
+  t.deepEqual(args(firstDef.update), [
+    [firstData, initMsg],
+  ]);
   t.is(first.getData(), firstData);
   t.deepEqual(args(emit), [
     ["stateCreated", ["first"], undefined, { name: "firstData" }],
@@ -494,8 +473,7 @@ test("State init is sent to parent instances", t => {
   const firstDef = {
     id: "first",
     init: t.context.stub(() => updateData(firstData)),
-    update: t.context.stub(() => null),
-    subscribe: t.context.stub(() => ({ "secondInit": true })),
+    update: t.context.stub((_, { tag }) => tag === "secondInit" ? updateNone() : null),
   };
   const secondData = { name: "secondData" };
   const secondInit = { tag: "secondInit" };
@@ -503,13 +481,14 @@ test("State init is sent to parent instances", t => {
     id: "second",
     init: t.context.stub(() => updateAndSend(secondData, secondInit)),
     update: t.context.stub(() => null),
-    subscribe: t.context.stub(() => ({})),
   };
 
   const first = s.createState(firstDef);
   first.createState(secondDef);
 
-  t.deepEqual(args(firstDef.update), [[firstData, secondInit]]);
+  t.deepEqual(args(firstDef.update), [
+    [firstData, secondInit],
+  ]);
   t.is(first.getData(), firstData);
   t.deepEqual(s.getSnapshot(), {
     first: { id: "first", data: { name: "firstData" }, nested: {
@@ -533,12 +512,15 @@ test("no message matches on nested states", t => {
     id: "first",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => null),
-    subscribe: t.context.stub(() => ({ "never": true })),
   };
 
   const f = s.createState(firstDef);
 
   f.sendMessage({ tag: "nomatch" });
+
+  t.deepEqual(args(firstDef.update), [
+    [{}, { tag: "nomatch" }],
+  ]);
   t.deepEqual(args(emit), [
     ["stateCreated", ["first"], undefined, {}],
     ["messageQueued", { tag: "nomatch" }, ["first", "$"]],
@@ -558,7 +540,6 @@ test("State init is sent to parent instances, but not siblings", t => {
     id: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => null),
-    subscribe: t.context.stub(() => ({ "secondInit": false })),
   };
   const secondData = { name: "secondData" };
   const secondInit = { tag: "secondInit" };
@@ -566,13 +547,13 @@ test("State init is sent to parent instances, but not siblings", t => {
     id: "second",
     init: t.context.stub(() => updateAndSend(secondData, secondInit)),
     update: t.context.stub(() => null),
-    subscribe: t.context.stub(() => ({})),
   };
 
   s.createState(firstDef);
   s.createState(secondDef);
 
   t.deepEqual(args(firstDef.update), []);
+  t.deepEqual(args(secondDef.update), []);
   t.deepEqual(s.getSnapshot(), {
     first: { id: "first", data: { name: "firstData" }, nested: {} },
     second: { id: "second", data: { name: "secondData" }, nested: {} },
@@ -600,14 +581,15 @@ test("Messages generated during processing are handled in order", t => {
     id: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => updateAndSend(secondData, firstMsg)),
-    subscribe: t.context.stub(() => ({ "initMsg": true })),
   };
 
   const first = s.createState(firstDef);
 
   first.sendMessage(initMsg);
 
-  t.deepEqual(args(firstDef.update), [[firstData, initMsg]]);
+  t.deepEqual(args(firstDef.update), [
+    [firstData, initMsg],
+  ]);
   t.is(first.getData(), secondData);
   t.deepEqual(args(emit), [
     ["stateCreated", ["first"], undefined, { name: "firstData" }],
@@ -627,13 +609,11 @@ test("findState", t => {
     id: "a",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => null),
-    subscribe: t.context.stub(() => ({})),
   };
   const defB = {
     id: "b",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => null),
-    subscribe: t.context.stub(() => ({})),
   };
   const s = new Storage();
 
@@ -666,13 +646,11 @@ test("Storage.replyMessage", t => {
     id: "a",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => null),
-    subscribe: t.context.stub(() => ({})),
   };
   const defB = {
     id: "b",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => null),
-    subscribe: t.context.stub(() => ({})),
   };
   const s = new Storage();
   const msgA = { tag: "A" };
@@ -720,13 +698,11 @@ test("Storage.removeState", t => {
     id: "a",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => null),
-    subscribe: t.context.stub(() => ({})),
   };
   const defB = {
     id: "b",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => null),
-    subscribe: t.context.stub(() => ({})),
   };
   const emit = t.context.spy(s, "emit");
 
@@ -765,13 +741,11 @@ test("State.removeState", t => {
     id: "a",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => null),
-    subscribe: t.context.stub(() => ({})),
   };
   const defB = {
     id: "b",
     init: t.context.stub(() => updateData({})),
     update: t.context.stub(() => null),
-    subscribe: t.context.stub(() => ({})),
   };
   const emit = t.context.spy(s, "emit");
   const a = s.createState(defA);
@@ -811,13 +785,20 @@ test("State.removeState", t => {
   t.deepEqual(args(emitA), []);
 });
 
-test("Storage updates subscribe during processing when state data is updated", t => {
+test("Storage state updates are immediate during processing of multiple messages", t => {
   const s = new Storage();
   const def = {
     id: "a",
     init: t.context.stub(() => updateData(false)),
-    update: t.context.stub(() => updateData(true)),
-    subscribe: t.context.stub(s => s ? { b: true } : { a: true }),
+    update: t.context.stub((s, { tag }) => {
+      if (s && tag === "b") {
+        return updateData(true);
+      }
+
+      if (!s && tag === "a") {
+        return updateData(true);
+      }
+    }),
   };
 
   const emit = t.context.spy(s, "emit");
@@ -856,12 +837,10 @@ test("Storage getState, createState, and removeState, with a different name shou
   const emit = t.context.spy(s, "emit");
   const init = t.context.stub(() => updateData(1));
   const update = t.context.stub(() => updateData(2));
-  const subscribe = t.context.stub(() => ({}));
   const d = {
     id: "foo",
     init,
     update,
-    subscribe,
   };
 
   t.is(s.getState(d), undefined);
@@ -952,7 +931,6 @@ test("Storage getState, createState, and removeState, with a different name shou
   ]);
   t.is(init.calls.length, 4);
   t.deepEqual(args(update), []);
-  t.deepEqual(args(subscribe), []);
 });
 
 test("State getState, createState, and removeState, with a different name should not affect the existing", t => {
@@ -960,12 +938,10 @@ test("State getState, createState, and removeState, with a different name should
   const emit = t.context.spy(s, "emit");
   const init = t.context.stub(() => updateData(1));
   const update = t.context.stub(() => updateData(2));
-  const subscribe = t.context.stub(() => ({}));
   const d = {
     id: "foo",
     init,
     update,
-    subscribe,
   };
 
   const nested = s.createState(d, undefined, "bar");
@@ -1062,7 +1038,6 @@ test("State getState, createState, and removeState, with a different name should
   ]);
   t.is(init.calls.length, 5);
   t.deepEqual(args(update), []);
-  t.deepEqual(args(subscribe), []);
 });
 
 test("createState with a different name should still work to send messages", t => {
@@ -1070,13 +1045,11 @@ test("createState with a different name should still work to send messages", t =
   const emit = t.context.spy(s, "emit");
   const error = t.context.spy(console, "error", () => {});
   const init = t.context.stub(() => updateData(1));
-  const update = t.context.stub(() => updateData(2));
-  const subscribe = t.context.stub(() => ({}));
+  const update = t.context.stub(() => null);
   const d = {
     id: "foo",
     init,
     update,
-    subscribe,
   };
 
   const nested = s.createState(d, undefined, "bar");
@@ -1097,8 +1070,12 @@ test("createState with a different name should still work to send messages", t =
     ["unhandledMessage", { tag: "AAA", testing: "bar" }, ["bar", "bar", "$"]],
   ]);
   t.is(init.calls.length, 3);
-  t.deepEqual(args(update), []);
-  t.is(subscribe.calls.length, 4);
+  t.deepEqual(args(update), [
+    [1, { tag: "AAA", testing: "foo" }],
+    [1, { tag: "AAA", testing: "foo" }],
+    [1, { tag: "AAA", testing: "bar" }],
+    [1, { tag: "AAA", testing: "bar" }],
+  ]);
   t.deepEqual(args(error), [
     unhandledMessageError({ tag: "AAA", testing: "foo" }, ["bar", "foo", "$"]),
     unhandledMessageError({ tag: "AAA", testing: "bar" }, ["bar", "bar", "$"]),

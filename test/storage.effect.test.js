@@ -25,8 +25,7 @@ test("Awaiting empty state does nothing", async t => {
   const emit = t.context.spy(s, "emit");
   const init = t.context.stub(() => updateData("test"));
   const update = t.context.stub();
-  const subscribe = t.context.stub();
-  const model = { id: "test", init, update, subscribe };
+  const model = { id: "test", init, update };
 
   const state = s.createState(model);
 
@@ -142,7 +141,6 @@ test("Active effects prevent parents and unhandledMessage from receiving", t => 
     id: "first",
     init: t.context.stub(() => updateData(firstData)),
     update: t.context.stub(() => updateAndSend(firstData, firstMsg)),
-    subscribe: t.context.stub(() => ({ "initMsg": true })),
   };
 
   s.addEffect({ effect: stub1, subscribe: { "initMsg": true } });
@@ -456,9 +454,12 @@ test("State async effect", async t => {
     subscribe: { "trigger-effect": true },
   };
   const init = t.context.stub(() => updateAndSend({ state: "init" }, { tag: "trigger-effect" }));
-  const update = t.context.stub((s, { data }) => updateData({ state: data }));
-  const subscribe = t.context.stub(({ state }) => state === "init" ? { "the-reply": true } : {});
-  const model = { id: "test", init, update, subscribe };
+  const update = t.context.stub(({ state }, msg) => {
+    if (state === "init" && msg.tag === "the-reply") {
+      return updateData({ state: msg.data });
+    }
+  });
+  const model = { id: "test", init, update };
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
 
@@ -503,18 +504,17 @@ test("State async effect chain", async t => {
     subscribe: { "second-effect": true },
   };
   const init = t.context.stub(() => updateAndSend({ state: "init" }, { tag: "trigger-effect" }));
-  const update = t.context.stub((_, { tag }) => {
-    switch (tag) {
-      case "the-reply":
+  const update = t.context.stub(({ state }, { tag }) => {
+    if (state === "init") {
+      if (tag === "the-reply") {
         return updateAndSend({ state: "updating" }, { tag: "second-effect" });
-      case "finally":
-        return updateData({ state: "done" });
-      default:
-        throw new Error(`Unexpected tag ${tag}`);
+      }
+    }
+    else if (tag === "finally") {
+      return updateData({ state: "done" });
     }
   });
-  const subscribe = t.context.stub(({ state }) => state === "init" ? { "the-reply": true } : { "finally": true });
-  const model = { id: "test", init, update, subscribe };
+  const model = { id: "test", init, update };
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
 
