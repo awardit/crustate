@@ -8,14 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Export type `SendMessageFn` describing React `useSendMessage` return.
+- Export `logUnhandledMessage` to allow reuse of logging.
+- `updateNone` to consume a message in a `Model`.`update` without updating
+  the state data.
 ### Changed
 - React `useSendMessage` return function will now return a `Promise` when
   sending messages, they will be resolved when all data updates and effects
   triggered by the message have been resolved.
-### Added
-- Export `logUnhandledMessage` to allow reuse of logging.
+- `Model`.`update` is now called for all messages passing through the state,
+  empty returns propagate the message up in the hierarchy.
+- `Model`.`update` `msg` parameter takes an `UnknownMessage` type in addition
+  to the message type of the `Model` generic to enforce type-refinement on
+  incoming messages.
 ### Removed
 - Removed `passive` option in `Subscription`.
+- `Model`.`subscribe` 
 
 ## [0.6.0] - 2019-11-07
 ### Added

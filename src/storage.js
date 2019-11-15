@@ -278,15 +278,52 @@ export class Storage extends Supervisor<StorageEvents> {
    * Storage instance.
    */
   broadcastMessage(msg: Message, sourceName?: string = BROADCAST_SOURCE): Promise<void> {
-    return processEffects(
-      this,
-      handleBroadcast(
-        this,
-        [],
-        this._nested,
-        createInflightMessage(this, [sourceName], msg)
-      )
-    );
+    const inflight = createInflightMessage(this, [sourceName], msg);
+    let handled = false;
+
+    /**
+     * Broadcasts msg to all state instances with a depth first algo.
+     */
+    function handleBroadcast(
+      storage: Storage,
+      path: StatePath,
+      nested: StateMap
+    ): Array<InflightMessage> {
+      const returning = [];
+
+      // We trust that the user has not been poking around in globals
+      /* eslint-disable-next-line guard-for-in */
+      for (const key in nested) {
+        const instance = nested[key];
+        const nestedPath = path.concat([key]);
+
+        returning.push(...processMessages(
+          storage,
+          instance,
+          nestedPath,
+          [inflight, ...handleBroadcast(storage, nestedPath, instance._nested)]
+        ));
+
+        const i = returning.indexOf(inflight);
+
+        if (i === -1) {
+          handled = true;
+        }
+        else {
+          returning.splice(i, 1);
+        }
+      }
+
+      return returning;
+    }
+
+    const messages = handleBroadcast(this, [], this._nested);
+
+    if (!handled) {
+      messages.unshift(inflight);
+    }
+
+    return processEffects(this, messages);
   }
 
   /**
@@ -307,10 +344,7 @@ export class Storage extends Supervisor<StorageEvents> {
       this,
       instance._supervisor,
       processMessages(this, instance, instance.getPath(), [reply])
-    ) : [];
-
-    // Re-add the reply so it is always handled by effects
-    inflight.push(reply);
+    ) : [reply];
 
     return processEffects(this, inflight);
   }
@@ -545,7 +579,7 @@ export function processInstanceMessages(
   let sourcePath = instance.getPath();
 
   while (instance instanceof State) {
-    inflight.push(...processMessages(storage, instance, sourcePath, inflight));
+    inflight = processMessages(storage, instance, sourcePath, inflight);
 
     // Traverse down one level
     sourcePath = sourcePath.slice(0, -1);
@@ -563,42 +597,35 @@ export function processMessages(
 ): Array<InflightMessage> {
   const newMessages = [];
   const definition = getModelById(storage, instance._id);
-  const { update, subscribe } = definition;
-
-  // We need to be able to update the filters if the data changes
-  let messageFilter = subscribe(instance._data);
+  const { update } = definition;
 
   for (const currentInflight of inflight) {
     const { _message: m } = currentInflight;
-    if (!isMatchingSubscription(messageFilter, m)) {
-      continue;
-    }
-
-    currentInflight._received = true;
-
-    storage.emit("messageMatched", m, sourcePath);
-
     const updateRequest = update(instance._data, m);
 
     if (!updateRequest) {
+      // Propagate
+      newMessages.push(currentInflight);
+
       continue;
     }
 
-    const { data, messages } = updateRequest;
+    storage.emit("messageMatched", m, sourcePath);
 
-    instance._data = data;
+    if (updateRequest !== 1) {
+      const { data, messages } = updateRequest;
 
-    storage.emit("stateNewData", data, sourcePath, m);
-    instance.emit("stateNewData", data, sourcePath, m);
+      instance._data = data;
 
-    if (messages) {
-      for (const m of messages) {
-        newMessages.push(createInflightMessage(storage, sourcePath, m));
+      storage.emit("stateNewData", data, sourcePath, m);
+      instance.emit("stateNewData", data, sourcePath, m);
+
+      if (messages) {
+        for (const m of messages) {
+          newMessages.push(createInflightMessage(storage, sourcePath, m));
+        }
       }
     }
-
-    // TODO: Skip on last iteration?
-    messageFilter = subscribe(instance._data);
   }
 
   return newMessages;
@@ -611,25 +638,23 @@ export function processEffects(
   const effects = [];
 
   outer:
-  for (const { _message, _source, _received } of inflightMsgs) {
-    if (!_received) {
-      for (const effect of storage._effects) {
-        if (!isMatchingSubscription(effect.subscribe, _message)) {
-          continue;
-        }
-
-        storage.emit("messageMatched", _message, ([]: StatePath));
-
-        effects.push(runEffect(storage, effect, _message, _source));
-
-        continue outer;
+  for (const { _message, _source } of inflightMsgs) {
+    for (const effect of storage._effects) {
+      if (!isMatchingSubscription(effect.subscribe, _message)) {
+        continue;
       }
 
-      storage.emit("unhandledMessage", _message, _source);
+      storage.emit("messageMatched", _message, ([]: StatePath));
 
-      if (storage.listeners("unhandledMessage").length === 0) {
-        logUnhandledMessage(_message, _source);
-      }
+      effects.push(runEffect(storage, effect, _message, _source));
+
+      continue outer;
+    }
+
+    storage.emit("unhandledMessage", _message, _source);
+
+    if (storage.listeners("unhandledMessage").length === 0) {
+      logUnhandledMessage(_message, _source);
     }
   }
 
@@ -679,46 +704,6 @@ export function runEffect(
   });
 
   return promise.then(dropPromise, dropPromise);
-}
-
-/**
- * Broadcasts msg to all state instances with a depth first algo.
- *
- * Mutates msg
- */
-export function handleBroadcast(
-  storage: Storage,
-  path: StatePath,
-  nested: StateMap,
-  msg: InflightMessage
-): Array<InflightMessage> {
-  const returning = [msg];
-
-  // We trust that the user has not been poking around in globals
-  /* eslint-disable-next-line guard-for-in */
-  for (const key in nested) {
-    const instance = nested[key];
-    const nestedPath = path.concat([key]);
-    const messages = handleBroadcast(storage, nestedPath, instance._nested, msg);
-    const hasBeenReceived = msg._received;
-
-    msg._received = false;
-
-    messages.push(...processMessages(storage, instance, nestedPath, messages));
-
-    // Propagate the received flag
-    msg._received = msg._received || hasBeenReceived;
-
-    // We have multiple instances of msg here now, one from each child
-    // deduplicate.
-    for (const m of messages) {
-      if (returning.indexOf(m) === -1) {
-        returning.push(m);
-      }
-    }
-  }
-
-  return returning;
 }
 
 export function createSnapshot(node: Supervisor<{}>): Snapshot {

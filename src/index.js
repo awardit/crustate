@@ -11,15 +11,12 @@ export type {
   Subscription,
 } from "./message";
 export type {
-  Update,
-} from "./update";
-export type {
   Model,
   ModelInit,
-  ModelSubscribe,
   ModelUpdate,
   TypeofModelData,
   TypeofModelInit,
+  Update,
 } from "./model";
 export type {
   RunningEffect,
@@ -34,7 +31,8 @@ export {
 export {
   updateData,
   updateAndSend,
-} from "./update";
+  updateNone,
+} from "./model";
 export {
   State,
   Storage,

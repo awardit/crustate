@@ -62,12 +62,4 @@ export const TodosState = createStateData<Model<Array<Todo>, {}, TodoMsg>>({
       // Nothing
     }
   },
-  subscribe: () => ({
-    [ADD]: true,
-    [EDIT]: true,
-    [REMOVE]: true,
-    [CLEAR_ALL]: true,
-    [COMPLETE]: true,
-    [COMPLETE_ALL]: true,
-  }),
 });

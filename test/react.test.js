@@ -43,8 +43,7 @@ test.afterEach.always(cleanup);
 const MyData = createStateData<Model<string, { test?: boolean, data: string }, UpdateMsg>>({
   id: "state",
   init: ({ data }) => updateData(data),
-  update: (_, msg) => updateData(msg.data),
-  subscribe: () => ({ data: true }),
+  update: (_, msg) => msg.tag === "data" ? updateData(msg.data) : null,
 });
 
 // Type tests

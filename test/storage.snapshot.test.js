@@ -2,8 +2,7 @@
 
 import ninos from "ninos";
 import ava from "ava";
-import { Storage } from "../src/storage";
-import { updateData } from "../src/update";
+import { Storage, updateData } from "../src";
 import { args } from "./util";
 
 const test = ninos(ava);
@@ -40,12 +39,10 @@ test("restoreSnapshot restores a snapshot", t => {
   const emit = t.context.spy(s, "emit");
   const init = t.context.stub(() => updateData(1));
   const update = t.context.stub(() => updateData(2));
-  const subscribe = t.context.stub(() => ({}));
   const d = {
     id: "foo",
     init,
     update,
-    subscribe,
   };
 
   s.addModel(d);
@@ -65,7 +62,6 @@ test("restoreSnapshot restores a snapshot", t => {
   ]);
   t.deepEqual(args(init), []);
   t.deepEqual(args(update), []);
-  t.deepEqual(args(subscribe), []);
 });
 
 test("restoreSnapshot restores a snapshot with a differing name", t => {
@@ -73,12 +69,10 @@ test("restoreSnapshot restores a snapshot with a differing name", t => {
   const emit = t.context.spy(s, "emit");
   const init = t.context.stub(() => updateData(1));
   const update = t.context.stub(() => updateData(2));
-  const subscribe = t.context.stub(() => ({}));
   const d = {
     id: "bar",
     init,
     update,
-    subscribe,
   };
 
   s.addModel(d);
@@ -97,7 +91,6 @@ test("restoreSnapshot restores a snapshot with a differing name", t => {
   ]);
   t.deepEqual(args(init), []);
   t.deepEqual(args(update), []);
-  t.deepEqual(args(subscribe), []);
 });
 
 test("restoreSnapshot restores nested snapshots", t => {
@@ -105,12 +98,10 @@ test("restoreSnapshot restores nested snapshots", t => {
   const emit = t.context.spy(s, "emit");
   const init = t.context.stub(() => updateData(1));
   const update = t.context.stub(() => updateData(2));
-  const subscribe = t.context.stub(() => ({}));
   const d = {
     id: "foo",
     init,
     update,
-    subscribe,
   };
 
   s.addModel(d);
@@ -132,5 +123,4 @@ test("restoreSnapshot restores nested snapshots", t => {
   ]);
   t.deepEqual(args(init), []);
   t.deepEqual(args(update), []);
-  t.deepEqual(args(subscribe), []);
 });

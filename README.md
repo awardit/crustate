@@ -20,8 +20,7 @@ with controlled side-effects through messaging.
 type Model<T, I, M: Message> = {
   id: string,
   init: (init: I) => Update<T>,
-  update: (state: T, msg: M) => ?Update<T>,
-  subscribe: (state: T) => SubscriptionMap<M>,
+  update: (state: T, msg: M | UnknownMessage) => ?Update<T> | UpdateNoop,
 };
 ```
 
@@ -74,43 +73,27 @@ function init() {
 type ModelUpdate<T, M: Message> = (state: T, msg: M) => ?Update<T>;
 ```
 
-Conceptually `update` is responsible for receiving messages, interpreting
-them, updating the state, and send new messages in case other components need
-to be informed or additional data requested.
+Conceptually `update` is responsible for receiving messages, deciding on if the
+state should respond to them, interpreting them, updating the state, and send
+new messages in case other components need to be informed or additional data
+requested.
 
 This is very similar to Redux's Reducer concept with the main difference
-being that the `update`-function can send new messages.
+being that the `update`-function can send new messages as well as not return
+anything to indicate that the state is not interested in the message.
 
 ```javascript
 function update(state, message) {
-  switch(message.tag) {
-  case ADD:
-    return updateData(state + message.value);
+  switch (message.tag) {
+    case ADD:
+      return updateData(state + message.value);
   }
 }
 ```
 
+When a message produces an update-value from a state update it will be consumed
+by that state and no longer propagate upwards in the tree, a `null`/`undefined`
+return means that the message should keep propagating upwards.
+
 Messages sent from the update function are propagated upwards in the
-state-hierarchy and can be subscribed to in supervising states.
-
-### Subscriber
-
-```javascript
-type ModelSubscribe<T, M: Message> = (state: T) => Subscriptions;
-type Subscriptions<M: Message> = { [tag: $PropertyType<M, "tag">]: Subscription };
-type Subscription<M: Message> = boolean };
-```
-
-For a state to actually receive messages it first needs to subscribe to
-messages; which tags it is interested in:
-
-```javascript
-function subscribe(state) {
-  return {
-    [ADD]: true,
-  };
-}
-```
-
-When a message matches a state it will be consumed by that state and no longer
-propagate upwards in the tree.
+state-hierarchy and can be acted upon in supervising states.

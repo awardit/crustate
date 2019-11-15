@@ -1,12 +1,9 @@
 /* @flow */
 
-import type { Update } from "../src/update";
+import type { Update } from "../src";
 
 import test from "ava";
-import {
-  updateData,
-  updateAndSend,
-} from "../src/update";
+import { updateData, updateAndSend } from "../src";
 
 // Type tests
 (null: ?Update<null>);

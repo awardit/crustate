@@ -30,17 +30,26 @@ export type PostDataState =
 export const PostListData = createStateData<Model<PostListDataState, {}, ListResponse>>({
   id: "list",
   init: () => updateAndSend(null, requestList()),
-  update: (state, msg) => msg.data ? updateData(msg.data) : updateData(msg.error),
-  subscribe: state => state ? {} : { [LIST_RESPONSE]: true },
+  update: (state, msg) => {
+    if (!state && msg.tag === LIST_RESPONSE) {
+      return updateData(msg.data || msg.error);
+    }
+  },
 });
 
 export const PostData = createStateData<Model<PostDataState, { postId: number }, PostResponse>>({
   id: "post",
   init: ({ postId }) => updateAndSend({ state: "LOADING", postId }, requestPost(postId)),
-  update: (state, msg) => msg.data ?
-    updateData({ state: "LOADED", post: msg.data }) :
-    updateData({ state: "ERROR", error: msg.error }),
-  subscribe: ({ state }) => ({
-    [POST_RESPONSE]: state === "LOADING",
-  }),
+  update: (state, msg) => {
+    if (state.state === "LOADING" && msg.tag === POST_RESPONSE) {
+      if (msg.data) {
+        if (msg.data.id === state.postId) {
+          return updateData({ state: "LOADED", post: msg.data });
+        }
+      }
+      else {
+        return updateData({ state: "ERROR", error: msg.error });
+      }
+    }
+  },
 });
