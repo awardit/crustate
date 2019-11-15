@@ -3,7 +3,7 @@
 import type { StatePath } from "./storage";
 
 /**
- * Tag identifying the message, used to subscribe and match messages.
+ * Tag identifying the message, used to match and refine messages.
  */
 export type MessageTag = string;
 
