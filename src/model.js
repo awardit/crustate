@@ -19,6 +19,9 @@ export type ModelInit<T, I> = (init: I) => Update<T>;
 /**
  * Message representing any other kind of message in the type-signature of
  * `ModelUpdate`, do not match against this message directly.
+ *
+ * This type exists to ensure users refine the message-type before acting
+ * on incoming messages.
  */
 export type UnknownMessage = {
   +tag: "!DO!NOT!MATCH!THIS!",
@@ -27,6 +30,9 @@ export type UnknownMessage = {
 /**
  * Update function, receives messages for a state and produces a state-update
  * which can include messages sent to supervisors.
+ *
+ * The incoming messages can be any random message, refine on `tag` to ensure
+ * the messages are indended for the state before acting upon them.
  */
 export type ModelUpdate<T, M> = (state: T, msg: M | UnknownMessage) => ?Update<T> | UpdateNoop;
 
