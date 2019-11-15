@@ -11,19 +11,12 @@ type TodoTextInputProps = {
   text?: string,
 };
 
-TodoTextInput.defaultProps = {
-  isEditing: false,
-  isNewTodo: false,
-  placeholder: "",
-  text: "",
-};
-
 export function TodoTextInput({
-  isEditing,
-  isNewTodo,
+  isEditing = false,
+  isNewTodo = false,
   onSave,
-  placeholder,
-  text: defaultText,
+  placeholder = "",
+  text: defaultText = "",
 }: TodoTextInputProps) {
   const [text, setText] = React.useState(defaultText || "");
 

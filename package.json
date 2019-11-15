@@ -276,6 +276,7 @@
           "name": "e"
         }
       ],
+      "react/require-default-props": "off",
       "unicorn/prefer-includes": "off",
       "valid-jsdoc": "off"
     },
