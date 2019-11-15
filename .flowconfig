@@ -10,6 +10,10 @@
 [libs]
 
 [lints]
+all=error
+sketchy-null-string=off
+untyped-import=off
+unclear-type=off
 
 [options]
 suppress_comment=\\(.\\|\n\\)*\\$ExpectError
