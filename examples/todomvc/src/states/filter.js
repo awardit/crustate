@@ -36,6 +36,5 @@ export const setFilter = (value: Filter): FilterMsg => ({ tag: SET, value });
 export const FilterState = createStateData<Model<Filter, {}, FilterMsg>>({
   id: "filter",
   init: () => updateData(SHOW_ALL),
-  update: (_, msg) => updateData(msg.value),
-  subscribe: () => ({ [SET]: true }),
+  update: (_, msg) => msg.tag === SET ? updateData(msg.value) : null,
 });

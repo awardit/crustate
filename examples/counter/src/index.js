@@ -17,6 +17,11 @@ const CounterData = createStateData({
   id: "counter",
   init: ({ initial = 0 }: { initial?: number }) => updateData(initial),
   update: (state, msg) => {
+    if (state < 0) {
+      // Nothing once we hit negative
+      return;
+    }
+
     switch (msg.tag) {
       case INCREMENT:
         return updateData(state + 1);
@@ -25,10 +30,6 @@ const CounterData = createStateData({
       default:
       // Nothing
     }
-  },
-  subscribe: state => state < 0 ? {} : {
-    [INCREMENT]: true,
-    [DECREMENT]: true,
   },
 });
 
