@@ -57,7 +57,6 @@ const App = () => (
 const storage = new Storage();
 
 [
-  "unhandledMessage",
   "stateCreated",
   "stateNewData",
   "messageQueued",

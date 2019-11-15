@@ -34,7 +34,6 @@ const effect = (msg: DataRequest, source: StatePath) => {
 
 // TODO: Currently not a type-safe way of registering listeners
 const events = {
-  unhandledMessage: "warn",
   stateCreated: "info",
   stateRemoved: "info",
   stateNewData: "info",

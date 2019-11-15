@@ -13,7 +13,6 @@ import { FilterState } from "./states/filter";
 const storage = new Storage();
 
 [
-  "unhandledMessage",
   "stateCreated",
   "stateNewData",
   "messageQueued",
