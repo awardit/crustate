@@ -25,11 +25,6 @@ export type Message = {
 export type InflightMessage = {
   +_message: Message,
   +_source: StatePath,
-  /**
-   * If an active subscription has received this message this is the state path
-   * which received it.
-   */
-  _received: boolean,
 };
 
 /**
