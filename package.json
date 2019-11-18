@@ -37,6 +37,7 @@
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "source": "src/index.js",
+  "sideEffects": false,
   "scripts": {
     "build": "npm-run-all build:*",
     "build:rollup": "npm-run-all -p build:rollup:*",
