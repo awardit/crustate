@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { Message } from "../src/message";
+import type { EffectErrorMessage, Message } from "../src";
 
 export type StubFn = {
   calls: Array<{ arguments: Array<mixed> }>,
@@ -9,4 +9,7 @@ export type StubFn = {
 export const args = (f: StubFn): Array<Array<mixed>> => f.calls.map(c => c.arguments);
 
 export const unhandledMessageError = (msg: Message, path: Array<string>) =>
-  ["Unhandled message:", msg, "from [", path.join(", "), "]"];
+  ["Unhandled message:", msg, "from [" + path.join(", ") + "]."];
+
+export const unhandledEffectError = (msg: EffectErrorMessage, path: Array<string>) =>
+  ["Unhandled effect error:", msg.error, "from [" + path.join(", ") + "]."];

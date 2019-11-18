@@ -4,7 +4,7 @@ import ninos from "ninos";
 import ava from "ava";
 import { Storage, updateData, updateAndSend } from "../src";
 import { EFFECT_ERROR } from "../src/effect";
-import { args, unhandledMessageError } from "./util";
+import { args, unhandledEffectError, unhandledMessageError } from "./util";
 
 const test = ninos(ava).serial;
 
@@ -283,7 +283,7 @@ test("Immediate throw in effect", async t => {
     ["unhandledMessage", { tag: "effect/error", error: new Error("My Effect error") }, ["$", "<"]],
   ]);
   t.deepEqual(args(error), [
-    unhandledMessageError({ tag: "effect/error", error: new Error("My Effect error") }, ["$", "<"]),
+    unhandledEffectError({ tag: "effect/error", error: new Error("My Effect error") }, ["$", "<"]),
   ]);
 });
 
@@ -402,7 +402,7 @@ test("Async throw in effect", async t => {
     ["unhandledMessage", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
   ]);
   t.deepEqual(args(error), [
-    unhandledMessageError({ tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]),
+    unhandledEffectError({ tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]),
   ]);
 });
 
@@ -443,7 +443,7 @@ test("Storage.wait on async throw in effect", async t => {
     ["unhandledMessage", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
   ]);
   t.deepEqual(args(error), [
-    unhandledMessageError({ tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]),
+    unhandledEffectError({ tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]),
   ]);
 });
 

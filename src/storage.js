@@ -722,5 +722,12 @@ export function createSnapshot(node: Supervisor<{}>): Snapshot {
 }
 
 export function logUnhandledMessage(msg: Message, path: StatePath): void {
-  console.error("Unhandled message:", msg, "from [", path.join(", "), "]");
+  const source = `from [${path.join(", ")}].`;
+
+  if (msg.tag === EFFECT_ERROR) {
+    console.error("Unhandled effect error:", ((msg: any): EffectErrorMessage).error, source);
+  }
+  else {
+    console.error("Unhandled message:", msg, source);
+  }
 }
