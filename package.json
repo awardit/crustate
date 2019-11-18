@@ -34,8 +34,8 @@
     "react/src",
     "src"
   ],
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
   "source": "src/index.js",
   "sideEffects": false,
   "scripts": {
@@ -48,7 +48,7 @@
     "build:examples:blog": "rollup -c examples/blog/rollup.config.js",
     "build:examples:counter": "rollup -c examples/counter/rollup.config.js",
     "build:examples:todomvc": "rollup -c examples/todomvc/rollup.config.js",
-    "build:flowstub": "cp build/flowstub.js dist/index.js.flow && cp build/flowstub.js dist/index.esm.js.flow && cp build/flowstub.js react/dist/index.js.flow && cp build/flowstub.js react/dist/index.esm.js.flow && cp build/flowstub.js preact/dist/index.js.flow && cp build/flowstub.js preact/dist/index.esm.js.flow",
+    "build:flowstub": "cp build/stub/flow.js dist/cjs/index.js.flow && cp build/stub/flow.js dist/esm/index.js.flow && cp build/stub/flow.js react/dist/cjs/index.js.flow && cp build/stub/flow.js react/dist/esm/index.js.flow && cp build/stub/flow.js preact/dist/cjs/index.js.flow && cp build/stub/flow.js preact/dist/esm/index.js.flow",
     "clean": "rm -rf dist react/dist preact/dist examples/blog/dist examples/counter/dist examples/todomvc/dist",
     "coverage": "nyc --reporter=html ava --verbose",
     "distclean": "rm -rf package-lock.json node_modules dist react/dist preact/dist coverage .nyc_output examples/blog/dist examples/counter/dist examples/todomvc/dist",

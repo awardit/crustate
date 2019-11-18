@@ -5,20 +5,27 @@ import babelPlugin from "rollup-plugin-babel";
 // on the current working directory:
 const babel = babelPlugin(require(path.join(process.cwd(), "build", "babel")));
 
-export const config = ({ input, output, plugins = [], external = [] }) => ({
+export const config = ({
+  input,
+  output,
+  plugins = [],
+  external = [],
+  preserveModules = false,
+}) => ({
   input,
   output: [
     {
-      file: `${output}.esm.js`,
+      dir: `${output}/esm`,
       sourcemap: true,
       format: "esm",
     },
     {
-      file: `${output}.js`,
+      dir: `${output}/cjs`,
       sourcemap: true,
       format: "cjs",
     },
   ],
+  preserveModules,
   plugins: plugins.concat([
     babel,
   ]),

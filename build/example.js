@@ -9,8 +9,8 @@ export const alias = aliasPlugin({
   entries: [
     // More specific needs to be first, otherwise will alias try to suffix
     // `/react` on top of `index.esm.js`:
-    { find: "crustate/react", replacement: "react/dist/index.esm.js" },
-    { find: "crustate", replacement: "dist/index.esm.js" },
+    { find: "crustate/react", replacement: "react/dist/esm/index.js" },
+    { find: "crustate", replacement: "dist/esm/index.js" },
   ],
 });
 

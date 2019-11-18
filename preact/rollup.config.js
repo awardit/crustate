@@ -1,18 +1,19 @@
 import alias from "rollup-plugin-alias";
+import nodeResolve from "rollup-plugin-node-resolve";
 import path from "path";
 import { config } from "../build/config";
 
 export default config({
   input: "preact/src/index.js",
-  output: "preact/dist/index",
+  output: "preact/dist",
   plugins: [
     alias({
       entries: [
-        { find: "crustate/react", replacement: path.join(__dirname, "../react/src/index") },
         { find: "react", replacement: path.join(__dirname, "./src/react-shim") },
         { find: "react-dom", replacement: path.join(__dirname, "./src/react-shim") },
       ],
     }),
+    nodeResolve(),
   ],
   external: ["crustate", "preact", "preact/hooks"],
 });

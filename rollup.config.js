@@ -2,5 +2,6 @@ import { config } from "./build/config";
 
 export default config({
   input: "src/index.js",
-  output: "dist/index",
+  output: "dist",
+  preserveModules: true,
 });

@@ -1,4 +1,3 @@
 /* @flow */
 
-export type * from "crustate/react";
-export * from "crustate/react";
+export * from "../../react/src";
