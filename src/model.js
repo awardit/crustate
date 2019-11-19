@@ -31,7 +31,7 @@ export type Subscriptions<M: Message> = {
  * Update containing new state-data if any, and any messages to send to
  * supervisors.
  */
-export type Update<T> = {| data: T, messages: $ReadOnlyArray<Message> |};
+export type Update<+T> = {| +data: T, +messages: $ReadOnlyArray<Message> |};
 
 export type UpdateNoop = 1;
 
@@ -39,7 +39,7 @@ export type UpdateNoop = 1;
  * Initialization function, called when the initial data is loaded into the
  * state.
  */
-export type ModelInit<T, I> = (init: I) => Update<T>;
+export type ModelInit<+T, I> = (init: I) => Update<T>;
 
 /**
  * Message representing any other kind of message in the type-signature of

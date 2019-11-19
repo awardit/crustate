@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { Message, Model, Subscriptions, Update } from "../src";
+import type { Message, Model, ModelInit, Subscriptions, Update } from "../src";
 
 import test from "ava";
 import { updateData } from "../src";
@@ -10,6 +10,7 @@ import { isMatchingSubscription } from "../src/model";
 type AMessage = { tag: "a" };
 type BMessage = { tag: string, foo: boolean };
 type MyMessage = { tag: "a" } | { tag: "b" };
+type MyData = 1 | 2;
 
 (null: ?Update<null>);
 (null: ?Update<string>);
@@ -29,6 +30,9 @@ type MyMessage = { tag: "a" } | { tag: "b" };
 (null: Update<any>);
 // $ExpectError
 (undefined: Update<any>);
+
+((updateData(1): Update<MyData>): Update<number>);
+(((() => updateData(1)): ModelInit<MyData, void>): ModelInit<number, void>);
 
 (({ tag: "a" }: AMessage): Message);
 (({ tag: "b", foo: true }: BMessage): Message);
