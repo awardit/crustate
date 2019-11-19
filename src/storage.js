@@ -201,7 +201,7 @@ class Supervisor<+E: {}> extends EventEmitter<E> {
 
     storage.emit("stateCreated", path, (params: any), data);
 
-    if (messages) {
+    if (messages.length > 0) {
       instance._init = processEffects(storage, processInstanceMessages(
         storage,
         instance._supervisor,
@@ -632,10 +632,8 @@ export function processMessages(
       storage.emit("stateNewData", data, sourcePath, m);
       instance.emit("stateNewData", data, sourcePath, m);
 
-      if (messages) {
-        for (const m of messages) {
-          newMessages.push(createInflightMessage(storage, sourcePath, m));
-        }
+      for (const m of messages) {
+        newMessages.push(createInflightMessage(storage, sourcePath, m));
       }
     }
   }
