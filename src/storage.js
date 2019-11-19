@@ -1,13 +1,17 @@
 /* @flow */
 
-import type { Effect, EffectErrorMessage } from "./effect";
-import type { Model, TypeofModelData, TypeofModelInit } from "./model";
-import type { InflightMessage, Message } from "./message";
+import type {
+  Effect,
+  EffectErrorMessage,
+  Message,
+  Model,
+  TypeofModelData,
+  TypeofModelInit,
+} from "./model";
 
 import { debugAssert } from "./assert";
-import { EFFECT_ERROR } from "./effect";
+import { EFFECT_ERROR, isMatchingSubscription } from "./model";
 import { EventEmitter } from "./eventemitter";
-import { isMatchingSubscription } from "./message";
 
 export type StatePath = $ReadOnlyArray<string>;
 
@@ -109,6 +113,14 @@ export type StateEvents<M: AnyModel> = {
    *  * Message which caused the update
    */
   stateNewData: [TypeofModelData<M>, StatePath, Message],
+};
+
+/**
+ * A message on its way upwards in the hierarchy.
+ */
+export type InflightMessage = {
+  +_message: Message,
+  +_source: StatePath,
 };
 
 export type RunningEffect = {

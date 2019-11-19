@@ -2,8 +2,7 @@
 
 import ninos from "ninos";
 import ava from "ava";
-import { Storage, updateData, updateAndSend } from "../src";
-import { EFFECT_ERROR } from "../src/effect";
+import { EFFECT_ERROR, Storage, updateData, updateAndSend } from "../src";
 import { args, unhandledEffectError, unhandledMessageError } from "./util";
 
 const test = ninos(ava).serial;

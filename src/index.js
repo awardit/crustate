@@ -3,17 +3,13 @@
 export type {
   Effect,
   EffectErrorMessage,
-} from "./effect";
-export type {
   Message,
   MessageTag,
-  Subscriptions,
-  Subscription,
-} from "./message";
-export type {
   Model,
   ModelInit,
   ModelUpdate,
+  Subscription,
+  Subscriptions,
   TypeofModelData,
   TypeofModelInit,
   Update,
@@ -27,10 +23,8 @@ export type {
 
 export {
   EFFECT_ERROR,
-} from "./effect";
-export {
-  updateData,
   updateAndSend,
+  updateData,
   updateNone,
 } from "./model";
 export {

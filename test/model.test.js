@@ -1,11 +1,16 @@
 /* @flow */
 
-import type { Update } from "../src";
+import type { Message, Model, Subscriptions, Update } from "../src";
 
 import test from "ava";
 import { updateData, updateAndSend } from "../src";
+import { isMatchingSubscription } from "../src/model";
 
 // Type tests
+type AMessage = { tag: "a" };
+type BMessage = { tag: string, foo: boolean };
+type MyMessage = { tag: "a" } | { tag: "b" };
+
 (null: ?Update<null>);
 (null: ?Update<string>);
 (undefined: ?Update<null>);
@@ -26,6 +31,39 @@ import { updateData, updateAndSend } from "../src";
 (null: Update<any>);
 // $ExpectError
 (undefined: Update<any>);
+
+(({ tag: "a" }: AMessage): Message);
+(({ tag: "b", foo: true }: BMessage): Message);
+
+(({ a: true }): Subscriptions<AMessage>);
+(({ b: true }): Subscriptions<AMessage | BMessage>);
+// $ExpectError
+(({ c: true }): Subscriptions<AMessage>);
+
+({
+  id: "test",
+  init: () => updateData("init"),
+  update: () => null,
+}: Model<string, void, MyMessage>);
+
+test("Model can be instantiated", t => {
+  const definition: Model<string, void, Message> = {
+    id: "test",
+    init: () => updateData("init"),
+    update: (data, msg) => updateData(msg.tag),
+  };
+
+  t.deepEqual(definition.init(), updateData("init"));
+  t.deepEqual(definition.update("init", { tag: "foo" }), updateData("foo"));
+});
+
+test("isMatchingSubscription() ", t => {
+  t.is(isMatchingSubscription({}, { tag: "a" }), false);
+  t.is(isMatchingSubscription({ b: true }, { tag: "a" }), false);
+  t.is(isMatchingSubscription({}, { tag: "a" }), false);
+  t.is(isMatchingSubscription({ b: true }, { tag: "a" }), false);
+  t.is(isMatchingSubscription({ a: true }, { tag: "a" }), true);
+});
 
 test("updateData() contains data", t => {
   const o = { object: "object" };
