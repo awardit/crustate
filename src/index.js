@@ -23,7 +23,6 @@ export type {
 
 export {
   EFFECT_ERROR,
-  updateAndSend,
   updateData,
   updateNone,
 } from "./model";

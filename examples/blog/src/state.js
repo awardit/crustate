@@ -3,7 +3,7 @@
 import type { ListResponse, PostResponse } from "./effects";
 import type { Model } from "crustate";
 
-import { updateAndSend, updateData } from "crustate";
+import { updateData } from "crustate";
 import { createStateData } from "crustate/react";
 import { requestList, requestPost, LIST_RESPONSE, POST_RESPONSE } from "./effects";
 
@@ -29,7 +29,7 @@ export type PostDataState =
 
 export const PostListData = createStateData<Model<PostListDataState, {}, ListResponse>>({
   id: "list",
-  init: () => updateAndSend(null, requestList()),
+  init: () => updateData(null, requestList()),
   update: (state, msg) => {
     if (!state && msg.tag === LIST_RESPONSE) {
       return updateData(msg.data || msg.error);
@@ -39,7 +39,7 @@ export const PostListData = createStateData<Model<PostListDataState, {}, ListRes
 
 export const PostData = createStateData<Model<PostDataState, { postId: number }, PostResponse>>({
   id: "post",
-  init: ({ postId }) => updateAndSend({ state: "LOADING", postId }, requestPost(postId)),
+  init: ({ postId }) => updateData({ state: "LOADING", postId }, requestPost(postId)),
   update: (state, msg) => {
     if (state.state === "LOADING" && msg.tag === POST_RESPONSE) {
       if (msg.data) {

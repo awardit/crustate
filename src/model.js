@@ -31,7 +31,7 @@ export type Subscriptions<M: Message> = {
  * Update containing new state-data if any, and any messages to send to
  * supervisors.
  */
-export type Update<T> = {| data: T, messages: ?Array<Message> |};
+export type Update<T> = {| data: T, messages: $ReadOnlyArray<Message> |};
 
 export type UpdateNoop = 1;
 
@@ -124,18 +124,11 @@ export function updateNone(): UpdateNoop {
 }
 
 /**
- * Creates an update replacing the data of the state.
- */
-export function updateData<T>(data: T): Update<T> {
-  return { data, messages: null };
-}
-
-/**
  * Creates an update replacing the data of the state, and if any messages
  * are provided they will be propagated upwards to supervising states and
  * effects.
  */
-export function updateAndSend<T>(data: T, ...messages: Array<Message>): Update<T> {
+export function updateData<T>(data: T, ...messages: Array<Message>): Update<T> {
   return { data, messages };
 }
 

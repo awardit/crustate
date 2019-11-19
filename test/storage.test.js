@@ -7,7 +7,7 @@ import {
   processEffects,
   processInstanceMessages,
 } from "../src/storage";
-import { Storage, State, updateData, updateNone, updateAndSend } from "../src";
+import { Storage, State, updateData, updateNone } from "../src";
 import { args, unhandledMessageError } from "./util";
 
 const test = ninos(ava).serial;
@@ -267,13 +267,13 @@ test("unhandledMessage default logging will not trigger if a listener is registe
   ]);
 });
 
-test("States with init using updateAndSend should send messages to parent Storage", t => {
+test("States with init using updateData should send messages to parent Storage", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
   const error = t.context.spy(console, "error", () => {});
   const initData = { name: "initData" };
   const initMsg = { tag: "initMsg" };
-  const init = t.context.stub(() => updateAndSend(initData, initMsg));
+  const init = t.context.stub(() => updateData(initData, initMsg));
   // Should never receive this since messages are not self-referencing
   const update = t.context.stub();
   const state = { id: "test", init, update };
@@ -479,7 +479,7 @@ test("State init is sent to parent instances", t => {
   const secondInit = { tag: "secondInit" };
   const secondDef = {
     id: "second",
-    init: t.context.stub(() => updateAndSend(secondData, secondInit)),
+    init: t.context.stub(() => updateData(secondData, secondInit)),
     update: t.context.stub(() => null),
   };
 
@@ -545,7 +545,7 @@ test("State init is sent to parent instances, but not siblings", t => {
   const secondInit = { tag: "secondInit" };
   const secondDef = {
     id: "second",
-    init: t.context.stub(() => updateAndSend(secondData, secondInit)),
+    init: t.context.stub(() => updateData(secondData, secondInit)),
     update: t.context.stub(() => null),
   };
 
@@ -580,7 +580,7 @@ test("Messages generated during processing are handled in order", t => {
   const firstDef = {
     id: "first",
     init: t.context.stub(() => updateData(firstData)),
-    update: t.context.stub(() => updateAndSend(secondData, firstMsg)),
+    update: t.context.stub(() => updateData(secondData, firstMsg)),
   };
 
   const first = s.createState(firstDef);

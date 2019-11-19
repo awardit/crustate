@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
+- `updateData` can now send messages in optional rest-parameter (just as
+  now removed `updateAndSend`).
 - Modules are now preserved in the bundle.
+### Removed
+- `updateAndSend`
 
 ## [0.7.1] - 2019-11-18
 ### Changed

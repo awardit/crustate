@@ -2,7 +2,7 @@
 
 import ninos from "ninos";
 import ava from "ava";
-import { Storage, updateData, updateAndSend } from "../src";
+import { Storage, updateData } from "../src";
 import { args, unhandledMessageError } from "./util";
 
 const test = ninos(ava).serial;
@@ -114,7 +114,7 @@ test("broadcastMessage propagates messages in order", t => {
   const emit = t.context.spy(s, "emit");
   const error = t.context.spy(console, "error", () => {});
   const init = t.context.stub(() => updateData(1));
-  const update = t.context.stub(() => updateAndSend(2, { tag: "BBB" }));
+  const update = t.context.stub(() => updateData(2, { tag: "BBB" }));
   const d = {
     id: "foo",
     init,

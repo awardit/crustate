@@ -2,7 +2,7 @@
 
 import ninos from "ninos";
 import ava from "ava";
-import { EFFECT_ERROR, Storage, updateData, updateAndSend } from "../src";
+import { EFFECT_ERROR, Storage, updateData } from "../src";
 import { args, unhandledEffectError, unhandledMessageError } from "./util";
 
 const test = ninos(ava).serial;
@@ -139,7 +139,7 @@ test("Active effects prevent parents and unhandledMessage from receiving", t => 
   const firstDef = {
     id: "first",
     init: t.context.stub(() => updateData(firstData)),
-    update: t.context.stub(() => updateAndSend(firstData, firstMsg)),
+    update: t.context.stub(() => updateData(firstData, firstMsg)),
   };
 
   s.addEffect({ effect: stub1, subscribe: { "initMsg": true } });
@@ -452,7 +452,7 @@ test("State async effect", async t => {
     effect,
     subscribe: { "trigger-effect": true },
   };
-  const init = t.context.stub(() => updateAndSend({ state: "init" }, { tag: "trigger-effect" }));
+  const init = t.context.stub(() => updateData({ state: "init" }, { tag: "trigger-effect" }));
   const update = t.context.stub(({ state }, msg) => {
     if (state === "init" && msg.tag === "the-reply") {
       return updateData({ state: msg.data });
@@ -502,11 +502,11 @@ test("State async effect chain", async t => {
     effect: eff2,
     subscribe: { "second-effect": true },
   };
-  const init = t.context.stub(() => updateAndSend({ state: "init" }, { tag: "trigger-effect" }));
+  const init = t.context.stub(() => updateData({ state: "init" }, { tag: "trigger-effect" }));
   const update = t.context.stub(({ state }, { tag }) => {
     if (state === "init") {
       if (tag === "the-reply") {
-        return updateAndSend({ state: "updating" }, { tag: "second-effect" });
+        return updateData({ state: "updating" }, { tag: "second-effect" });
       }
     }
     else if (tag === "finally") {

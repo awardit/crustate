@@ -3,7 +3,7 @@
 import type { Message, Model, Subscriptions, Update } from "../src";
 
 import test from "ava";
-import { updateData, updateAndSend } from "../src";
+import { updateData } from "../src";
 import { isMatchingSubscription } from "../src/model";
 
 // Type tests
@@ -17,16 +17,14 @@ type MyMessage = { tag: "a" } | { tag: "b" };
 (undefined: ?Update<string>);
 (updateData(null): Update<null>);
 (updateData("string"): Update<string>);
-(updateAndSend(null): Update<null>);
-(updateAndSend("string"): Update<string>);
 // $ExpectError
-(updateAndSend("string", null));
+(updateData("string", null));
 // $ExpectError
-(updateAndSend("string", 1));
+(updateData("string", 1));
 // $ExpectError
-(updateAndSend("string", {}));
+(updateData("string", {}));
 // $ExpectError
-(updateAndSend("string", { type: "foo" }));
+(updateData("string", { type: "foo" }));
 // $ExpectError
 (null: Update<any>);
 // $ExpectError
@@ -70,26 +68,18 @@ test("updateData() contains data", t => {
 
   t.deepEqual(updateData(o), updateData(o));
   t.is(updateData(o).data, o);
-  t.is(updateData(o).messages, null);
+  t.deepEqual(updateData(o).messages, []);
 });
 
-test("updateAndSend() contains data", t => {
-  const o = { object: "object" };
-
-  t.deepEqual(updateAndSend(o), updateAndSend(o));
-  t.is(updateAndSend(o).data, o);
-  t.deepEqual(updateAndSend(o).messages, []);
-});
-
-test("updateAndSend() contains messages", t => {
+test("updateData() contains messages", t => {
   const o = { object: "object" };
   const m = { tag: "test" };
   const n = { tag: "another" };
 
-  t.deepEqual(updateAndSend(o, m), updateAndSend(o, m));
-  t.is(updateAndSend(o, m).data, o);
-  t.deepEqual(updateAndSend(o, m).messages, [m]);
-  t.deepEqual(updateAndSend(o, m, n), updateAndSend(o, m, n));
-  t.is(updateAndSend(o, m, n).data, o);
-  t.deepEqual(updateAndSend(o, m, n).messages, [m, n]);
+  t.deepEqual(updateData(o, m), updateData(o, m));
+  t.is(updateData(o, m).data, o);
+  t.deepEqual(updateData(o, m).messages, [m]);
+  t.deepEqual(updateData(o, m, n), updateData(o, m, n));
+  t.is(updateData(o, m, n).data, o);
+  t.deepEqual(updateData(o, m, n).messages, [m, n]);
 });
