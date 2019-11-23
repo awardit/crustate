@@ -72,7 +72,7 @@
     "@babel/plugin-transform-destructuring": "7.7.4",
     "@babel/plugin-transform-flow-strip-types": "7.7.4",
     "@babel/preset-env": "7.7.4",
-    "@babel/preset-react": "7.7.0",
+    "@babel/preset-react": "7.7.4",
     "@babel/register": "7.7.0",
     "@testing-library/react": "9.3.2",
     "ava": "2.4.0",
