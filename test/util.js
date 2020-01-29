@@ -13,3 +13,6 @@ export const unhandledMessageError = (msg: Message, path: Array<string>) =>
 
 export const unhandledEffectError = (msg: EffectErrorMessage, path: Array<string>) =>
   ["Unhandled effect error:", msg.error, "from [" + path.join(", ") + "]."];
+
+export const unhandledUpdateError = (error: Error, path: Array<string>) =>
+  ["Unhandled update error:", error, "from [" + path.join(", ") + "]."];

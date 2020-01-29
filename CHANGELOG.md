@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- `UPDATE_ERROR` message tag constant representing messages containing
+  errors from model updates.
+### Changes
+- Exceptions thrown in `Model`.`update` during message processing will be
+  caught and get converted to an `UPDATE_ERROR` message as well result in
+  emitting an `updateError` event.
 
 ## [0.8.1] - 2019-11-19
 ### Changes

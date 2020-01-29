@@ -7,10 +7,11 @@ import type {
   Model,
   TypeofModelData,
   TypeofModelInit,
+  UpdateErrorMessage,
 } from "./model";
 
 import { debugAssert } from "./assert";
-import { EFFECT_ERROR, isMatchingSubscription } from "./model";
+import { EFFECT_ERROR, UPDATE_ERROR, isMatchingSubscription } from "./model";
 import { EventEmitter } from "./eventemitter";
 
 export type StatePath = $ReadOnlyArray<string>;
@@ -100,6 +101,17 @@ export type StorageEvents = {
    * Emitted after a snapshot has been restored.
    */
   snapshotRestored: [],
+  /**
+   * Emitted when an update throws an exception.
+   *
+   * Parameters:
+   *
+   *  * The thrown value
+   *  * The current state data
+   *  * The path to the state which caused the error
+   *  * The message which caused the error
+   */
+  updateError: [mixed, mixed, StatePath, Message],
 };
 
 export type StateEvents<M: AnyModel> = {
@@ -113,6 +125,17 @@ export type StateEvents<M: AnyModel> = {
    *  * Message which caused the update
    */
   stateNewData: [TypeofModelData<M>, StatePath, Message],
+  /**
+   * Emitted when an update throws an exception.
+   *
+   * Parameters:
+   *
+   *  * The thrown value
+   *  * The current state data
+   *  * The path to the state which caused the error
+   *  * The message which caused the error
+   */
+  updateError: [mixed, TypeofModelData<M>, StatePath, Message],
 };
 
 /**
@@ -612,8 +635,24 @@ export function processMessages(
   const { update } = definition;
 
   for (const currentInflight of inflight) {
-    const { _message: m } = currentInflight;
-    const updateRequest = update(instance._data, m);
+    const { _message } = currentInflight;
+    const { _data } = instance;
+    let updateRequest = null;
+
+    try {
+      updateRequest = update(_data, _message);
+    }
+    catch (e) {
+      storage.emit("updateError", e, _data, sourcePath, _message);
+      instance.emit("updateError", e, _data, sourcePath, _message);
+
+      newMessages.push(createInflightMessage(storage, sourcePath, ({
+        tag: UPDATE_ERROR,
+        error: e,
+      }: UpdateErrorMessage)));
+
+      continue;
+    }
 
     if (!updateRequest) {
       // Propagate
@@ -622,15 +661,15 @@ export function processMessages(
       continue;
     }
 
-    storage.emit("messageMatched", m, sourcePath);
+    storage.emit("messageMatched", _message, sourcePath);
 
     if (updateRequest !== 1) {
       const { data, messages } = updateRequest;
 
       instance._data = data;
 
-      storage.emit("stateNewData", data, sourcePath, m);
-      instance.emit("stateNewData", data, sourcePath, m);
+      storage.emit("stateNewData", data, sourcePath, _message);
+      instance.emit("stateNewData", data, sourcePath, _message);
 
       for (const m of messages) {
         newMessages.push(createInflightMessage(storage, sourcePath, m));
@@ -736,6 +775,9 @@ export function logUnhandledMessage(msg: Message, path: StatePath): void {
 
   if (msg.tag === EFFECT_ERROR) {
     console.error("Unhandled effect error:", ((msg: any): EffectErrorMessage).error, source);
+  }
+  else if (msg.tag === UPDATE_ERROR) {
+    console.error("Unhandled update error:", ((msg: any): EffectErrorMessage).error, source);
   }
   else {
     console.error("Unhandled message:", msg, source);

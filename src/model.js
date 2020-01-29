@@ -110,7 +110,13 @@ export type EffectErrorMessage = {
   +error: mixed,
 };
 
+export type UpdateErrorMessage = {
+  +tag: typeof UPDATE_ERROR,
+  +error: mixed,
+};
+
 export const EFFECT_ERROR: "effect/error" = "effect/error";
+export const UPDATE_ERROR: "update/error" = "update/error";
 
 export function isMatchingSubscription<M: Message>(
   subscriptions: Subscriptions<M>,

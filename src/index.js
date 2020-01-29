@@ -3,6 +3,7 @@
 export type {
   Effect,
   EffectErrorMessage,
+  UpdateErrorMessage,
   Message,
   MessageTag,
   Model,
@@ -23,6 +24,7 @@ export type {
 
 export {
   EFFECT_ERROR,
+  UPDATE_ERROR,
   updateData,
   updateNone,
 } from "./model";

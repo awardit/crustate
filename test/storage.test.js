@@ -8,7 +8,7 @@ import {
   processInstanceMessages,
 } from "../src/storage";
 import { Storage, State, updateData, updateNone } from "../src";
-import { args, unhandledMessageError } from "./util";
+import { args, unhandledMessageError, unhandledUpdateError } from "./util";
 
 const test = ninos(ava).serial;
 
@@ -1079,5 +1079,36 @@ test("createState with a different name should still work to send messages", t =
   t.deepEqual(args(error), [
     unhandledMessageError({ tag: "AAA", testing: "foo" }, ["bar", "foo", "$"]),
     unhandledMessageError({ tag: "AAA", testing: "bar" }, ["bar", "bar", "$"]),
+  ]);
+});
+
+test("Throw in update gets converted to message", t => {
+  const s = new Storage();
+  const emit = t.context.spy(s, "emit");
+  const error = t.context.spy(console, "error", () => {});
+  const init = t.context.stub(() => updateData(1));
+  const update = t.context.stub(() => {
+    throw new Error("Test Error");
+  });
+  const d = {
+    id: "foo",
+    init,
+    update,
+  };
+  const msg = { tag: "testMessage" };
+
+  const i = s.createState(d);
+
+  i.sendMessage(msg);
+
+  t.deepEqual(args(emit), [
+    ["stateCreated", ["foo"], undefined, 1],
+    ["messageQueued", msg, ["foo", "$"]],
+    ["updateError", new Error("Test Error"), 1, ["foo"], msg],
+    ["messageQueued", { error: new Error("Test Error"), tag: "update/error" }, ["foo"]],
+    ["unhandledMessage", { error: new Error("Test Error"), tag: "update/error" }, ["foo"]],
+  ]);
+  t.deepEqual(args(error), [
+    unhandledUpdateError(new Error("Test Error"), ["foo"]),
   ]);
 });
