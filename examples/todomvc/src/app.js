@@ -31,7 +31,8 @@ export const MainSection = () => {
     <section className="main">
       {todos.length > 0 ?
         <span>
-          <input readOnly
+          <input
+            readOnly
             className="toggle-all"
             type="checkbox"
             checked={completedCount === todos.length} />

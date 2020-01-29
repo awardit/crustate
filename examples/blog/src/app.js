@@ -22,16 +22,23 @@ type RouteParams = {
 export default function App({ storage }: Props) {
   return (
     <StorageProvider storage={storage}>
-      <Route path="/" render={() => (
-        <PostListData.Provider>
-          <ListPostsView />
-        </PostListData.Provider>
-      )} />
-      <Route exact path="/post/:id" render={({ match: { params: { id } } }: RouteParams) => (
-        <PostData.Provider name={`post_${id}`} postId={parseInt(id, 10)}>
-          <PostView />
-        </PostData.Provider>
-      )} />
+      <Route
+        path="/"
+        render={() => (
+          <PostListData.Provider>
+            <ListPostsView />
+          </PostListData.Provider>
+        )}
+      />
+      <Route
+        exact
+        path="/post/:id"
+        render={({ match: { params: { id } } }: RouteParams) => (
+          <PostData.Provider name={`post_${id}`} postId={parseInt(id, 10)}>
+            <PostView />
+          </PostData.Provider>
+        )}
+      />
     </StorageProvider>
   );
 }
