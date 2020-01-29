@@ -79,7 +79,7 @@
     "babel-eslint": "10.0.3",
     "babel-plugin-transform-async-to-promises": "0.8.15",
     "classnames": "2.2.6",
-    "cross-env": "6.0.3",
+    "cross-env": "7.0.0",
     "eslint-config-xo-flow": "0.1.0",
     "eslint-config-xo-react": "0.20.0",
     "eslint-plugin-flowtype": "4.5.2",
