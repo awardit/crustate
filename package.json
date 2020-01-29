@@ -66,6 +66,7 @@
     "watch:coverage": "nodemon -w src -w test -w react/src --exec \"npm run -q coverage || true\""
   },
   "devDependencies": {
+    "@ava/babel": "1.0.0",
     "@babel/core": "7.7.7",
     "@babel/plugin-proposal-class-properties": "7.7.4",
     "@babel/plugin-transform-classes": "7.7.4",
