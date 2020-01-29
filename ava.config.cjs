@@ -2,7 +2,7 @@
 
 const babel = require("./build/babel");
 
-export default {
+module.exports = {
   babel: {
     testOptions: {
       ...babel,
@@ -11,10 +11,6 @@ export default {
   },
   files: [
     "**/*.test.js",
-  ],
-  sources: [
-    "src/**/*.js",
-    "**/src/**/*.js",
   ],
   require: [
     "./test/_register",
