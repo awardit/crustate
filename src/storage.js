@@ -438,13 +438,13 @@ export class State<M: AnyModel> extends Supervisor<StateEvents<M>> {
   /**
    * Matches the Storage _defs collection.
    */
-  _id: string;
+  +_id: string;
   /**
    * Matches the key used in the supervisor's `_nested` collection.
    */
-  _name: string;
+  +_name: string;
   _data: TypeofModelData<M>;
-  _supervisor: Storage | State<any>;
+  +_supervisor: Storage | State<any>;
   _init: ?Promise<void>;
 
   constructor(
