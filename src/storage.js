@@ -773,13 +773,16 @@ export function createSnapshot(node: Supervisor<{}>): Snapshot {
 export function logUnhandledMessage(msg: Message, path: StatePath): void {
   const source = `from [${path.join(", ")}].`;
 
-  if (msg.tag === EFFECT_ERROR) {
-    console.error("Unhandled effect error:", ((msg: any): EffectErrorMessage).error, source);
-  }
-  else if (msg.tag === UPDATE_ERROR) {
-    console.error("Unhandled update error:", ((msg: any): EffectErrorMessage).error, source);
-  }
-  else {
-    console.error("Unhandled message:", msg, source);
+  switch (msg.tag) {
+    case EFFECT_ERROR:
+      console.error("Unhandled effect error:", ((msg: any): EffectErrorMessage).error, source);
+      break;
+
+    case UPDATE_ERROR:
+      console.error("Unhandled update error:", ((msg: any): EffectErrorMessage).error, source);
+      break;
+
+    default:
+      console.error("Unhandled message:", msg, source);
   }
 }
