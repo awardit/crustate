@@ -3,12 +3,12 @@
 
 
 [![npm bundle size](https://img.shields.io/bundlephobia/minzip/crustate.svg)](https://bundlephobia.com/result?p=crustate)
-[![Dependencies](https://img.shields.io/david/crossroads-loyalty-solutions/crustate.svg)](https://www.npmjs.com/package/crustate)
-[![Build Status](https://travis-ci.org/crossroads-loyalty-solutions/crustate.svg?branch=master)](https://travis-ci.org/crossroads-loyalty-solutions/crustate)
-[![Codecov](https://img.shields.io/codecov/c/gh/crossroads-loyalty-solutions/crustate.svg)](https://codecov.io/gh/crossroads-loyalty-solutions/crustate)
+[![Dependencies](https://img.shields.io/david/awardit/crustate.svg)](https://www.npmjs.com/package/crustate)
+[![Build Status](https://travis-ci.org/awardit/crustate.svg?branch=master)](https://travis-ci.org/awardit/crustate)
+[![Codecov](https://img.shields.io/codecov/c/gh/awardit/crustate.svg)](https://codecov.io/gh/awardit/crustate)
 ![License](https://img.shields.io/npm/l/crustate.svg)
 [![npm](https://img.shields.io/npm/v/crustate.svg)](https://www.npmjs.com/package/crustate)
-[![Greenkeeper badge](https://badges.greenkeeper.io/crossroads-loyalty-solutions/crustate.svg)](https://greenkeeper.io/)
+[![Greenkeeper badge](https://badges.greenkeeper.io/awardit/crustate.svg)](https://greenkeeper.io/)
 
 This library is based on the principles of message passing found in languages
 like Elm and Elixir/Erlang. The purpose is to be able to build modular state

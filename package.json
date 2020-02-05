@@ -19,10 +19,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/crossroads-loyalty-solutions/crustate.git"
+    "url": "https://github.com/awardit/crustate.git"
   },
-  "bugs": "https://github.com/crossroads-loyalty-solutions/crustate/issues",
-  "homepage": "https://github.com/crossroads-loyalty-solutions/crustate",
+  "bugs": "https://github.com/awardit/crustate/issues",
+  "homepage": "https://github.com/awardit/crustate",
   "license": "MIT",
   "files": [
     "dist",
