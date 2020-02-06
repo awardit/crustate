@@ -7,6 +7,6 @@
   "source": "src/index.js",
   "peerDependencies": {
     "crustate": "*",
-    "preact": ">=10.3.0"
+    "preact": ">=10.3.1"
   }
 }
