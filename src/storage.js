@@ -426,7 +426,6 @@ export class Storage extends Supervisor<StorageEvents> {
   }
 
   runningEffects(): Array<RunningEffect> {
-    /* eslint-disable-next-line unicorn/prefer-spread */
     return Array.from(this._running.values());
   }
 }

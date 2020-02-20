@@ -106,7 +106,7 @@
     "rollup-plugin-postcss": "2.0.6",
     "rollup-plugin-replace": "2.2.0",
     "todomvc-app-css": "2.3.0",
-    "xo": "0.25.3"
+    "xo": "0.26.1"
   },
   "xo": {
     "extends": [
