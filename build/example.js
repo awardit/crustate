@@ -47,6 +47,7 @@ export const commonjs = commonjsPlugin({
       "PureComponent",
       "createContext",
       "createElement",
+      "useCallback",
       "useContext",
       "useEffect",
       "useState",
