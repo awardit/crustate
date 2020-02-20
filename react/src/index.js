@@ -13,6 +13,7 @@ import type {
 import {
   createContext,
   createElement,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -96,8 +97,8 @@ export function useSendMessage(): SendMessageFn {
     throw new Error("useSendMessage() must be used inside a <State.Provider />.");
   }
 
-  return (message: Message, sourceName?: string): Promise<void> =>
-    supervisor.sendMessage(message, sourceName);
+  return useCallback((message: Message, sourceName?: string): Promise<void> =>
+    supervisor.sendMessage(message, sourceName), [supervisor]);
 }
 
 /**
