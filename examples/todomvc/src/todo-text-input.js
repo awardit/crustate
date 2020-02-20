@@ -11,13 +11,13 @@ type TodoTextInputProps = {
   text?: string,
 };
 
-export function TodoTextInput({
+export const TodoTextInput = ({
   isEditing = false,
   isNewTodo = false,
   onSave,
   placeholder = "",
   text: defaultText = "",
-}: TodoTextInputProps) {
+}: TodoTextInputProps) => {
   const [text, setText] = React.useState(defaultText || "");
 
   const handleBlur = e => isNewTodo && onSave(e.target.value);
@@ -46,4 +46,4 @@ export function TodoTextInput({
       onKeyDown={handleKeyDown}
     />
   );
-}
+};

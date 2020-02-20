@@ -33,7 +33,7 @@ const CounterData = createStateData({
   },
 });
 
-function TheCounter() {
+const TheCounter = () => {
   const sendMessage = useSendMessage();
   const value = useData(CounterData);
 
@@ -44,7 +44,7 @@ function TheCounter() {
       <button type="button" onClick={() => sendMessage({ tag: DECREMENT })}>-</button>
     </div>
   );
-}
+};
 
 const App = () => (
   <StorageProvider storage={storage}>
