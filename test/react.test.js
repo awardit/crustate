@@ -425,3 +425,27 @@ test("Varying name property will recreate the state instance", t => {
     ["stateRemoved", ["a"], "aData"],
   ]);
 });
+
+test("useSendMessage always returns the same callback instance", t => {
+  const s = new Storage();
+
+  const MyComponent = () => {
+    const [counter, setCounter] = React.useState(0);
+    const send = useSendMessage();
+
+    React.useEffect(() => setCounter(c => c + 1), [setCounter, send]);
+
+    if (counter > 1) {
+      throw new Error("We updated more than one extra time");
+    }
+
+    return <p>{counter}</p>;
+  };
+
+  const { container } = render(
+    <StateContext.Provider value={s}>
+      <MyComponent />
+    </StateContext.Provider>);
+
+  t.is(container.outerHTML, `<div><p>1</p></div>`);
+});
