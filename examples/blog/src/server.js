@@ -9,7 +9,7 @@ import express from "express";
 import { Storage } from "crustate";
 import React from "react";
 import ReactDomServer from "react-dom/server";
-import App from "./app";
+import { App } from "./app";
 
 // Create a router only since We run this file through the main
 // `examples/index.js` application
