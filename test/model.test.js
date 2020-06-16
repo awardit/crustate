@@ -18,17 +18,17 @@ type MyData = 1 | 2;
 (undefined: ?Update<string>);
 (updateData(null): Update<null>);
 (updateData("string"): Update<string>);
-// $ExpectError
+// $FlowExpectedError
 (updateData("string", null));
-// $ExpectError
+// $FlowExpectedError
 (updateData("string", 1));
-// $ExpectError
+// $FlowExpectedError
 (updateData("string", {}));
-// $ExpectError
+// $FlowExpectedError
 (updateData("string", { type: "foo" }));
-// $ExpectError
+// $FlowExpectedError
 (null: Update<any>);
-// $ExpectError
+// $FlowExpectedError
 (undefined: Update<any>);
 
 ((updateData(1): Update<MyData>): Update<number>);
@@ -39,7 +39,7 @@ type MyData = 1 | 2;
 
 (({ a: true }): Subscriptions<AMessage>);
 (({ b: true }): Subscriptions<AMessage | BMessage>);
-// $ExpectError
+// $FlowExpectedError
 (({ c: true }): Subscriptions<AMessage>);
 
 ({

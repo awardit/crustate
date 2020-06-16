@@ -17,7 +17,7 @@ class TestEmitter extends EventEmitter<{ foo: Array<mixed> }> {
 test("emit() does nothing on empty", t => {
   const emitter = new EventEmitter();
 
-  // $ExpectError
+  // $FlowExpectedError
   emitter.emit("foo");
 
   t.deepEqual(emitter, new EventEmitter());
@@ -27,7 +27,7 @@ test("emit() does nothing on undefined", t => {
   const emitter = new TestEmitter({ "foo": undefined });
 
   (emitter: EventEmitter<{}>);
-  // $ExpectError
+  // $FlowExpectedError
   (emitter: EventEmitter<{ bar: [string] }>);
 
   emitter.emit("foo");
@@ -114,7 +114,7 @@ test("addListener() adds different listeners", t => {
   emitter.addListener("foo", stub1);
   t.deepEqual(emitter, new TestEmitter({ "foo": [stub1] }));
 
-  // $ExpectError
+  // $FlowExpectedError
   emitter.addListener("bar", stub2);
   t.deepEqual(emitter, new TestEmitter({ "foo": [stub1], "bar": [stub2] }));
 
@@ -133,11 +133,11 @@ test("removeListener() removes a listener", t => {
   emitter.removeListener("foo", stub1);
   t.deepEqual(emitter, new TestEmitter({ "bar": [stub2] }));
 
-  // $ExpectError
+  // $FlowExpectedError
   emitter.removeListener("bar", stub2);
   t.deepEqual(emitter, new TestEmitter({ }));
 
-  // $ExpectError
+  // $FlowExpectedError
   emitter.removeListener("bar", stub2);
   t.deepEqual(emitter, new TestEmitter({ }));
 });
@@ -200,8 +200,8 @@ test("listeners() returns all listeners for a specific event", t => {
   const emitter = new TestEmitter({ "foo": [stub1, stub2], "bar": [stub3] });
 
   t.deepEqual(emitter.listeners("foo"), [stub1, stub2]);
-  // $ExpectError
+  // $FlowExpectedError
   t.deepEqual(emitter.listeners("bar"), [stub3]);
-  // $ExpectError
+  // $FlowExpectedError
   t.deepEqual(emitter.listeners("baz"), []);
 });

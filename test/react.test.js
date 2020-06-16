@@ -47,20 +47,20 @@ const MyData = createStateData<Model<string, { test?: boolean, data: string }, U
 });
 
 // Type tests
-// $ExpectError
+// $FlowExpectedError
 (<StorageProvider />);
-// $ExpectError
+// $FlowExpectedError
 (<StorageProvider storage={null} />);
-// $ExpectError
+// $FlowExpectedError
 (<MyData.TestProvider />);
-// $ExpectError
+// $FlowExpectedError
 (<MyData.TestProvider>testing</MyData.TestProvider>);
-// $ExpectError
+// $FlowExpectedError
 (<MyData.TestProvider value={null}>testing</MyData.TestProvider>);
 (<MyData.TestProvider value="foo">testing</MyData.TestProvider>);
 (() => {
   // Testing some stuff which we cannot run
-  // $ExpectError
+  // $FlowExpectedError
   (useData(MyData): number);
 
   (<StorageProvider storage={new Storage()} />);

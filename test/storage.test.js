@@ -32,9 +32,9 @@ test("Storage is not modified when querying for state-instances or definitions",
   const emit = t.context.spy(s, "emit");
 
   t.is(s.getModel("foo"), undefined);
-  // $ExpectError minimal State instance for this
+  // $FlowExpectedError minimal State instance for this
   t.is(s.getState({ id: "foo" }), undefined);
-  // $ExpectError minimal State instance for this
+  // $FlowExpectedError minimal State instance for this
   t.is(s.getState({ id: "foo" }, "bar"), undefined);
   t.deepEqual(s.getSnapshot(), {});
   t.deepEqual(args(emit), []);

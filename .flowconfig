@@ -16,7 +16,6 @@ untyped-import=off
 unclear-type=off
 
 [options]
-suppress_comment=\\(.\\|\n\\)*\\$ExpectError
 include_warnings=true
 module.name_mapper='^crustate$' -> '<PROJECT_ROOT>/src/index.js'
 module.name_mapper='^crustate/react$' -> '<PROJECT_ROOT>/react/src/index.js'
