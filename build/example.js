@@ -1,8 +1,8 @@
-import resolvePlugin from "rollup-plugin-node-resolve";
-import commonjsPlugin from "rollup-plugin-commonjs";
-import babelPlugin from "rollup-plugin-babel";
-import replacePlugin from "rollup-plugin-replace";
-import aliasPlugin from "rollup-plugin-alias";
+import resolvePlugin from "@rollup/plugin-node-resolve";
+import commonjsPlugin from "@rollup/plugin-commonjs";
+import babelPlugin from "@rollup/plugin-babel";
+import replacePlugin from "@rollup/plugin-replace";
+import aliasPlugin from "@rollup/plugin-alias";
 import postcssPlugin from "rollup-plugin-postcss";
 
 export const alias = aliasPlugin({
@@ -17,8 +17,7 @@ export const alias = aliasPlugin({
 export const babel = babelPlugin({
   exclude: "node_modules/**",
   babelrc: false,
-  externalHelpers: false,
-  runtimeHelpers: true,
+  babelHelpers: "bundled",
   presets: [
     ["@babel/preset-react"],
     ["@babel/preset-env", {
@@ -38,35 +37,7 @@ export const babel = babelPlugin({
   ],
 });
 
-export const commonjs = commonjsPlugin({
-  namedExports: {
-    react: [
-      "Component",
-      "Children",
-      "Fragment",
-      "PureComponent",
-      "createContext",
-      "createElement",
-      "useCallback",
-      "useContext",
-      "useEffect",
-      "useState",
-    ],
-    "react-dom": [
-      "render",
-    ],
-    "react-is": [
-      "isValidElementType",
-    ],
-    "react-router-dom": [
-      "BrowserRouter",
-      "Link",
-    ],
-    "react-router": [
-      "Route",
-    ],
-  },
-});
+export const commonjs = commonjsPlugin();
 
 export const postcss = postcssPlugin({
   extract: true,

@@ -1,9 +1,12 @@
 import path from "path";
-import babelPlugin from "rollup-plugin-babel";
+import babelPlugin from "@rollup/plugin-babel";
 
 // Rollup configuration compiler does not respect __dirname, so we have to rely
 // on the current working directory:
-const babel = babelPlugin(require(path.join(process.cwd(), "build", "babel")));
+const babel = babelPlugin({
+  ...require(path.join(process.cwd(), "build", "babel")),
+  babelHelpers: "bundled",
+});
 
 export const config = ({
   input,

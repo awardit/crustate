@@ -1,5 +1,5 @@
-import alias from "rollup-plugin-alias";
-import nodeResolve from "rollup-plugin-node-resolve";
+import alias from "@rollup/plugin-alias";
+import nodeResolve from "@rollup/plugin-node-resolve";
 import path from "path";
 import { config } from "../build/config";
 

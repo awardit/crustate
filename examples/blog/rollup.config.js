@@ -1,6 +1,6 @@
 /* @flow */
 
-import resolvePlugin from "rollup-plugin-node-resolve";
+import resolvePlugin from "@rollup/plugin-node-resolve";
 import {
   alias,
   babel,
