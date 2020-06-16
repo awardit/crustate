@@ -107,6 +107,7 @@ export type Effect<M> = {
 
 export type EffectErrorMessage = {
   +tag: typeof EFFECT_ERROR,
+  +cause: Message,
   +error: mixed,
 };
 
