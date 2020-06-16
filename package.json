@@ -1,6 +1,6 @@
 {
   "name": "crustate",
-  "version": "0.8.3",
+  "version": "0.9.0",
   "description": "Crustate is a message-based modular state-management library.",
   "keywords": [
     "elm",
