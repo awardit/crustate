@@ -109,7 +109,7 @@ app.get("/api/posts", (req, res) =>
     res.status(500).send(error) :
     res.json(posts)));
 app.get("/api/posts/:id", (req, res) =>
-  getPost(parseInt(req.params.id, 10), (error, post) => error ?
+  getPost(Number.parseInt(req.params.id, 10), (error, post) => error ?
     res.status(404).end() :
     res.json(post)));
 

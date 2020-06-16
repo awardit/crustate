@@ -117,7 +117,7 @@ test("useSendMessage() should still throw inside State.TestProvider", t => {
 
 test("StateProvider throws when rendered outside of StorageProvider", t => {
   t.throws(
-    () => render(<MyData.Provider data="foo"></MyData.Provider>),
+    () => render(<MyData.Provider data="foo" />),
     { message: "<state.Provider /> must be used inside a <StorageProvider />" });
 });
 
@@ -213,7 +213,7 @@ test("State is removed when the Provider is unmounted", t => {
 
   const { container, rerender } = render(
     <StorageProvider storage={s}>
-      <MyData.Provider data="my initial"></MyData.Provider>
+      <MyData.Provider data="my initial" />
     </StorageProvider>);
 
   t.is(container.outerHTML, `<div></div>`);
@@ -285,8 +285,8 @@ test("State is removed when the Provider is the last to be unmounted", t => {
 
   const { container, rerender } = render(
     <StorageProvider storage={s}>
-      <MyData.Provider data="my initial"></MyData.Provider>
-      <MyData.Provider data="second initial"></MyData.Provider>
+      <MyData.Provider data="my initial" />
+      <MyData.Provider data="second initial" />
     </StorageProvider>);
 
   t.is(container.outerHTML,
@@ -296,7 +296,7 @@ test("State is removed when the Provider is the last to be unmounted", t => {
 
   rerender(
     <StorageProvider storage={s}>
-      <MyData.Provider data="second initial"></MyData.Provider>
+      <MyData.Provider data="second initial" />
     </StorageProvider>);
 
   t.is(container.outerHTML, `<div></div>`);

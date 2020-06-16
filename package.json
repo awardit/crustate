@@ -151,6 +151,12 @@
           "flowtype/require-parameter-type": "off",
           "flowtype/require-return-type": "off"
         }
+      },
+      {
+        "files": "**/*.config.js",
+        "rules": {
+          "import/no-anonymous-default-export": "off"
+        }
       }
     ],
     "rules": {
@@ -268,14 +274,17 @@
         }
       ],
       "react/prefer-read-only-props": "off",
+      "react/require-default-props": "off",
       "unicorn/catch-error-name": [
         "error",
         {
           "name": "e"
         }
       ],
-      "react/require-default-props": "off",
+      "unicorn/no-fn-reference-in-iterator": "off",
+      "unicorn/no-reduce": "off",
       "unicorn/prefer-includes": "off",
+      "unicorn/prevent-abbreviations": "off",
       "valid-jsdoc": "off"
     },
     "space": 2
