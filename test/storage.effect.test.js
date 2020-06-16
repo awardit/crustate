@@ -256,33 +256,33 @@ test("Immediate throw in effect", async t => {
 
   s.addEffect(myEffect);
 
-  const p = s.sendMessage({ tag: "trigger-effect" });
+  const p = s.sendMessage({ tag: "trigger-effect", myMessage: true });
 
   t.deepEqual(s.runningEffects(), [
-    { message: { tag: "trigger-effect" }, name: undefined, source: ["$"] },
+    { message: { tag: "trigger-effect", myMessage: true }, name: undefined, source: ["$"] },
   ]);
   t.deepEqual(args(effect), [
-    [{ tag: "trigger-effect" }, ["$"]],
+    [{ tag: "trigger-effect", myMessage: true }, ["$"]],
   ]);
   t.deepEqual(args(emit), [
-    ["messageQueued", { tag: "trigger-effect" }, ["$"]],
-    ["messageMatched", { tag: "trigger-effect" }, []],
+    ["messageQueued", { tag: "trigger-effect", myMessage: true }, ["$"]],
+    ["messageMatched", { tag: "trigger-effect", myMessage: true }, []],
   ]);
 
   await p;
 
   t.deepEqual(s.runningEffects(), []);
   t.deepEqual(args(effect), [
-    [{ tag: "trigger-effect" }, ["$"]],
+    [{ tag: "trigger-effect", myMessage: true }, ["$"]],
   ]);
   t.deepEqual(args(emit), [
-    ["messageQueued", { tag: "trigger-effect" }, ["$"]],
-    ["messageMatched", { tag: "trigger-effect" }, []],
-    ["messageQueued", { tag: "effect/error", error: new Error("My Effect error") }, ["$", "<"]],
-    ["unhandledMessage", { tag: "effect/error", error: new Error("My Effect error") }, ["$", "<"]],
+    ["messageQueued", { tag: "trigger-effect", myMessage: true }, ["$"]],
+    ["messageMatched", { tag: "trigger-effect", myMessage: true }, []],
+    ["messageQueued", { tag: "effect/error", cause: { tag: "trigger-effect", myMessage: true }, error: new Error("My Effect error") }, ["$", "<"]],
+    ["unhandledMessage", { tag: "effect/error", cause: { tag: "trigger-effect", myMessage: true }, error: new Error("My Effect error") }, ["$", "<"]],
   ]);
   t.deepEqual(args(error), [
-    unhandledEffectError({ tag: "effect/error", error: new Error("My Effect error") }, ["$", "<"]),
+    unhandledEffectError({ tag: "effect/error", cause: { tag: "trigger-effect", myMessage: true }, error: new Error("My Effect error") }, ["$", "<"]),
   ]);
 });
 
@@ -397,11 +397,11 @@ test("Async throw in effect", async t => {
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
     ["messageMatched", { tag: "trigger-effect" }, []],
-    ["messageQueued", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
-    ["unhandledMessage", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
+    ["messageQueued", { tag: EFFECT_ERROR, cause: { tag: "trigger-effect" }, error: new Error("My Effect error") }, ["$", "<"]],
+    ["unhandledMessage", { tag: EFFECT_ERROR, cause: { tag: "trigger-effect" }, error: new Error("My Effect error") }, ["$", "<"]],
   ]);
   t.deepEqual(args(error), [
-    unhandledEffectError({ tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]),
+    unhandledEffectError({ tag: EFFECT_ERROR, cause: { tag: "trigger-effect" }, error: new Error("My Effect error") }, ["$", "<"]),
   ]);
 });
 
@@ -438,11 +438,11 @@ test("Storage.wait on async throw in effect", async t => {
   t.deepEqual(args(emit), [
     ["messageQueued", { tag: "trigger-effect" }, ["$"]],
     ["messageMatched", { tag: "trigger-effect" }, []],
-    ["messageQueued", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
-    ["unhandledMessage", { tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]],
+    ["messageQueued", { tag: EFFECT_ERROR, cause: { tag: "trigger-effect" }, error: new Error("My Effect error") }, ["$", "<"]],
+    ["unhandledMessage", { tag: EFFECT_ERROR, cause: { tag: "trigger-effect" }, error: new Error("My Effect error") }, ["$", "<"]],
   ]);
   t.deepEqual(args(error), [
-    unhandledEffectError({ tag: EFFECT_ERROR, error: new Error("My Effect error") }, ["$", "<"]),
+    unhandledEffectError({ tag: EFFECT_ERROR, cause: { tag: "trigger-effect" }, error: new Error("My Effect error") }, ["$", "<"]),
   ]);
 });
 

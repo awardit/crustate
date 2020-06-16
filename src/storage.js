@@ -725,7 +725,7 @@ export function runEffect(
     storage.replyMessage(msg, source, name) :
     null;
   const onError = (e: any): Promise<void> => storage.replyMessage(
-    ({ tag: EFFECT_ERROR, error: e }: EffectErrorMessage),
+    ({ tag: EFFECT_ERROR, cause: message, error: e }: EffectErrorMessage),
     source,
     name
   );
