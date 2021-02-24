@@ -135,11 +135,11 @@ test("removeListener() removes a listener", t => {
 
   // $FlowFixMe[prop-missing]
   emitter.removeListener("bar", stub2);
-  t.deepEqual(emitter, new TestEmitter({ }));
+  t.deepEqual(emitter, new TestEmitter({}));
 
   // $FlowFixMe[prop-missing]
   emitter.removeListener("bar", stub2);
-  t.deepEqual(emitter, new TestEmitter({ }));
+  t.deepEqual(emitter, new TestEmitter({}));
 });
 
 test("removeListener() removes a listener when we have multiple", t => {

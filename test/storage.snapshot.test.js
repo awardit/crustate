@@ -22,11 +22,11 @@ test("restoreSnapshot works on empty", t => {
   const s = new Storage();
   const emit = t.context.spy(s, "emit");
 
-  t.deepEqual(s.getSnapshot(), { });
+  t.deepEqual(s.getSnapshot(), {});
 
-  s.restoreSnapshot({ });
+  s.restoreSnapshot({});
 
-  t.deepEqual(s.getSnapshot(), { });
+  t.deepEqual(s.getSnapshot(), {});
 
   t.deepEqual(args(emit), [
     ["snapshotRestore", {}],
@@ -47,7 +47,7 @@ test("restoreSnapshot restores a snapshot", t => {
 
   s.addModel(d);
 
-  t.deepEqual(s.getSnapshot(), { });
+  t.deepEqual(s.getSnapshot(), {});
 
   s.restoreSnapshot({ foo: { id: "foo", data: 3, nested: {} } });
 
@@ -77,7 +77,7 @@ test("restoreSnapshot restores a snapshot with a differing name", t => {
 
   s.addModel(d);
 
-  t.deepEqual(s.getSnapshot(), { });
+  t.deepEqual(s.getSnapshot(), {});
 
   s.restoreSnapshot({ foo: { id: "bar", data: 3, nested: {} } });
 
@@ -106,7 +106,7 @@ test("restoreSnapshot restores nested snapshots", t => {
 
   s.addModel(d);
 
-  t.deepEqual(s.getSnapshot(), { });
+  t.deepEqual(s.getSnapshot(), {});
 
   s.restoreSnapshot({ foo: { id: "foo", data: 3, nested: { foo: { id: "foo", data: 5, nested: {} } } } });
 

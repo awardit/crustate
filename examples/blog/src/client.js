@@ -43,11 +43,11 @@ const events = {
   snapshotRestored: "debug",
 };
 
-Object.keys(events).forEach(eventName => {
+for (const eventName of Object.keys(events)) {
   const level = events[eventName];
 
   storage.addListener((eventName: any), (...data) => console[level](eventName, ...data));
-});
+}
 
 storage.addEffect({ effect, subscribe: { "effects/request": true } });
 

@@ -16,7 +16,7 @@ export const Header = (): React.Node => {
       <TodoTextInput
         isNewTodo
         placeholder="What needs to be done?"
-        onSave={text => text.length !== 0 && sendMessage(add(text))}
+        onSave={text => text.length > 0 && sendMessage(add(text))}
       />
     </header>
   );

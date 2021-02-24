@@ -24,7 +24,7 @@ export const ListPostsView = (): React.Node => {
 
   return (
     <section>
-      {items.map(PostItem)}
+      {items.map(i => postItem(i))}
     </section>
   );
 };

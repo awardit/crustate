@@ -54,7 +54,7 @@ function createRequestHandler(storage: Storage) {
     waiting -= 1;
 
     if (waiting === 0) {
-      while (resolvers.length) {
+      while (resolvers.length > 0) {
         resolvers.pop()();
       }
     }
@@ -101,7 +101,14 @@ function createRequestHandler(storage: Storage) {
   storage.addEffect({ effect, subscribe: { "effects/request": true } });
 
   return {
-    waitForAll: () => new Promise(resolve => waiting ? resolvers.push(resolve) : resolve()),
+    waitForAll: () => new Promise(resolve => {
+      if (waiting) {
+        resolvers.push(resolve);
+      }
+      else {
+        resolve();
+      }
+    }),
   };
 }
 
