@@ -1,5 +1,3 @@
-/* @flow */
-
 import resolvePlugin from "@rollup/plugin-node-resolve";
 import {
   alias,

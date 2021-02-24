@@ -2,6 +2,7 @@
 
 import type { ListResponse, PostResponse } from "./effects";
 import type { Model } from "crustate";
+import type { StateData } from "crustate/react";
 
 import { updateData } from "crustate";
 import { createStateData } from "crustate/react";
@@ -27,7 +28,10 @@ export type PostDataState =
   | {| state: "LOADED", post: Post |}
   | {| state: "ERROR", error: string |};
 
-export const PostListData = createStateData<Model<PostListDataState, {}, ListResponse>>({
+export type PostListModel = Model<PostListDataState, {}, ListResponse>;
+export type PostModel = Model<PostDataState, { postId: number }, PostResponse>;
+
+export const PostListData: StateData<PostListModel> = createStateData({
   id: "list",
   init: () => updateData(null, requestList()),
   update: (state, msg) => {
@@ -37,7 +41,7 @@ export const PostListData = createStateData<Model<PostListDataState, {}, ListRes
   },
 });
 
-export const PostData = createStateData<Model<PostDataState, { postId: number }, PostResponse>>({
+export const PostData: StateData<PostModel> = createStateData({
   id: "post",
   init: ({ postId }) => updateData({ state: "LOADING", postId }, requestPost(postId)),
   update: (state, msg) => {

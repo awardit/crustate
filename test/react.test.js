@@ -47,20 +47,20 @@ const MyData = createStateData<Model<string, { test?: boolean, data: string }, U
 });
 
 // Type tests
-// $FlowExpectedError
+// $FlowFixMe[prop-missing]
 (<StorageProvider />);
-// $FlowExpectedError
+// $FlowFixMe[incompatible-type]
 (<StorageProvider storage={null} />);
-// $FlowExpectedError
+// $FlowFixMe[prop-missing]
 (<MyData.TestProvider />);
-// $FlowExpectedError
+// $FlowFixMe[prop-missing]
 (<MyData.TestProvider>testing</MyData.TestProvider>);
-// $FlowExpectedError
+// $FlowFixMe[incompatible-type]
 (<MyData.TestProvider value={null}>testing</MyData.TestProvider>);
 (<MyData.TestProvider value="foo">testing</MyData.TestProvider>);
 (() => {
   // Testing some stuff which we cannot run
-  // $FlowExpectedError
+  // $FlowFixMe[incompatible-cast]
   (useData(MyData): number);
 
   (<StorageProvider storage={new Storage()} />);

@@ -2,7 +2,7 @@
 
 import type { Filter } from "./states/filter";
 
-import React from "react";
+import * as React from "react";
 import classnames from "classnames";
 import { clearAll } from "./states/todos";
 import { useData, useSendMessage } from "crustate/react";
@@ -15,13 +15,13 @@ import {
 } from "./states/filter";
 
 type LinkProps = {
-  children: React$Node,
+  children: React.Node,
   selected: boolean,
   onClick: (event: Event) => mixed,
 };
 
 type FilterLinkProps = {
-  children: React$Node,
+  children: React.Node,
   filter: Filter,
 };
 
@@ -36,7 +36,7 @@ const FILTER_TITLES = {
   [SHOW_COMPLETED]: "Completed",
 };
 
-export const Link = ({ children, selected, onClick }: LinkProps) => (
+export const Link = ({ children, selected, onClick }: LinkProps): React.Node => (
   <a
     className={classnames({ selected })}
     style={{ cursor: "pointer" }}
@@ -46,7 +46,7 @@ export const Link = ({ children, selected, onClick }: LinkProps) => (
   </a>
 );
 
-export const FilterLink = ({ filter, children }: FilterLinkProps) => {
+export const FilterLink = ({ filter, children }: FilterLinkProps): React.Node => {
   const sendMessage = useSendMessage();
   const current = useData(FilterState);
 
@@ -60,7 +60,7 @@ export const FilterLink = ({ filter, children }: FilterLinkProps) => {
   );
 };
 
-export const Footer = ({ activeCount, completedCount }: FooterProps) => {
+export const Footer = ({ activeCount, completedCount }: FooterProps): React.Node => {
   const itemWord = activeCount === 1 ? "item" : "items";
   const sendMessage = useSendMessage();
 

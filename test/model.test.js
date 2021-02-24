@@ -18,17 +18,17 @@ type MyData = 1 | 2;
 (undefined: ?Update<string>);
 (updateData(null): Update<null>);
 (updateData("string"): Update<string>);
-// $FlowExpectedError
+// $FlowFixMe[incompatible-call]
 (updateData("string", null));
-// $FlowExpectedError
+// $FlowFixMe[incompatible-call]
 (updateData("string", 1));
-// $FlowExpectedError
+// $FlowFixMe[prop-missing]
 (updateData("string", {}));
-// $FlowExpectedError
+// $FlowFixMe[prop-missing]
 (updateData("string", { type: "foo" }));
-// $FlowExpectedError
+// $FlowFixMe[incompatible-cast]
 (null: Update<any>);
-// $FlowExpectedError
+// $FlowFixMe[incompatible-cast]
 (undefined: Update<any>);
 
 ((updateData(1): Update<MyData>): Update<number>);
@@ -39,7 +39,7 @@ type MyData = 1 | 2;
 
 (({ a: true }): Subscriptions<AMessage>);
 (({ b: true }): Subscriptions<AMessage | BMessage>);
-// $FlowExpectedError
+// $FlowFixMe[incompatible-cast]
 (({ c: true }): Subscriptions<AMessage>);
 
 ({

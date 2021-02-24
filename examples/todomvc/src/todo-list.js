@@ -2,7 +2,7 @@
 
 import type { Todo } from "./states/todos";
 
-import React from "react";
+import * as React from "react";
 import classnames from "classnames";
 import { useSendMessage, useData } from "crustate/react";
 import { FilterState, todoFilterPredicate } from "./states/filter";
@@ -13,7 +13,7 @@ type TodoItemProps = {
   todo: Todo,
 };
 
-export const TodoList = () => {
+export const TodoList = (): React.Node => {
   const todos = useData(TodosState);
   const filter = useData(FilterState);
 
@@ -29,7 +29,7 @@ export const TodoList = () => {
   );
 };
 
-export const TodoItem = ({ todo: { id, text, completed } }: TodoItemProps) => {
+export const TodoItem = ({ todo: { id, text, completed } }: TodoItemProps): React.Node => {
   const [editing, setEditing] = React.useState(false);
   const sendMessage = useSendMessage();
   const handleDoubleClick = () => setEditing(true);

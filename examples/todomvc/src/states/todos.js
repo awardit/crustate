@@ -1,6 +1,7 @@
 /* @flow */
 
 import type { Model } from "crustate";
+import type { StateData } from "crustate/react";
 
 import { createStateData } from "crustate/react";
 import { updateData } from "crustate";
@@ -19,6 +20,8 @@ type TodoMsg =
   | { tag: typeof COMPLETE, id: number }
   | { tag: typeof COMPLETE_ALL };
 
+export type TodoModel = Model<Array<Todo>, {}, TodoMsg>;
+
 const ADD: "todosAdd" = "todosAdd";
 const EDIT: "todosEdit" = "todosEdit";
 const REMOVE: "todosRemove" = "todosRemove";
@@ -26,16 +29,16 @@ const CLEAR_ALL: "todosClearAll" = "todosClearAll";
 const COMPLETE: "todosComplete" = "todosComplete";
 const COMPLETE_ALL: "todosCompleteAll" = "todosCompleteAll";
 
-export const add = (text: string) => ({ tag: ADD, text });
-export const edit = (id: number, text: string) => ({ tag: EDIT, id, text });
-export const remove = (id: number) => ({ tag: REMOVE, id });
-export const clearAll = () => ({ tag: CLEAR_ALL });
-export const complete = (id: number) => ({ tag: COMPLETE, id });
-export const completeAll = () => ({ tag: COMPLETE_ALL });
+export const add = (text: string): TodoMsg => ({ tag: ADD, text });
+export const edit = (id: number, text: string): TodoMsg => ({ tag: EDIT, id, text });
+export const remove = (id: number): TodoMsg => ({ tag: REMOVE, id });
+export const clearAll = (): TodoMsg => ({ tag: CLEAR_ALL });
+export const complete = (id: number): TodoMsg => ({ tag: COMPLETE, id });
+export const completeAll = (): TodoMsg => ({ tag: COMPLETE_ALL });
 
 const maxId = (todos: Array<Todo>) => todos.reduce((a, t) => Math.max(a, t.id), 1);
 
-export const TodosState = createStateData<Model<Array<Todo>, {}, TodoMsg>>({
+export const TodosState: StateData<TodoModel> = createStateData({
   id: "todos",
   init: () => updateData([]),
   update: (todos, msg) => {

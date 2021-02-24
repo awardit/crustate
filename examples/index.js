@@ -9,7 +9,7 @@ const app = express();
 app.use(express.static(__dirname));
 
 try {
-  app.use("/blog", require("./blog/dist/server.js"));
+  app.use("/blog", (require("./blog/dist/server.js"): any));
 }
 catch (e) {
   console.error("Error loading Blog Example");

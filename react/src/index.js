@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { Context } from "react";
+import type { ComponentType, Context, Node } from "react";
 import type {
   Message,
   Model,
@@ -19,32 +19,32 @@ import {
   useState,
 } from "react";
 
-type DataProviderProps<T> = T & { name?: string, children?: ?React$Node };
+type DataProviderProps<T> = T & { name?: string, children?: ?Node };
 
 type AnyModel = Model<any, any, any>;
 
 // FIXME: Redefine this so it throws when undefined
-export type DataFunction<T> = (data: T | void) => ?React$Node;
+export type DataFunction<T> = (data: T | void) => ?Node;
 
 /**
  * DataProvider is a component which will load or instantiate a state-instance
  * with the given props as its initial data, and supply the state-data to its
  * children.
  */
-export type DataProvider<I> = React$ComponentType<DataProviderProps<I>>;
+export type DataProvider<I> = ComponentType<DataProviderProps<I>>;
 
 /**
  * DataConsumer is a component which takes a function as children and will call
  * this function with the state data.
  */
-export type DataConsumer<T> = React$ComponentType<{ children: DataFunction<T> }>;
+export type DataConsumer<T> = ComponentType<{ children: DataFunction<T> }>;
 
 /**
  * TestProvider is a component which exposes a property for setting the
  * state-data value used in children, useful for testing components by
  * supplying the state-data without having to create a state.
  */
-export type TestProvider<T> = React$ComponentType<{ value: T, children?: ?React$Node }>;
+export type TestProvider<T> = ComponentType<{ value: T, children?: ?Node }>;
 
 /**
  * React-wrapper for a crustate-state.
@@ -53,7 +53,7 @@ export type StateData<M: AnyModel> = {
   /**
    * Internal: Reference to the data-context.
    */
-  +_dataContext: React$Context<TypeofModelData<M> | void>,
+  +_dataContext: Context<TypeofModelData<M> | void>,
   /**
    * The model, exposed to be loaded for hydration and for testing.
    */
@@ -69,7 +69,7 @@ export type StateData<M: AnyModel> = {
 
 export type SendMessageFn = (msg: Message, srcName?: string) => Promise<void>;
 
-type StorageProviderProps = { storage: Storage, children?: ?React$Node };
+type StorageProviderProps = { storage: Storage, children?: ?Node };
 
 /**
  * The basic state context where we will carry either a Storage, or a state
@@ -82,9 +82,8 @@ const InstanceProvider = StateContext.Provider;
 /**
  * Provider for the Storage-instance to be used in all child-components.
  */
-export function StorageProvider({ storage, children }: StorageProviderProps): React$Node {
-  return createElement(InstanceProvider, { value: storage }, children);
-}
+export const StorageProvider = ({ storage, children }: StorageProviderProps): Node =>
+  createElement(InstanceProvider, { value: storage }, children);
 
 /**
  * Returns a function for passing messages into the state-tree at the current
@@ -106,9 +105,9 @@ export function useSendMessage(): SendMessageFn {
  * are always new objects and are most likely not of interest to the state, and
  * name is an external parameter.
  */
-function excludeChildren<T: { children?: ?React$Node, name?: string }>(
+function excludeChildren<T: { children?: ?Node, name?: string }>(
   props: T
-): $Rest<T, {| children: ?React$Node, name: ?string |}> {
+): $Rest<T, {| children: ?Node, name: ?string |}> {
   // Manually implemented object-rest-spread to avoid Babel's larger
   // implementation
   // Object.assign causes Babel to to add an unnecessary polyfill so use spread
@@ -121,10 +120,10 @@ function excludeChildren<T: { children?: ?React$Node, name?: string }>(
 }
 
 export function createStateData<+M: AnyModel>(model: M): StateData<M> {
-  const Ctx = (createContext(undefined): React$Context<TypeofModelData<M> | void>);
+  const Ctx = (createContext(undefined): Context<TypeofModelData<M> | void>);
   const { Provider } = Ctx;
 
-  function DataProvider(props: DataProviderProps<TypeofModelInit<M>>): React$Node {
+  const DataProvider = (props: DataProviderProps<TypeofModelInit<M>>): Node => {
     const context = useContext(StateContext);
 
     if (!context) {
@@ -164,7 +163,7 @@ export function createStateData<+M: AnyModel>(model: M): StateData<M> {
     return createElement(InstanceProvider, { value: instance },
       createElement(Provider, { value: data },
         props.children));
-  }
+  };
 
   return {
     _dataContext: Ctx,
@@ -172,7 +171,7 @@ export function createStateData<+M: AnyModel>(model: M): StateData<M> {
     // We have to cheat here since the value must be possible to use as
     // undefined internally, but when testing it should not be possible to use
     // without a fully defined `T`:
-    TestProvider: (Provider: React$ComponentType<{ children: ?React$Node, value: any }>),
+    TestProvider: (Provider: ComponentType<{ children: ?Node, value: any }>),
     Provider: DataProvider,
     Consumer: Ctx.Consumer,
   };

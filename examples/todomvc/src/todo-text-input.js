@@ -1,6 +1,6 @@
 /* @flow */
 
-import React from "react";
+import * as React from "react";
 import classnames from "classnames";
 
 type TodoTextInputProps = {
@@ -17,7 +17,7 @@ export const TodoTextInput = ({
   onSave,
   placeholder = "",
   text: defaultText = "",
-}: TodoTextInputProps) => {
+}: TodoTextInputProps): React.Node => {
   const [text, setText] = React.useState(defaultText || "");
 
   const handleBlur = e => isNewTodo && onSave(e.target.value);

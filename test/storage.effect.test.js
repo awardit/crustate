@@ -151,6 +151,8 @@ test("Active effects prevent parents and unhandledMessage from receiving", t => 
 
   t.deepEqual(args(stub1), []);
   t.deepEqual(args(stub2), [[firstMsg, ["first"]]]);
+  // FIXME: This once we swap the stub/spy library
+  // $FlowFixMe[prop-missing]
   t.deepEqual(args(firstDef.update), [[firstData, initMsg]]);
   t.is(first.getData(), firstData);
   t.deepEqual(args(emit), [

@@ -1,11 +1,11 @@
 /* @flow */
 
-import React from "react";
+import * as React from "react";
 import { Link } from "react-router-dom";
 import { useData } from "crustate/react";
 import { PostData } from "../state";
 
-export const PostView = (): React$Node => {
+export const PostView = (): React.Node => {
   const data = useData(PostData);
 
   switch (data.state) {

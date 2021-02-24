@@ -32,9 +32,9 @@ test("Storage is not modified when querying for state-instances or definitions",
   const emit = t.context.spy(s, "emit");
 
   t.is(s.getModel("foo"), undefined);
-  // $FlowExpectedError minimal State instance for this
+  // $FlowFixMe[prop-missing] minimal State instance for this
   t.is(s.getState({ id: "foo" }), undefined);
-  // $FlowExpectedError minimal State instance for this
+  // $FlowFixMe[prop-missing] minimal State instance for this
   t.is(s.getState({ id: "foo" }, "bar"), undefined);
   t.deepEqual(s.getSnapshot(), {});
   t.deepEqual(args(emit), []);
@@ -421,6 +421,8 @@ test("Messages sent on State should propagate upwards if not handled", t => {
 
   first.sendMessage(initMsg);
 
+  // FIXME: This once we swap the stub/spy library
+  // $FlowFixMe[prop-missing]
   t.deepEqual(args(firstDef.update), [
     [firstData, initMsg],
   ]);
@@ -451,6 +453,8 @@ test("Messages with a sourceName sent on State should propagate upwards with tha
 
   first.sendMessage(initMsg, "thesource");
 
+  // FIXME: This once we swap the stub/spy library
+  // $FlowFixMe[prop-missing]
   t.deepEqual(args(firstDef.update), [
     [firstData, initMsg],
   ]);
@@ -486,6 +490,8 @@ test("State init is sent to parent instances", t => {
   const first = s.createState(firstDef);
   first.createState(secondDef);
 
+  // FIXME: This once we swap the stub/spy library
+  // $FlowFixMe[prop-missing]
   t.deepEqual(args(firstDef.update), [
     [firstData, secondInit],
   ]);
@@ -518,6 +524,8 @@ test("no message matches on nested states", t => {
 
   f.sendMessage({ tag: "nomatch" });
 
+  // FIXME: This once we swap the stub/spy library
+  // $FlowFixMe[prop-missing]
   t.deepEqual(args(firstDef.update), [
     [{}, { tag: "nomatch" }],
   ]);
@@ -552,7 +560,11 @@ test("State init is sent to parent instances, but not siblings", t => {
   s.createState(firstDef);
   s.createState(secondDef);
 
+  // FIXME: This once we swap the stub/spy library
+  // $FlowFixMe[prop-missing]
   t.deepEqual(args(firstDef.update), []);
+  // FIXME: This once we swap the stub/spy library
+  // $FlowFixMe[prop-missing]
   t.deepEqual(args(secondDef.update), []);
   t.deepEqual(s.getSnapshot(), {
     first: { id: "first", data: { name: "firstData" }, nested: {} },
@@ -587,6 +599,8 @@ test("Messages generated during processing are handled in order", t => {
 
   first.sendMessage(initMsg);
 
+  // FIXME: This once we swap the stub/spy library
+  // $FlowFixMe[prop-missing]
   t.deepEqual(args(firstDef.update), [
     [firstData, initMsg],
   ]);

@@ -1,5 +1,3 @@
-/* @flow */
-
 const babel = require("./build/babel");
 
 module.exports = {

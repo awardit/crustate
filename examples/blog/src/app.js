@@ -3,7 +3,7 @@
 import type { Storage } from "crustate";
 
 import { StorageProvider } from "crustate/react";
-import React from "react";
+import * as React from "react";
 import { Route } from "react-router";
 import { PostData, PostListData } from "./state";
 import { ListPostsView } from "./views/list";
@@ -19,7 +19,7 @@ type RouteParams = {
   },
 };
 
-export const App = ({ storage }: Props) => (
+export const App = ({ storage }: Props): React.Node => (
   <StorageProvider storage={storage}>
     <Route
       path="/"

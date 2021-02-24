@@ -1,13 +1,13 @@
 /* @flow */
 
-import React from "react";
+import * as React from "react";
 import { useSendMessage, useData } from "crustate/react";
 import { TodosState, add, completeAll } from "./states/todos";
 import { Footer } from "./footer";
 import { TodoTextInput } from "./todo-text-input";
 import { TodoList } from "./todo-list";
 
-export const Header = () => {
+export const Header = (): React.Node => {
   const sendMessage = useSendMessage();
 
   return (
@@ -22,7 +22,7 @@ export const Header = () => {
   );
 };
 
-export const MainSection = () => {
+export const MainSection = (): React.Node => {
   const todos = useData(TodosState);
   const sendMessage = useSendMessage();
   const completedCount = todos.reduce((a, t) => a + (t.completed ? 1 : 0), 0);
@@ -50,7 +50,7 @@ export const MainSection = () => {
   );
 };
 
-export const App = () => (
+export const App = (): React.Node => (
   <section className="todoapp">
     <Header />
     <MainSection />

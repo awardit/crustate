@@ -3,6 +3,7 @@
 import type { StatePath } from "crustate";
 import type { DataRequest } from "./effects";
 import type { Post, PostHeading } from "./state";
+import type { $Request, $Response, Middleware, Router } from "express";
 
 import { StaticRouter } from "react-router";
 import express from "express";
@@ -13,7 +14,7 @@ import { App } from "./app";
 
 // Create a router only since We run this file through the main
 // `examples/index.js` application
-const app = new express.Router();
+const app: Router<$Request, $Response> = new express.Router();
 
 function listPosts(cb: (error: boolean, posts: Array<PostHeading>) => mixed) {
   cb(false, [{ id: 1, title: "Post one" }, { id: 2, title: "Post B" }]);
@@ -113,7 +114,7 @@ app.get("/api/posts/:id", (req, res) =>
     res.status(404).end() :
     res.json(post)));
 
-app.use((req, res, next) => {
+app.use(((req: $Request, res: $Response, next) => {
   const storage = new Storage();
   const effects = createRequestHandler(storage);
 
@@ -121,15 +122,15 @@ app.use((req, res, next) => {
   res.locals.effects = effects;
 
   next();
-});
+}: Middleware<>));
 
-const renderApp = (req, res, context): string => ReactDomServer.renderToString(
+const renderApp = (req, res: $Response, context): string => ReactDomServer.renderToString(
   <StaticRouter
     basename={req.baseUrl}
     location={req.url}
     context={context}
   >
-    <App storage={res.locals.storage} />
+    <App storage={(res.locals.storage: any)} />
   </StaticRouter>
 );
 
@@ -145,7 +146,7 @@ app.use((req, res) => {
     return res.end();
   }
 
-  res.locals.effects.waitForAll().then(() => {
+  (res.locals.effects: any).waitForAll().then(() => {
     const html = renderApp(req, res, context);
 
     if (context.url) {
@@ -154,7 +155,7 @@ app.use((req, res) => {
       return res.end();
     }
 
-    const data = JSON.stringify(res.locals.storage.getSnapshot());
+    const data = JSON.stringify((res.locals.storage: any).getSnapshot());
 
     res.send(`<!DOCTYPE html>
 <html>
