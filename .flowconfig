@@ -18,7 +18,7 @@ unclear-type=off
 [options]
 include_warnings=true
 module.name_mapper='^crustate$' -> '<PROJECT_ROOT>/src/index.js'
-module.name_mapper='^crustate/react$' -> '<PROJECT_ROOT>/react/src/index.js'
-module.name_mapper='.*/blog/dist/server\.js$' -> '<PROJECT_ROOT>/examples/blog/src/server.js'
+module.name_mapper='^crustate\/react$' -> '<PROJECT_ROOT>/react/src/index.js'
+module.name_mapper='^\.\/blog\/dist\/server\.js$' -> '<PROJECT_ROOT>/examples/blog/src/server.js'
 
 [strict]

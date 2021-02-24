@@ -30,7 +30,6 @@ export default [
     output: {
       file: "examples/blog/dist/server.js",
       format: "cjs",
-      exports: "default",
       sourcemap: true,
     },
     plugins: [

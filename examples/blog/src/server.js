@@ -14,7 +14,7 @@ import { App } from "./app";
 
 // Create a router only since We run this file through the main
 // `examples/index.js` application
-const app: Router<$Request, $Response> = new express.Router();
+export const app: Router<$Request, $Response> = new express.Router();
 
 function listPosts(cb: (error: boolean, posts: Array<PostHeading>) => mixed) {
   cb(false, [{ id: 1, title: "Post one" }, { id: 2, title: "Post B" }]);
@@ -174,5 +174,3 @@ app.use((req, res) => {
 </html>`);
   });
 });
-
-export default app;
