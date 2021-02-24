@@ -44,7 +44,10 @@ export const postcss = postcssPlugin({
 });
 
 export const replace = replacePlugin({
-  "process.env.NODE_ENV": JSON.stringify("production"),
+  preventAssignment: true,
+  values: {
+    "process.env.NODE_ENV": JSON.stringify("production"),
+  },
 });
 
 export const resolve = resolvePlugin({ mainFields: ["browser", "module", "main"] });
