@@ -12,6 +12,7 @@ jobs:
         with:
           node-version: 14
       - run: npm install -g npm@latest
+      - run: npm install
       - run: npm run build
   test:
     runs-on: ubuntu-latest
@@ -21,6 +22,7 @@ jobs:
         with:
           node-version: 14
       - run: npm install -g npm@latest
+      - run: npm install
       - run: npm run test
   lint-coverage:
     runs-on: ubuntu-latest
@@ -31,4 +33,5 @@ jobs:
           node-version: 14
       - run: npm install -g npm@latest
       - run: npm install -g codecov
+      - run: npm install
       - run: ./node_modules/.bin/nyc report --reporter=text-lcov | codecov --pipe

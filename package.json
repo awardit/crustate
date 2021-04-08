@@ -306,7 +306,8 @@
       "unicorn/no-array-reduce": "off",
       "unicorn/prefer-includes": "off",
       "unicorn/prevent-abbreviations": "off",
-      "valid-jsdoc": "off"
+      "valid-jsdoc": "off",
+      "react/boolean-prop-naming": "off"
     },
     "space": 2
   }

@@ -16,6 +16,7 @@ untyped-import=off
 unclear-type=off
 
 [options]
+sharedmemory.heap_size=3221225472
 include_warnings=true
 module.name_mapper='^crustate$' -> '<PROJECT_ROOT>/src/index.js'
 module.name_mapper='^crustate\/react$' -> '<PROJECT_ROOT>/react/src/index.js'
