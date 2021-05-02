@@ -106,7 +106,7 @@
     "react-router-dom": "5.2.0",
     "rollup": "2.46.0",
     "rollup-plugin-postcss": "4.0.0",
-    "todomvc-app-css": "2.4.0",
+    "todomvc-app-css": "2.4.1",
     "xo": "0.39.1"
   },
   "xo": {
