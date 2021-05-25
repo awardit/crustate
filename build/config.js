@@ -1,4 +1,4 @@
-import path from "node:path";
+import path from "path";
 import babelPlugin from "@rollup/plugin-babel";
 
 // Rollup configuration compiler does not respect __dirname, so we have to rely

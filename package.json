@@ -312,6 +312,7 @@
       "unicorn/no-array-reduce": "off",
       "unicorn/prefer-includes": "off",
       "unicorn/prefer-module": "off",
+      "unicorn/prefer-node-protocol": "off",
       "unicorn/prevent-abbreviations": "off",
       "valid-jsdoc": "off",
       "react/boolean-prop-naming": "off"
